@@ -10,7 +10,7 @@ namespace FluentSql.DatabaseMappers.Common
     /// <summary>
     /// Represents a Colum in a database
     /// </summary>
-    class Column
+    public class Column
     {        
         /// <summary>
         /// Database Column Name

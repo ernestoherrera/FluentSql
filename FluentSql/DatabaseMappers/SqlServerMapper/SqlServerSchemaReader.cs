@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentSql
+namespace FluentSql.DatabaseMappers.SqlServerMapper
 {
-    public class ModelStore
+    class SqlServerSchemaReader
     {
     }
 }

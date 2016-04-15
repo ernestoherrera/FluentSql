@@ -9,7 +9,7 @@ namespace FluentSql.DatabaseMappers.Common
     /// <summary>
     /// Represent a Table in a Database
     /// </summary>
-    class Table
+    public class Table
     {
         #region Public Properties
         public IEnumerable<Column> Columns { get; set; }

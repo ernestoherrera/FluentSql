@@ -9,7 +9,7 @@ namespace FluentSql.DatabaseMappers.Common
     /// <summary>
     /// Describes the relationship between tables
     /// </summary>
-    class ForeignKey
+    public class ForeignKey
     {
         /// <summary>
         /// Foreign key constraint name
