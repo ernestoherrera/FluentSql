@@ -24,7 +24,7 @@ namespace FluentSql.DatabaseMappers.Common
         /// <summary>
         /// Column name from the referenced table
         /// </summary>
-        public IEnumerable<Column> Columns { get; private set; }
+        public Column Column { get; private set; }
 
         /// <summary>
         /// Calling table name
@@ -32,8 +32,8 @@ namespace FluentSql.DatabaseMappers.Common
         public string ReferencedTableName { get; private set; }
 
         /// <summary>
-        /// Calling Column name
+        /// Column name in the referenced table
         /// </summary>
-        public IEnumerable<Column> ReferencedColumns { get; private set; }
+        public Column ReferencedColumn { get; private set; }
     }
 }

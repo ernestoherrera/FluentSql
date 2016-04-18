@@ -38,6 +38,6 @@ namespace FluentSql.DatabaseMappers.Common
                 return GetColumn(columnName);
             }
         }
-        #endregion
+        #endregion       
     }
 }
