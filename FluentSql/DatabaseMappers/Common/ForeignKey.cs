@@ -24,7 +24,7 @@ namespace FluentSql.DatabaseMappers.Common
         /// <summary>
         /// Column name from the referenced table
         /// </summary>
-        public Column Column { get; private set; }
+        public Column ReferencingColumn { get; private set; }
 
         /// <summary>
         /// Calling table name

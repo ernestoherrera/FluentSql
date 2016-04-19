@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentSql
+namespace FluentSql.SqlGenerators.Contracts
 {
-    public class ModelStore
+    public interface ISqlGenerator
     {
     }
 }

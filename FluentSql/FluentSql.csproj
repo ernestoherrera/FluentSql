@@ -48,17 +48,22 @@
     <Compile Include="DatabaseMappers\DefaultDatabaseMapper.cs" />
     <Compile Include="DatabaseMappers\SqlServerMapper\SqlServerConstants.cs" />
     <Compile Include="DatabaseMappers\SqlServerMapper\SqlServerDatabaseMapper.cs" />
-    <Compile Include="DatabaseMappers\SqlServerMapper\SqlServerSchemaReader.cs" />
-    <Compile Include="ModelStore.cs" />
+    <Compile Include="EntityMappers\Contracts\IEntityMap.cs" />
+    <Compile Include="EntityMappers\Contracts\IPropertyMap.cs" />
+    <Compile Include="EntityMappers\EntityMap.cs" />
+    <Compile Include="EntityMappers\EntityMapper.cs" />
+    <Compile Include="EntityMappers\PropertyMap.cs" />
+    <Compile Include="EntityReaders\Contracts\IEntityMapper.cs" />
+    <Compile Include="EntityReaders\DefaultEntityReader.cs" />
+    <Compile Include="EntityStore.cs" />
     <Compile Include="DatabaseMappers\Common\Column.cs" />
     <Compile Include="DatabaseMappers\Common\ForeignKey.cs" />
     <Compile Include="DatabaseMappers\Common\Table.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlGenerators\Contracts\ISqlGenerator.cs" />
+    <Compile Include="Support\AssemblyExtensions.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Integrators\" />
-    <Folder Include="ModelMappers\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

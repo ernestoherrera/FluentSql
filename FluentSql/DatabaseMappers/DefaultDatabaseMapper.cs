@@ -12,7 +12,9 @@ namespace FluentSql.DatabaseMappers
 {
     public class DefaultDatabaseMapper : IDatabaseMapper
     {
+        #region Properties
         protected IDatabaseMapper DatabaseMapper { get; set; }
+        #endregion
 
         #region IDatabaseMapper Implementation
         /// <summary>
