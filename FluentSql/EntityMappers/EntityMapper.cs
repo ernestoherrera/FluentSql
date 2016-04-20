@@ -9,6 +9,9 @@ using FluentSql.SqlGenerators.Contracts;
 using FluentSql.DatabaseMappers.SqlServerMapper;
 using FluentSql.Support;
 using FluentSql.SqlGenerators;
+using System.Data.Entity.Design.PluralizationServices;
+using System.Globalization;
+using FluentSql.DatabaseMappers.Common;
 
 namespace FluentSql.EntityMappers
 {
@@ -59,9 +62,22 @@ namespace FluentSql.EntityMappers
             foreach (var type in entities)
             {
                 var map = new EntityMap(type);
-                var table = dbTables.FirstOrDefault(
-                    t => string.Compare(t.Name, map.Name, StringComparison.CurrentCultureIgnoreCase) == 0);
+                Table table = null;
+               
+                var service = PluralizationService.CreateService(CultureInfo.CurrentCulture);
+                var singularTableName = service.Singularize(map.Name);
 
+                table = dbTables.FirstOrDefault(
+                t => string.Compare(t.Name, singularTableName, StringComparison.CurrentCultureIgnoreCase) == 0);
+               
+                if (table == null)
+                {
+                    var pluralTableName = service.Pluralize(map.Name);
+
+                    table = dbTables.FirstOrDefault(
+                            t => string.Compare(t.Name, pluralTableName, StringComparison.CurrentCultureIgnoreCase) == 0);
+                }
+                
                 if (table == null) continue;
 
                 map.TableAlias = sqlHelper.GetTableAlias(type);
@@ -86,6 +102,7 @@ namespace FluentSql.EntityMappers
                     prop.OrdinalPosition = col.OrdinalPosition;
 
                 }
+                map.IsMapped = true;
                 map.Properties.Sort();
 
                 if (!EntityMap.TryAdd(type, map))

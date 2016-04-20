@@ -11,6 +11,7 @@ namespace FluentSql.DatabaseMappers.Common
     /// </summary>
     public class ForeignKey
     {
+        #region Public Properties
         /// <summary>
         /// Foreign key constraint name
         /// </summary>
@@ -35,5 +36,7 @@ namespace FluentSql.DatabaseMappers.Common
         /// Column name in the referenced table
         /// </summary>
         public Column ReferencedColumn { get; private set; }
+
+        #endregion
     }
 }

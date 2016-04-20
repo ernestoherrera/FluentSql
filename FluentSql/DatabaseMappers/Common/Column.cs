@@ -10,8 +10,9 @@ namespace FluentSql.DatabaseMappers.Common
     /// <summary>
     /// Represents a Colum in a database
     /// </summary>
-    public class Column
-    {        
+    public class Column : IComparable
+    {
+        #region Public Properties 
         /// <summary>
         /// Database Column Name
         /// </summary>
@@ -63,8 +64,10 @@ namespace FluentSql.DatabaseMappers.Common
         /// <summary>
         /// Returns the table name where the column is part of
         /// </summary>
-        public string TableName;        
+        public string TableName;
+        #endregion
 
+        #region IComparable Implementation
         public int CompareTo(object obj)
         {
             if (obj == null) return 1;
@@ -77,5 +80,6 @@ namespace FluentSql.DatabaseMappers.Common
                 throw new ArgumentException("Object is not a Column");
             
         }
+        #endregion
     }
 }
