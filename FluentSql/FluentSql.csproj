@@ -61,9 +61,22 @@
     <Compile Include="DatabaseMappers\Common\ForeignKey.cs" />
     <Compile Include="DatabaseMappers\Common\Table.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlGenerators\Contracts\IDeleteQuery.cs" />
+    <Compile Include="SqlGenerators\Contracts\IInsertQuery.cs" />
+    <Compile Include="SqlGenerators\Contracts\IQuery.cs" />
+    <Compile Include="SqlGenerators\Contracts\ISelectQuery.cs" />
     <Compile Include="SqlGenerators\Contracts\ISqlGenerator.cs" />
+    <Compile Include="SqlGenerators\Contracts\IUpdateQuery.cs" />
+    <Compile Include="SqlGenerators\SortOrderField.cs" />
+    <Compile Include="SqlGenerators\DefaultSqlGenerator.cs" />
+    <Compile Include="SqlGenerators\DeleteQuery.cs" />
+    <Compile Include="SqlGenerators\PredicateUnit.cs" />
+    <Compile Include="SqlGenerators\Query.cs" />
     <Compile Include="SqlGenerators\SqlGeneratorHelper.cs" />
-    <Compile Include="Support\AssemblyExtensions.cs" />
+    <Compile Include="SqlGenerators\SqlServer\SqlServerSqlGenerator.cs" />
+    <Compile Include="Support\Extensions\AssemblyExtensions.cs" />
+    <Compile Include="Support\Enums.cs" />
+    <Compile Include="Support\ExpressionHelper.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

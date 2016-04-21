@@ -7,11 +7,11 @@ using System.Linq;
 using FluentSql.DatabaseMappers.Contracts;
 using FluentSql.SqlGenerators.Contracts;
 using FluentSql.DatabaseMappers.SqlServerMapper;
-using FluentSql.Support;
 using FluentSql.SqlGenerators;
 using System.Data.Entity.Design.PluralizationServices;
 using System.Globalization;
 using FluentSql.DatabaseMappers.Common;
+using FluentSql.Support.Extensions;
 
 namespace FluentSql.EntityMappers
 {
@@ -22,6 +22,8 @@ namespace FluentSql.EntityMappers
         /// Default Database mapper
         /// </summary>
         public IDatabaseMapper DefaultDatabaseMapper { get; private set; }
+
+        public IEnumerable<string> DatabaseNames { get; private set; }
 
         public static ConcurrentDictionary<Type, EntityMap> EntityMap = new ConcurrentDictionary<Type, EntityMappers.EntityMap>();
 
@@ -35,11 +37,10 @@ namespace FluentSql.EntityMappers
                 throw new ArgumentNullException("Database connection, Entity Interface or Database names can not be null.");
 
             DefaultDatabaseMapper = defaultDatabaseMapper ?? new SqlServerDatabaseMapper();
+            DatabaseNames = databaseNames;
 
             if (dbConnection.State == ConnectionState.Closed)
-                dbConnection.Open();
-
-
+                dbConnection.Open();            
 
         }
 
@@ -107,7 +108,7 @@ namespace FluentSql.EntityMappers
 
                 if (!EntityMap.TryAdd(type, map))
                 {
-                    //TODO: Log Error;
+                    throw new ArgumentNullException("Can not add a key with null value.");
                 }
             }
         }
