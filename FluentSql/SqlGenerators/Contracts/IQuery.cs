@@ -1,16 +1,13 @@
 ﻿using Dapper;
-using FluentSql.EntityMappers;
+using FluentSql.Mappers;
 using FluentSql.Support;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FluentSql.SqlGenerators.Contracts
 {
-    public interface IQuery<L>
+    public interface IQuery<L> : IToSql
     {
         string Verb { get; }
 
@@ -39,6 +36,8 @@ namespace FluentSql.SqlGenerators.Contracts
         IQuery<L> Where(string propertyName, ExpressionType expressionType, dynamic value);
 
         IQuery<L> WhereOnKey<TEntity>(TEntity entity);
+
+        string ResolveTableAlias(Type type);
 
         string ToSql();
     }

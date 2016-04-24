@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentSql.Support
-{
-    class ExpressionHelper
+namespace FluentSql.SqlGenerators.Contracts
+{   
+    public interface IToSql
     {
+        string Tosql();
     }
 }

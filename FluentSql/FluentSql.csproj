@@ -49,11 +49,11 @@
     <Compile Include="DatabaseMappers\DefaultDatabaseMapper.cs" />
     <Compile Include="DatabaseMappers\SqlServerMapper\SqlServerConstants.cs" />
     <Compile Include="DatabaseMappers\SqlServerMapper\SqlServerDatabaseMapper.cs" />
-    <Compile Include="EntityMappers\Contracts\IEntityMap.cs" />
-    <Compile Include="EntityMappers\Contracts\IPropertyMap.cs" />
-    <Compile Include="EntityMappers\EntityMap.cs" />
-    <Compile Include="EntityMappers\EntityMapper.cs" />
-    <Compile Include="EntityMappers\PropertyMap.cs" />
+    <Compile Include="Mappers\Contracts\IEntityMap.cs" />
+    <Compile Include="Mappers\Contracts\IPropertyMap.cs" />
+    <Compile Include="Mappers\EntityMap.cs" />
+    <Compile Include="Mappers\EntityMapper.cs" />
+    <Compile Include="Mappers\PropertyMap.cs" />
     <Compile Include="EntityReaders\Contracts\IEntityMapper.cs" />
     <Compile Include="EntityReaders\DefaultEntityReader.cs" />
     <Compile Include="EntityStore.cs" />
@@ -66,7 +66,10 @@
     <Compile Include="SqlGenerators\Contracts\IQuery.cs" />
     <Compile Include="SqlGenerators\Contracts\ISelectQuery.cs" />
     <Compile Include="SqlGenerators\Contracts\ISqlGenerator.cs" />
+    <Compile Include="SqlGenerators\Contracts\IToSql.cs" />
     <Compile Include="SqlGenerators\Contracts\IUpdateQuery.cs" />
+    <Compile Include="SqlGenerators\Join.cs" />
+    <Compile Include="SqlGenerators\Predicate.cs" />
     <Compile Include="SqlGenerators\SortOrderField.cs" />
     <Compile Include="SqlGenerators\DefaultSqlGenerator.cs" />
     <Compile Include="SqlGenerators\DeleteQuery.cs" />

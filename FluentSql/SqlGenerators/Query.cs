@@ -1,12 +1,12 @@
 ﻿using Dapper;
-using FluentSql.EntityMappers;
+using FluentSql.Mappers;
 using FluentSql.SqlGenerators.Contracts;
+using FluentSql.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FluentSql.SqlGenerators
 {
@@ -14,7 +14,7 @@ namespace FluentSql.SqlGenerators
     {
         #region Properties
 
-        protected List<PredicateUnit> Predicates = new List<PredicateUnit>();
+        protected Predicate<TEntity> Predicate;
 
         protected Queue<dynamic> Joins = new Queue<dynamic>();
 
@@ -33,6 +33,7 @@ namespace FluentSql.SqlGenerators
         {
             Parameters = new DynamicParameters();
             Fields = new List<PropertyMap>();
+            Predicate = new Predicate<TEntity>(this);
 
             if (EntityMapper.EntityMap.ContainsKey(typeof(TEntity)))
             {
@@ -57,21 +58,24 @@ namespace FluentSql.SqlGenerators
             return this;
         }
 
-        public virtual IQuery<TEntity> Where(string propertyName, ExpressionType expressionType, dynamic value)
+        public virtual IQuery<TEntity> Where(string propertyName, ExpressionType expressionType, dynamic value, string linkToNextPredicate)
         {
+            if (string.IsNullOrEmpty(propertyName) || value == null )
+                throw new Exception("Property name can not be empty or null and value can not be null for use in the where clause");                
+            
             var op = EntityMapper.SqlGenerator.GetOperator(expressionType);
 
-            var predicate = new PredicateUnit
+            var predicateUnit = new PredicateUnit
             {
-                Operand = propertyName,
-                OperandType = typeof(TEntity),
+                LeftOperand = typeof(TEntity).GetProperty(propertyName),
+                LeftOperandType = typeof(TEntity),
                 Operator = EntityMapper.SqlGenerator.GetOperator(expressionType),
-                OperandValueType = value.GetType(),
-                OperandValue = value,
-                IsParameterized = true
+                RightOperandType = value.GetType(),
+                RightOperand = value,
+                Link = linkToNextPredicate
             };
 
-            Predicates.Add(predicate);
+            Predicate.Add(predicateUnit);
             CreateDynamicParameters();
 
             return this;
@@ -87,26 +91,28 @@ namespace FluentSql.SqlGenerators
             return this;
         }
 
-        public IQuery<TEntity> WhereOnKey<TEntity>(TEntity entity)
+        public IQuery<TEntity> WhereOnKey<R>(R entity)
         {
 
             if (Fields == null || !Fields.Any()) return this;
 
             var keyFields = Fields.Where(f => f.IsPrimaryKey);
+            var fieldCount = Fields.Count();
 
-            foreach (var field in keyFields)
+            for (var i = 0 ; i < fieldCount; i++)
             {
-                var predicate = new PredicateUnit
+                var field = Fields[i];
+                var predicateUnit = new PredicateUnit
                 {
-                    Operand = field.ColumnName,
-                    OperandType = typeof(TEntity),
+                    LeftOperand = field.ColumnName,
+                    LeftOperandType = typeof(TEntity),
                     Operator = EntityMapper.SqlGenerator.GetOperator(ExpressionType.Equal),
-                    OperandValueType = field.PropertyInfo.GetType(),
-                    OperandValue = field.PropertyInfo.GetValue(entity),
-                    IsParameterized = true
+                    RightOperandType = field.PropertyInfo.GetType(),
+                    RightOperand = field.PropertyInfo.GetValue(entity),
+                    Link = ((i + 1) >= fieldCount ? "" : EntityMapper.SqlGenerator.And)
                 };
 
-                Predicates.Add(predicate);
+                Predicate.Add(predicateUnit);
             }
 
             CreateDynamicParameters();
@@ -170,7 +176,7 @@ namespace FluentSql.SqlGenerators
         {
             Joins.Clear();
             Fields.Clear();
-            Predicates.Clear();
+            Predicate.Clear();
         }
         #endregion
 
@@ -200,58 +206,13 @@ namespace FluentSql.SqlGenerators
             if (expression == null) return;
 
             ExpressionHelper.WalkTree((BinaryExpression)expression.Body, ExpressionType.Default, ref Predicates);
-        }
-
-        protected virtual string BuildPredicateSql()
-        {
-            var sqlBuilder = new StringBuilder();
-
-            for (int i = 0; i < Predicates.Count(); i++)
-            {
-                var item = Predicates[i];
-
-                if (item.IsParameterized)
-                {
-                    if (!string.IsNullOrEmpty(item.Link) && i > 0)
-                        sqlBuilder.Append(string.Format("{1} {0}.{2} {3} @{2} ",
-                                                            ResolveTableAlias(item.OperandType),
-                                                            item.Link,
-                                                            item.Operand,
-                                                            item.Operator));
-                    else
-                        sqlBuilder.Append(string.Format("{0}.{1} {2} @{1} ",
-                                                            ResolveTableAlias(item.OperandType),
-                                                            item.Operand,
-                                                            item.Operator));
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(item.Link) && i > 0)
-                        sqlBuilder.Append(string.Format("{0}  {1}.{2} {3} {4}.{5} ",
-                                                            item.Link,
-                                                            ResolveTableAlias(item.OperandType),
-                                                            item.Operand,
-                                                            item.Operator,
-                                                            ResolveTableAlias(item.OperandValueType),
-                                                            item.OperandValue));
-                    else
-                        sqlBuilder.Append(string.Format("{0}.{1} {2} {3}.{4} ",
-                                                            ResolveTableAlias(item.OperandType),
-                                                            item.Operand,
-                                                            item.Operator,
-                                                            ResolveTableAlias(item.OperandValueType),
-                                                            item.OperandValue));
-                }
-            }
-
-            return sqlBuilder.ToString();
-        }
+        }       
 
         protected void CreateDynamicParameters()
         {
             var paramNames = Parameters.ParameterNames;
 
-            foreach (var prd in Predicates)
+            foreach (var prd in Predicate)
             {
                 if (prd.IsParameterized && paramNames.FirstOrDefault(p =>
                                     string.Compare(p, prd.Operand, StringComparison.CurrentCultureIgnoreCase) != 0) == null)

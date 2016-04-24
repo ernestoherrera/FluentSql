@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Reflection;
 
-using FluentSql.EntityMappers.Contracts;
+using FluentSql.Mappers.Contracts;
 
-namespace FluentSql.EntityMappers
+namespace FluentSql.Mappers
 {
     public class PropertyMap : IPropertyMap, IComparable
     {       

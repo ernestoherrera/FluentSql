@@ -13,7 +13,7 @@ using System.Globalization;
 using FluentSql.DatabaseMappers.Common;
 using FluentSql.Support.Extensions;
 
-namespace FluentSql.EntityMappers
+namespace FluentSql.Mappers
 {
     public class EntityMapper
     {
@@ -25,7 +25,7 @@ namespace FluentSql.EntityMappers
 
         public IEnumerable<string> DatabaseNames { get; private set; }
 
-        public static ConcurrentDictionary<Type, EntityMap> EntityMap = new ConcurrentDictionary<Type, EntityMappers.EntityMap>();
+        public static ConcurrentDictionary<Type, EntityMap> EntityMap = new ConcurrentDictionary<Type, EntityMap>();
 
         public static ISqlGenerator SqlGenerator { get; private set; }
         #endregion

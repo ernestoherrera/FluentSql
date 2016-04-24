@@ -72,5 +72,11 @@ namespace FluentSql.SqlGenerators.Contracts
         /// <param name="sortDirection"></param>
         /// <returns></returns>
         string GetSortOrderToken(SortOrder sortDirection);
+
+        string And { get; }
+
+        string Or { get; }
+
+        string Null { get; }
     }
 }

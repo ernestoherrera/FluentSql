@@ -31,29 +31,29 @@ namespace FluentSql.SqlGenerators.SqlServer
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
         /// <returns>A set of entities of type T</returns>
-        public SelectQuery<T> Select<T>()
+        public ISelectQuery<T> Select<T>()
         {
             return new SqlServerSelect<T>();
         }
 
-        public InsertQuery<T> Insert<T>(T entity)
+        public IInsertQuery<T> Insert<T>(T entity)
         {
             return new SqlServerInsertQuery<T>(entity);
         }
 
-        public UpdateQuery<T> Update<T>(T entity)
+        public IUpdateQuery<T> Update<T>(T entity)
         {
             return new SqlServerUpdateQuery<T>(entity);
         }
 
-        public UpdateQuery<T> UpdateMany<T>(T entity, Expression<Func<T, bool>> expression)
+        public IUpdateQuery<T> UpdateMany<T>(T entity, Expression<Func<T, bool>> expression)
         {
             var updateQuery = new SqlServerUpdateQuery<T>(entity);
 
             return updateQuery.Where(expression) as SqlServerUpdateQuery<T>;
         }
 
-        public DeleteQuery<T> Delete<T>(T entity)
+        public IDeleteQuery<T> Delete<T>(T entity)
         {
             var deleteQuery = new SqlServerDeleteQuery<T>(entity);
 

@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentSql.EntityMappers.Contracts
+namespace FluentSql.Mappers.Contracts
 {
     public interface IPropertyMap
     {

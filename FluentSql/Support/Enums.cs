@@ -20,5 +20,5 @@ namespace FluentSql.Support
     /// Used to determine what type of parameter type
     /// is included in expressions like the where clause
     /// </summary>
-    public enum ParameterType { Constant, EntityType, Value };
+    public enum OperandType { Constant, EntityType, Value };
 }

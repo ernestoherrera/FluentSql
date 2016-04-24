@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentSql.SqlGenerators.Contracts
+namespace FluentSql.Support.Helpers
 {
-    public interface IDeleteQuery<T> : IQuery<T>
+    public class ExpressionHelper
     {
-        T Entity { get; }
     }
 }

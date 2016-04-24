@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentSql.EntityMappers.Contracts
+namespace FluentSql.Mappers.Contracts
 {
     interface IEntityMap
     {
