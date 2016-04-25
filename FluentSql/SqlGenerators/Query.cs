@@ -2,6 +2,7 @@
 using FluentSql.Mappers;
 using FluentSql.SqlGenerators.Contracts;
 using FluentSql.Support;
+using FluentSql.Support.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace FluentSql.SqlGenerators
         public Type EntityType { get; protected set; }
         public string TableName { get; protected set; }
         public string SchemaName { get; protected set; }
-        public string Database { get; protected set; }
+        public string DatabaseName { get; protected set; }
         public List<PropertyMap> Fields { get; protected set; }
         public string Verb { get; protected set; }
         public DynamicParameters Parameters { get; protected set; }
@@ -43,7 +44,7 @@ namespace FluentSql.SqlGenerators
                 TableName = entityMap.TableName;
                 TableAlias = entityMap.TableAlias;
                 SchemaName = entityMap.SchemaName;
-                Database = entityMap.Database;
+                DatabaseName = entityMap.Database;
                 EntityType = typeof(TEntity);
             }
         }
@@ -58,7 +59,7 @@ namespace FluentSql.SqlGenerators
             return this;
         }
 
-        public virtual IQuery<TEntity> Where(string propertyName, ExpressionType expressionType, dynamic value, string linkToNextPredicate)
+        public virtual IQuery<TEntity> Where(string propertyName, ExpressionType expressionType, dynamic value, string linkToNextPredicate = "")
         {
             if (string.IsNullOrEmpty(propertyName) || value == null )
                 throw new Exception("Property name can not be empty or null and value can not be null for use in the where clause");                
@@ -196,28 +197,40 @@ namespace FluentSql.SqlGenerators
         {
             if (expression == null) return;
 
-            ExpressionHelper.WalkTree((BinaryExpression)expression.Body, ExpressionType.Default, ref Predicates);
+            var predicates = new List<PredicateUnit>();
 
-            return;
+            ExpressionHelper.WalkTree((BinaryExpression)expression.Body, ExpressionType.Default, ref predicates);
+
+            foreach (var unit in predicates)
+            {
+                Predicate.Add(unit);
+            }            
         }
 
         protected void ProcessExpression(Expression<Func<TEntity, bool>> expression)
         {
             if (expression == null) return;
 
-            ExpressionHelper.WalkTree((BinaryExpression)expression.Body, ExpressionType.Default, ref Predicates);
+            var predicates = new List<PredicateUnit>();
+
+            ExpressionHelper.WalkTree((BinaryExpression)expression.Body, ExpressionType.Default, ref predicates);
+
+            foreach (var unit in predicates)
+            {
+                Predicate.Add(unit);
+            }
         }       
 
         protected void CreateDynamicParameters()
         {
             var paramNames = Parameters.ParameterNames;
 
-            foreach (var prd in Predicate)
+            foreach (var unit in Predicate)
             {
-                if (prd.IsParameterized && paramNames.FirstOrDefault(p =>
-                                    string.Compare(p, prd.Operand, StringComparison.CurrentCultureIgnoreCase) != 0) == null)
+                if ( unit.LeftOperandType.IsValueType && paramNames.FirstOrDefault(p =>
+                                    string.Compare(p, unit.LeftOperand, StringComparison.CurrentCultureIgnoreCase) != 0) == null)
                 {
-                    Parameters.Add("@" + prd.Operand, prd.OperandValue);
+                    Parameters.Add("@" + unit.LeftOperand, prd.OperandValue);
                 }
 
             }

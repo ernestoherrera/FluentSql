@@ -79,7 +79,7 @@
     <Compile Include="SqlGenerators\SqlServer\SqlServerSqlGenerator.cs" />
     <Compile Include="Support\Extensions\AssemblyExtensions.cs" />
     <Compile Include="Support\Enums.cs" />
-    <Compile Include="Support\ExpressionHelper.cs" />
+    <Compile Include="Support\Helpers\ExpressionHelper.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

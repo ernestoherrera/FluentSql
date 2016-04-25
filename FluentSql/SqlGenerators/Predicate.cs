@@ -40,8 +40,8 @@ namespace FluentSql.SqlGenerators
             return Predicates.GetEnumerator();
         }
 
-        #region ITsql Implementation
-        public virtual string Tosql()
+        #region ITSql Implementation
+        public virtual string ToSql()
         {
             var sqlBuilder = new StringBuilder();
             var iter = Predicates.GetEnumerator();
