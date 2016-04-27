@@ -7,6 +7,7 @@ using FluentSql.SqlGenerators.Contracts;
 using FluentSql.Support;
 using FluentSql.Mappers;
 using System.Linq.Expressions;
+using FluentSql.Support.Helpers;
 
 namespace FluentSql.SqlGenerators
 {
@@ -66,7 +67,11 @@ namespace FluentSql.SqlGenerators
 
         public IQuery<L> On(Expression<Func<L, R, bool>> joinExpression)
         {
-            ExpressionHelper.WalkTree((BinaryExpression)joinExpression.Body, ExpressionType.Default, ref JoinPredicates);
+            var predicates = new List<PredicateUnit>();
+
+            ExpressionHelper.WalkTree((BinaryExpression)joinExpression.Body, ExpressionType.Default, ref predicates);
+
+
             return LeftQuery;
         }
 

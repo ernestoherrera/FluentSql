@@ -10,6 +10,8 @@ namespace FluentSql.SqlGenerators
     {
         private Random RandomGen = new Random(DateTime.Now.Millisecond + DateTime.Now.Second + DateTime.Now.Minute);
         private Dictionary<Type, string> Aliases = new Dictionary<Type, string>();
+        private List<string> ParameterNames = new List<string>();
+
         public string GetTableAlias(Type type)
         {
             if (Aliases.ContainsKey(type))
@@ -35,6 +37,23 @@ namespace FluentSql.SqlGenerators
             Aliases.Add(type, result);
 
             return result;
+        }
+
+        public string GetNextParameterName(string paramBaseName)
+        {
+            var nextParamName = paramBaseName ?? "_";
+
+            do
+            {
+                var nextNumber = RandomGen.Next(255, 1024);
+                nextParamName = nextParamName + nextNumber;
+            }
+            while (ParameterNames.FirstOrDefault(p =>
+                                string.Compare(p, nextParamName, StringComparison.CurrentCultureIgnoreCase) == 0) != null);
+
+            ParameterNames.Add(nextParamName);
+
+            return nextParamName;
         }
     }
 }

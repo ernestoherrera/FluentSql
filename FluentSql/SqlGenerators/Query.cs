@@ -19,6 +19,8 @@ namespace FluentSql.SqlGenerators
 
         protected Queue<dynamic> Joins = new Queue<dynamic>();
 
+        protected SqlGeneratorHelper ParameterNameGenerator;
+
         public Type EntityType { get; protected set; }
         public string TableName { get; protected set; }
         public string SchemaName { get; protected set; }
@@ -35,6 +37,7 @@ namespace FluentSql.SqlGenerators
             Parameters = new DynamicParameters();
             Fields = new List<PropertyMap>();
             Predicate = new Predicate<TEntity>(this);
+            ParameterNameGenerator = new SqlGeneratorHelper();
 
             if (EntityMapper.EntityMap.ContainsKey(typeof(TEntity)))
             {
@@ -224,15 +227,21 @@ namespace FluentSql.SqlGenerators
         protected void CreateDynamicParameters()
         {
             var paramNames = Parameters.ParameterNames;
+            string paramName = string.Empty;
 
             foreach (var unit in Predicate)
             {
                 if ( unit.LeftOperandType.IsValueType && paramNames.FirstOrDefault(p =>
                                     string.Compare(p, unit.LeftOperand, StringComparison.CurrentCultureIgnoreCase) != 0) == null)
                 {
-                    Parameters.Add("@" + unit.LeftOperand, prd.OperandValue);
+                    paramName = ParameterNameGenerator.GetNextParameterName(unit.LeftOperand);
+                    Parameters.Add("@" + paramName, unit.RightOperand);
                 }
-
+                else
+                {
+                    paramName = ParameterNameGenerator.GetNextParameterName(unit.RightOperand);
+                    Parameters.Add("@" + paramName, unit.LeftOperand);
+                }
             }
         }
         #endregion
