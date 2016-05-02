@@ -1,4 +1,5 @@
 ﻿using FluentSql.SqlGenerators.Contracts;
+using FluentSql.SqlGenerators.SqlServer;
 using System;
 using System.Collections.Generic;
 using System.Linq;

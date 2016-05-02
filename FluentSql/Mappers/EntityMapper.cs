@@ -12,6 +12,7 @@ using System.Data.Entity.Design.PluralizationServices;
 using System.Globalization;
 using FluentSql.DatabaseMappers.Common;
 using FluentSql.Support.Extensions;
+using FluentSql.SqlGenerators.SqlServer;
 
 namespace FluentSql.Mappers
 {

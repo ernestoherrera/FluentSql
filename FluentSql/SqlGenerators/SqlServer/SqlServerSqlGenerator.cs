@@ -12,6 +12,15 @@ namespace FluentSql.SqlGenerators.SqlServer
 {
     public class SqlServerSqlGenerator : ISqlGenerator
     {
+        public string And { get { return "AND"; } }
+            
+
+        public string Or { get { return "OR"; } }
+
+
+        public string Null { get { return "NULL"; } }
+
+
         /// <summary>
         /// Creates a filtered select statement
         /// </summary>
@@ -20,44 +29,39 @@ namespace FluentSql.SqlGenerators.SqlServer
         /// <returns></returns>
         public ISelectQuery<T> Select<T>(Expression<Func<T, bool>> expression)
         {
-            var select = new SqlServerSelect<T>();
+            var select = new SqlServerSelectQuery<T>();
 
-            return select.Where(expression) as SqlServerSelect<T>;
+            return select.Where(expression) as SqlServerSelectQuery<T>;
         }
 
         /// <summary>
-        /// Creates a Select statement without a where clause predicates
-        /// Use to get an entire set without filtering nor sorting
+        /// Creates a Sql Server Select query
         /// </summary>
-        /// <typeparam name="T">Entity type</typeparam>
-        /// <returns>A set of entities of type T</returns>
+        /// <typeparam name="T"></typeparam>
+        /// <returns>SqlServerSelectQuery for T entity</returns>
         public ISelectQuery<T> Select<T>()
         {
-            return new SqlServerSelect<T>();
+            return new SqlServerSelectQuery<T>();
         }
 
         public IInsertQuery<T> Insert<T>(T entity)
         {
-            return new SqlServerInsertQuery<T>(entity);
+            throw new NotImplementedException();
         }
 
         public IUpdateQuery<T> Update<T>(T entity)
         {
-            return new SqlServerUpdateQuery<T>(entity);
+            throw new NotImplementedException();
         }
 
         public IUpdateQuery<T> UpdateMany<T>(T entity, Expression<Func<T, bool>> expression)
         {
-            var updateQuery = new SqlServerUpdateQuery<T>(entity);
-
-            return updateQuery.Where(expression) as SqlServerUpdateQuery<T>;
+            throw new NotImplementedException();
         }
 
         public IDeleteQuery<T> Delete<T>(T entity)
         {
-            var deleteQuery = new SqlServerDeleteQuery<T>(entity);
-
-            return deleteQuery;
+            throw new NotImplementedException();
         }
 
         /// <summary>

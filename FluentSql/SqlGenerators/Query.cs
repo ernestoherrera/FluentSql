@@ -15,7 +15,7 @@ namespace FluentSql.SqlGenerators
     {
         #region Properties
 
-        protected Predicate<TEntity> Predicate;
+        protected IPredicate<TEntity> Predicate;
 
         protected Queue<dynamic> Joins = new Queue<dynamic>();
 
@@ -245,9 +245,6 @@ namespace FluentSql.SqlGenerators
             }
         }
         #endregion
-
-        #region Private Methods
-
-        #endregion
+        
     }
 }

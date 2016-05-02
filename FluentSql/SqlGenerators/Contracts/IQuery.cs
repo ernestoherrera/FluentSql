@@ -37,8 +37,6 @@ namespace FluentSql.SqlGenerators.Contracts
 
         IQuery<L> WhereOnKey<TEntity>(TEntity entity);
 
-        string ResolveTableAlias(Type type);
-
-        string ToSql();
+        string ResolveTableAlias(Type type);       
     }
 }

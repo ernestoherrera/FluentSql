@@ -8,7 +8,7 @@ using System.Collections;
 
 namespace FluentSql.SqlGenerators
 {
-    public class Predicate<T> : IToSql , IDisposable
+    public class Predicate<T> : IPredicate<T>
     {
         protected List<PredicateUnit> Predicates;
 
@@ -30,6 +30,11 @@ namespace FluentSql.SqlGenerators
             return Predicates.Count();
         }
 
+        public bool Any()
+        {
+            return Predicates.Any();
+        }
+
         public PredicateUnit this[int index]
         {
             get { return Predicates[index]; }
@@ -38,7 +43,7 @@ namespace FluentSql.SqlGenerators
         public IEnumerator<PredicateUnit> GetEnumerator()
         {
             return Predicates.GetEnumerator();
-        }
+        }        
 
         #region ITSql Implementation
         public virtual string ToSql()

@@ -4,6 +4,7 @@ using System.Reflection;
 
 using FluentSql.Support;
 using FluentSql.EntityReaders.Contracts;
+using FluentSql.Support.Extensions;
 
 namespace FluentSql.EntityReaders
 {

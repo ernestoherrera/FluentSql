@@ -1,4 +1,7 @@
-﻿using System.Data.SqlClient;
+﻿using FluentSql.Mappers;
+using FluentSql.Support.Helpers;
+using System;
+using System.Data.SqlClient;
 using System.Linq.Expressions;
 
 namespace FluentSql.SqlGenerators

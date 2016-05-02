@@ -128,17 +128,17 @@ namespace FluentSql.Support.Helpers
             if (direction == ExpressionDirection.Right)
             {
 
-                predicate.Operand = GetPropertyName(memberLeft.ToString());
-                predicate.OperandType = memberLeft.Expression.Type;
-                predicate.OperandValue = GetValue(memberRight);
-                predicate.OperandValueType = memberRight.Expression.Type;
+                predicate.LeftOperand = GetPropertyName(memberLeft.ToString());
+                predicate.LeftOperandType = memberLeft.Expression.Type;
+                predicate.RightOperand = GetValue(memberRight);
+                predicate.RightOperandType = memberRight.Expression.Type;
             }
             else
             {
-                predicate.Operand = GetPropertyName(memberRight.ToString());
-                predicate.OperandType = memberRight.Expression.Type;
-                predicate.OperandValue = GetValue(memberLeft);
-                predicate.OperandValueType = memberLeft.Expression.Type;
+                predicate.LeftOperand = GetPropertyName(memberRight.ToString());
+                predicate.LeftOperandType = memberRight.Expression.Type;
+                predicate.RightOperand = GetValue(memberLeft);
+                predicate.RightOperandType = memberLeft.Expression.Type;
             }
 
             predicate.Operator = GetOperator(body.NodeType);
@@ -168,10 +168,7 @@ namespace FluentSql.Support.Helpers
         /// <returns>The property name for the property expression.</returns>
         internal static string GetPropertyName(string stringExpression)
         {
-
-            var token = Regex.Replace(stringExpression, @"(?<=\{)[^}]*(?=\})", string.Empty, RegexOptions.None);
-
-            string propertyName = token.Split(period)[1];
+            string propertyName = stringExpression.Split(period)[1];
 
             return propertyName;
         }
