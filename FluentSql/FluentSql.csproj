@@ -89,7 +89,6 @@
     <Compile Include="Support\Enums.cs" />
     <Compile Include="Support\Helpers\ExpressionHelper.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

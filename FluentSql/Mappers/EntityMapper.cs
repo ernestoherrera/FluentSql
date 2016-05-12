@@ -13,6 +13,7 @@ using System.Globalization;
 using FluentSql.DatabaseMappers.Common;
 using FluentSql.Support.Extensions;
 using FluentSql.SqlGenerators.SqlServer;
+using System.Reflection;
 
 namespace FluentSql.Mappers
 {
@@ -41,7 +42,10 @@ namespace FluentSql.Mappers
             DatabaseNames = databaseNames;
 
             if (dbConnection.State == ConnectionState.Closed)
-                dbConnection.Open();            
+                dbConnection.Open();
+
+            MapEntities(dbConnection, entityInterface, databaseNames);
+            SetDefaultSqlGenerator();
 
         }
 
@@ -57,9 +61,10 @@ namespace FluentSql.Mappers
             var sqlHelper = new SqlGeneratorHelper();
 
             foreach (var lib in assemblies)
-            {
+            {               
                 entities.AddRange(lib.GetTypes(entityInterface));
             }
+
 
             foreach (var type in entities)
             {
@@ -67,7 +72,8 @@ namespace FluentSql.Mappers
                 Table table = null;
                
                 var service = PluralizationService.CreateService(CultureInfo.CurrentCulture);
-                var singularTableName = service.Singularize(map.Name);
+                //var singularTableName = service.Singularize(map.Name);
+                var singularTableName = map.Name;
 
                 table = dbTables.FirstOrDefault(
                 t => string.Compare(t.Name, singularTableName, StringComparison.CurrentCultureIgnoreCase) == 0);

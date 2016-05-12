@@ -22,6 +22,8 @@ namespace FluentSql.DatabaseMappers.Common
         /// </summary>
         public string BaseTableName { get; private set; }
 
+        public string ReferencingColumnName { get; private set; }
+
         /// <summary>
         /// Column name from the referenced table
         /// </summary>
@@ -36,6 +38,8 @@ namespace FluentSql.DatabaseMappers.Common
         /// Column name in the referenced table
         /// </summary>
         public Column ReferencedColumn { get; private set; }
+
+        public string ReferencedColumnName { get; private set; }
 
         #endregion
     }

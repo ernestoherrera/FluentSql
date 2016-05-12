@@ -29,7 +29,7 @@ namespace FluentSql.DatabaseMappers.SqlServerMapper
             if (DbConnection.State == ConnectionState.Closed)
                 DbConnection.Open();
 
-            IEnumerable<Table> dbTableList = new List<Table>();
+            List<Table> dbTableList = new List<Table>();
 
             try
             {
@@ -37,7 +37,7 @@ namespace FluentSql.DatabaseMappers.SqlServerMapper
                 {
                     DbConnection.ChangeDatabase(dbName);
 
-                    dbTableList = DbConnection.Query<Table>(SqlServerConstants.USER_TABLES_QUERY);
+                    var tableList = DbConnection.Query<Table>(SqlServerConstants.USER_TABLES_QUERY);
                     var dbColumns = DbConnection.Query<Column>(SqlServerConstants.USER_COLUMNS_QUERY);
                     var dbForeignKeys = DbConnection.Query<ForeignKey>(SqlServerConstants.USER_FOREIGN_KEYS_QUERY);
 
@@ -46,7 +46,7 @@ namespace FluentSql.DatabaseMappers.SqlServerMapper
                         column.DatabaseType = GetDatabaseType(column.DataType);
                     }
 
-                    foreach (var tbl in dbTableList)
+                    foreach (var tbl in tableList)
                     {
                         tbl.Columns = dbColumns.Where(c => string.Equals(c.TableName, tbl.Name, StringComparison.CurrentCultureIgnoreCase))
                                                 .ToList();
@@ -54,7 +54,10 @@ namespace FluentSql.DatabaseMappers.SqlServerMapper
                         tbl.ForeignKeys = dbForeignKeys.Where(fk => string.Equals(fk.BaseTableName, tbl.Name, StringComparison.CurrentCultureIgnoreCase))
                                                         .ToList();
                     }
+
+                    dbTableList.AddRange(tableList);                    
                 }
+
                 return dbTableList;
             }
             catch (Exception e)

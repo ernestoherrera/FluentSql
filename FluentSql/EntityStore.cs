@@ -1,9 +1,6 @@
 ﻿using FluentSql.Contracts;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FluentSql.SqlGenerators.Contracts;
 using System.Linq.Expressions;
 using System.Data;

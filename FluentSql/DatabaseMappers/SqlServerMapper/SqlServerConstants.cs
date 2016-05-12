@@ -34,8 +34,8 @@ namespace FluentSql.DatabaseMappers.SqlServerMapper
         public static string USER_FOREIGN_KEYS_QUERY = @"SELECT OBJECT_NAME(pt.parent_object_id) TableName,
 			                                                OBJECT_NAME(pt.constraint_object_id) ForeignKeyName,
 			                                                 OBJECT_NAME(pt.referenced_object_id) ReferencedTable,
-			                                                pc.name ReferencingColumn, 
-			                                                rc.name ReferencedColumn
+			                                                pc.name ReferencingColumnName, 
+			                                                rc.name ReferencedColumnName
 		                                                FROM sys.foreign_key_columns AS pt
 		                                                INNER JOIN sys.columns AS pc
 		                                                ON pt.parent_object_id = pc.[object_id]

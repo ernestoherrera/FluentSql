@@ -9,7 +9,6 @@ namespace FluentSql.EntityReaders.Contracts
 {
     public interface IEntityReader
     {
-        IEnumerable<Type> ReadEntities(Type entityInterface, Assembly[] assemblySearch);
-        
+        IEnumerable<Type> ReadEntities(Type entityInterface, Assembly[] assemblySearch);        
     }
 }
