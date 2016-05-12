@@ -22,7 +22,6 @@ namespace FluentSql.SqlGenerators
         public SelectQuery() : base()
         {
             Verb = SELECT;
-
         }
         #endregion        
 

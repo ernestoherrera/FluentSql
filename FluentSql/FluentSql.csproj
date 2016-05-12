@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Contracts\IEntityStore.cs" />
     <Compile Include="DatabaseMappers\Contracts\IDatabaseMapper.cs" />
     <Compile Include="DatabaseMappers\DefaultDatabaseMapper.cs" />
     <Compile Include="DatabaseMappers\SqlServerMapper\SqlServerConstants.cs" />
