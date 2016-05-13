@@ -1,11 +1,9 @@
-﻿using FluentSql.DatabaseMappers.Contracts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentSql.DatabaseMappers.Common;
+﻿using System;
 using System.Data;
+using System.Collections.Generic;
+
+using FluentSql.DatabaseMappers.Common;
+using FluentSql.DatabaseMappers.Contracts;
 using FluentSql.DatabaseMappers.SqlServerMapper;
 
 namespace FluentSql.DatabaseMappers

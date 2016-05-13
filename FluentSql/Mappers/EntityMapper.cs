@@ -14,6 +14,7 @@ using FluentSql.DatabaseMappers.Common;
 using FluentSql.Support.Extensions;
 using FluentSql.SqlGenerators.SqlServer;
 using System.Reflection;
+using FluentSql.EntityReaders;
 
 namespace FluentSql.Mappers
 {
@@ -32,8 +33,12 @@ namespace FluentSql.Mappers
         public static ISqlGenerator SqlGenerator { get; private set; }
         #endregion
 
+        #region Private Properties
+        private bool TableNamesInPlural { get; set; }
+        #endregion
+
         #region Constructor
-        public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames, IDatabaseMapper defaultDatabaseMapper = null)
+        public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames, IDatabaseMapper defaultDatabaseMapper = null, bool tableNamesInPlural = true)
         {
             if (dbConnection == null || entityInterface == null || databaseNames == null)
                 throw new ArgumentNullException("Database connection, Entity Interface or Database names can not be null.");
@@ -44,47 +49,40 @@ namespace FluentSql.Mappers
             if (dbConnection.State == ConnectionState.Closed)
                 dbConnection.Open();
 
+            TableNamesInPlural = tableNamesInPlural;
+
             MapEntities(dbConnection, entityInterface, databaseNames);
             SetDefaultSqlGenerator();
-
         }
+
+        public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames) :
+            this(dbConnection, entityInterface, databaseNames, null, true)
+        {   }
 
         #endregion
 
         #region Private Methods
         private void MapEntities(IDbConnection dbconnection, Type entityInterface, IEnumerable<string> databaseNames)
-        {
-            List<Type> entities = new List<Type>();
-
-            var dbTables = DefaultDatabaseMapper.MapDatabase(dbconnection, databaseNames);
+        {                      
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             var sqlHelper = new SqlGeneratorHelper();
+            var entityReader = new DefaultEntityReader();
+            var service = PluralizationService.CreateService(CultureInfo.CurrentCulture);
 
-            foreach (var lib in assemblies)
-            {               
-                entities.AddRange(lib.GetTypes(entityInterface));
-            }
-
+            var dbTables = DefaultDatabaseMapper.MapDatabase(dbconnection, databaseNames);
+            var entities = entityReader.ReadEntities(entityInterface, assemblies);
 
             foreach (var type in entities)
             {
                 var map = new EntityMap(type);
                 Table table = null;
-               
-                var service = PluralizationService.CreateService(CultureInfo.CurrentCulture);
-                //var singularTableName = service.Singularize(map.Name);
-                var singularTableName = map.Name;
+                var tableName = string.Empty;                
+                
+                if (TableNamesInPlural)              
+                    tableName = service.Pluralize(type.Name);                
 
                 table = dbTables.FirstOrDefault(
-                t => string.Compare(t.Name, singularTableName, StringComparison.CurrentCultureIgnoreCase) == 0);
-               
-                if (table == null)
-                {
-                    var pluralTableName = service.Pluralize(map.Name);
-
-                    table = dbTables.FirstOrDefault(
-                            t => string.Compare(t.Name, pluralTableName, StringComparison.CurrentCultureIgnoreCase) == 0);
-                }
+                t => string.Compare(t.Name, tableName, StringComparison.CurrentCultureIgnoreCase) == 0);                               
                 
                 if (table == null) continue;
 
@@ -108,8 +106,8 @@ namespace FluentSql.Mappers
                     prop.Ignored = col.Ignore;
                     prop.Size = col.Size;
                     prop.OrdinalPosition = col.OrdinalPosition;
-
                 }
+
                 map.IsMapped = true;
                 map.Properties.Sort();
 

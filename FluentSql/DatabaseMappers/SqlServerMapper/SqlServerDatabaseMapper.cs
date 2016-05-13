@@ -29,7 +29,7 @@ namespace FluentSql.DatabaseMappers.SqlServerMapper
             if (DbConnection.State == ConnectionState.Closed)
                 DbConnection.Open();
 
-            List<Table> dbTableList = new List<Table>();
+            var dbTableList = new List<Table>();
 
             try
             {
