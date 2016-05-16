@@ -76,7 +76,7 @@ namespace FluentSql.Mappers
             {
                 var map = new EntityMap(type);
                 Table table = null;
-                var tableName = string.Empty;                
+                var tableName = type.Name;                
                 
                 if (TableNamesInPlural)              
                     tableName = service.Pluralize(type.Name);                
