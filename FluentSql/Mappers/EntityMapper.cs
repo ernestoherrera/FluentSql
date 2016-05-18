@@ -31,6 +31,8 @@ namespace FluentSql.Mappers
         public static ConcurrentDictionary<Type, EntityMap> EntityMap = new ConcurrentDictionary<Type, EntityMap>();
 
         public static ISqlGenerator SqlGenerator { get; private set; }
+
+        public event EventHandler PostEntityMapping;
         #endregion
 
         #region Private Properties
@@ -53,12 +55,24 @@ namespace FluentSql.Mappers
 
             MapEntities(dbConnection, entityInterface, databaseNames);
             SetDefaultSqlGenerator();
+            OnPostEntityMapping();
         }
 
         public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames) :
             this(dbConnection, entityInterface, databaseNames, null, true)
         {   }
 
+        public EntityMapper(IDbConnection dbConnection, Type entityInterface, string databaseName) :
+           this(dbConnection, entityInterface, new List<string> { databaseName }, null, true)
+        { }
+
+        #endregion
+
+        #region Protected Methods
+        protected virtual void OnPostEntityMapping()
+        {
+            PostEntityMapping?.Invoke(this, new EventArgs());
+        }
         #endregion
 
         #region Private Methods
