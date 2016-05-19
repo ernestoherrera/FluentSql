@@ -17,6 +17,10 @@ namespace FluentSql.DatabaseMappers.SqlServerMapper
         private IEnumerable<string> DatabaseNames;
         #endregion
 
+        #region Public Properties
+        public IEnumerable<Table> DatabaseTables { get; private set; }
+        #endregion
+
         #region IDatabaseMapper Implementation
         public IEnumerable<Table> MapDatabase(IDbConnection dbConnection, IEnumerable<string> databaseNames)
         {
@@ -57,6 +61,8 @@ namespace FluentSql.DatabaseMappers.SqlServerMapper
 
                     dbTableList.AddRange(tableList);                    
                 }
+
+                DatabaseTables = dbTableList;
 
                 return dbTableList;
             }

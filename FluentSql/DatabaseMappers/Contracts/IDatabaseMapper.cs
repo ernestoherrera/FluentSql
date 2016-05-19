@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace FluentSql.DatabaseMappers.Contracts
 {
     public interface IDatabaseMapper
-    {
+    {        
         IEnumerable<Table> MapDatabase(IDbConnection connection, IEnumerable<string> databaseNames);
     }
 }

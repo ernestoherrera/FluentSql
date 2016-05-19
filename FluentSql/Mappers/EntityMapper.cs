@@ -32,15 +32,16 @@ namespace FluentSql.Mappers
 
         public static ISqlGenerator SqlGenerator { get; private set; }
 
-        public event EventHandler PostEntityMapping;
         #endregion
-
+       
         #region Private Properties
         private bool TableNamesInPlural { get; set; }
+        private static IEnumerable<Type> EntityTypes { get; set; }
+        private static IEnumerable<Table> DatabaseTables { get; set; }
         #endregion
 
         #region Constructor
-        public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames, IDatabaseMapper defaultDatabaseMapper = null, bool tableNamesInPlural = true)
+        public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames, IDatabaseMapper defaultDatabaseMapper = null, bool tableNamesInPlural = true, Action onPostEntityMapping = null)
         {
             if (dbConnection == null || entityInterface == null || databaseNames == null)
                 throw new ArgumentNullException("Database connection, Entity Interface or Database names can not be null.");
@@ -55,23 +56,70 @@ namespace FluentSql.Mappers
 
             MapEntities(dbConnection, entityInterface, databaseNames);
             SetDefaultSqlGenerator();
-            OnPostEntityMapping();
+
+            onPostEntityMapping?.Invoke();
         }
 
         public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames) :
-            this(dbConnection, entityInterface, databaseNames, null, true)
+            this(dbConnection, entityInterface, databaseNames, null)
         {   }
 
+        public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames, Action onPostEntityMapping) :
+            this(dbConnection, entityInterface, databaseNames, null, true , onPostEntityMapping)
+        { }
+
         public EntityMapper(IDbConnection dbConnection, Type entityInterface, string databaseName) :
-           this(dbConnection, entityInterface, new List<string> { databaseName }, null, true)
+           this(dbConnection, entityInterface, new List<string> { databaseName }, null)
+        { }
+
+        public EntityMapper(IDbConnection dbConnection, Type entityInterface, string databaseName, Action onPostEntityMapping) :
+           this(dbConnection, entityInterface, new List<string> { databaseName }, null, true, onPostEntityMapping)
         { }
 
         #endregion
 
-        #region Protected Methods
-        protected virtual void OnPostEntityMapping()
+        #region Public Methods
+        public static void MapEntity(Type entityType, string tableName, string tableAlias)
         {
-            PostEntityMapping?.Invoke(this, new EventArgs());
+            if (entityType == null || string.IsNullOrEmpty(tableName) || string.IsNullOrEmpty(tableAlias)) return;
+
+            var table = DatabaseTables.FirstOrDefault(
+               t => string.Compare(t.Name, tableName, StringComparison.CurrentCultureIgnoreCase) == 0);
+
+            if (table == null) return;
+
+            var map = new EntityMap(entityType);
+
+            map.TableAlias = tableAlias;
+            map.TableName = table.Name;
+            map.SchemaName = table.Schema;
+            map.Database = table.Database;
+
+            foreach (var col in table.Columns)
+            {
+                var prop = map.Properties.FirstOrDefault(p => p.Name.Equals(col.ColumnName));
+
+                if (prop == null) continue;
+
+                prop.IsTableField = true;
+                prop.ColumnName = col.ColumnName;
+                prop.HasDefault = col.HasDefault;
+                prop.IsPrimaryKey = col.IsPrimaryKey;
+                prop.IsAutoIncrement = col.IsAutoIncrement;
+                prop.IsReadOnly = col.IsReadOnly;
+                prop.Ignored = col.Ignore;
+                prop.Size = col.Size;
+                prop.OrdinalPosition = col.OrdinalPosition;
+            }
+
+            map.IsMapped = true;
+            map.Properties.Sort();
+
+            if (!EntityMap.TryAdd(entityType, map))
+            {
+                throw new ArgumentNullException("Can not add a key with null value.");
+            }                                    
+         
         }
         #endregion
 
@@ -83,52 +131,18 @@ namespace FluentSql.Mappers
             var entityReader = new DefaultEntityReader();
             var service = PluralizationService.CreateService(CultureInfo.CurrentCulture);
 
-            var dbTables = DefaultDatabaseMapper.MapDatabase(dbconnection, databaseNames);
-            var entities = entityReader.ReadEntities(entityInterface, assemblies);
+            DatabaseTables = DefaultDatabaseMapper.MapDatabase(dbconnection, databaseNames);
+            EntityTypes = entityReader.ReadEntities(entityInterface, assemblies);
 
-            foreach (var type in entities)
-            {
-                var map = new EntityMap(type);
-                Table table = null;
-                var tableName = type.Name;                
-                
+            foreach (var type in EntityTypes)
+            {               
+                var tableName = type.Name;
+                var tableAlias = sqlHelper.GetTableAlias(type);
+
                 if (TableNamesInPlural)              
-                    tableName = service.Pluralize(type.Name);                
-
-                table = dbTables.FirstOrDefault(
-                t => string.Compare(t.Name, tableName, StringComparison.CurrentCultureIgnoreCase) == 0);                               
+                    tableName = service.Pluralize(type.Name);
                 
-                if (table == null) continue;
-
-                map.TableAlias = sqlHelper.GetTableAlias(type);
-                map.TableName = table.Name;
-                map.SchemaName = table.Schema;
-                map.Database = table.Database;
-
-                foreach (var col in table.Columns)
-                {
-                    var prop = map.Properties.FirstOrDefault(p => p.Name.Equals(col.ColumnName));
-
-                    if (prop == null) continue;
-
-                    prop.IsTableField = true;
-                    prop.ColumnName = col.ColumnName;
-                    prop.HasDefault = col.HasDefault;
-                    prop.IsPrimaryKey = col.IsPrimaryKey;
-                    prop.IsAutoIncrement = col.IsAutoIncrement;
-                    prop.IsReadOnly = col.IsReadOnly;
-                    prop.Ignored = col.Ignore;
-                    prop.Size = col.Size;
-                    prop.OrdinalPosition = col.OrdinalPosition;
-                }
-
-                map.IsMapped = true;
-                map.Properties.Sort();
-
-                if (!EntityMap.TryAdd(type, map))
-                {
-                    throw new ArgumentNullException("Can not add a key with null value.");
-                }
+                MapEntity(type, tableName, tableAlias);  
             }
         }
 
