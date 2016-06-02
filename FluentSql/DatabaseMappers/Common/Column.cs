@@ -22,7 +22,7 @@ namespace FluentSql.DatabaseMappers.Common
         /// </summary>
         public string DataType;
         /// <summary>
-        /// C# database type
+        /// .NET database type
         /// </summary>
         public DbType DatabaseType;
         /// <summary>

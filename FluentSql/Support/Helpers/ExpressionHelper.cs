@@ -5,147 +5,169 @@ using System.Text.RegularExpressions;
 
 using FluentSql.Mappers;
 using FluentSql.SqlGenerators;
-
+using System.Reflection;
+using FluentSql.Support.Extensions;
 
 namespace FluentSql.Support.Helpers
 {
-    internal class ExpressionHelper
+    internal class ExpressionHelper : ExpressionVisitor
     {
         private static readonly char[] period = new char[] { '.' };
+        private IComparer<ExpressionType> comparer = new OperatorPrecedenceComparer();
 
-        /// <summary>
-        /// Walks the expression tree in order to get the SQL precdicate string
-        /// </summary>
-        /// <param name="body"></param>
-        /// <param name="linkingType"></param>
-        /// <param name="queryPredicates"></param>
-        internal static void WalkTree(BinaryExpression body, ExpressionType linkingType, ref List<PredicateUnit> queryPredicates)
+        public Queue<dynamic> parents = new Queue<dynamic>();
+
+        protected override Expression VisitBinary(BinaryExpression exp)
         {
-            //Josh: Avoid having to pass queryPredicates
-            if (body.NodeType != ExpressionType.AndAlso && body.NodeType != ExpressionType.OrElse)
+            if ( comparer.Compare(exp.Left.NodeType, exp.NodeType) < 0)
             {
-                PredicateUnit predicate;
+                parents.Enqueue("(");
+                Visit(exp.Left);
+                parents.Enqueue(GetOperator(exp.NodeType));
+                Visit(exp.Right);
+                parents.Enqueue(")");
+            }
+            else
+            {
+                Visit(exp.Left);
+                parents.Enqueue(GetOperator(exp.NodeType));
+                Visit(exp.Right);
+            }
 
-                if (body.Right.NodeType == ExpressionType.Constant)
+            Expression conversion = this.Visit(exp.Conversion);
+            return exp;
+        }
+
+        protected override Expression VisitMethodCall(MethodCallExpression methodCall)
+        {
+            var allowedMethods = new string[] { "StartsWith", "Contains", "EndsWith" };
+            var methodObject = methodCall.Object;
+            var methodName = methodCall.Method.Name;            
+
+            if (methodCall.Method.DeclaringType == typeof(string) && allowedMethods.Contains(methodName))
+            {
+                var like = "LIKE ";
+                var wildcard = @"%";
+                var comparingArgument = string.Empty;
+
+                this.VisitMember((MemberExpression)methodObject);
+                parents.Enqueue(like);
+
+                if (methodCall.Arguments.Count > 0)
                 {
-                    predicate = GetPredicateWithConstant((ConstantExpression)body.Right, body, linkingType);
-                    queryPredicates.Add(predicate);
-                    return;
-                }
+                    var compareTo = methodCall.Arguments[0];
 
-                if (body.Left.NodeType == ExpressionType.Constant)
-                {
-                    predicate = GetPredicateWithConstant((ConstantExpression)body.Left, body, linkingType, ExpressionDirection.Left);
-                    queryPredicates.Add(predicate);
-                    return;
-                }
+                    if (compareTo is ConstantExpression)
+                    {
+                        var expValue = Expression.Lambda(compareTo).Compile();
+                        comparingArgument = (string)expValue.DynamicInvoke();
+                    }
+                    else if (((MemberExpression)compareTo).Member.MemberType == MemberTypes.Field)
+                    {
+                        comparingArgument = (string)GetValue((MemberExpression)compareTo);
+                    }
 
-                MemberExpression memberRight = ((MemberExpression)(body.Right));
-                MemberExpression memberLeft = ((MemberExpression)(body.Left));
+                    if (methodName == "StartsWith")
+                        comparingArgument += wildcard;
+                    else
+                        comparingArgument = wildcard + comparingArgument;
 
-                if (memberRight.Expression.NodeType == ExpressionType.Constant)
-                {
-                    predicate = GetPredicateWithMemberTypeField(body, linkingType);
-                    queryPredicates.Add(predicate);
-                    return;
-                }
+                    parents.Enqueue(comparingArgument);
 
-                if (memberLeft.Expression.NodeType == ExpressionType.Constant)
-                {
-                    predicate = GetPredicateWithMemberTypeField(body, linkingType, ExpressionDirection.Left);
-                    queryPredicates.Add(predicate);
-                    return;
-                }
-
-                if (memberRight.Expression.NodeType == ExpressionType.MemberAccess
-                    && ((MemberExpression)memberRight.Expression).Member.MemberType == System.Reflection.MemberTypes.Field)
-                {
-                    predicate = GetPredicateWithMemberTypeField(body, linkingType);
-                    queryPredicates.Add(predicate);
-                    return;
-                }
-
-                if (memberLeft.Expression.NodeType == ExpressionType.MemberAccess
-                    && ((MemberExpression)memberLeft.Expression).Member.MemberType == System.Reflection.MemberTypes.Field)
-                {
-                    predicate = GetPredicateWithMemberTypeField(body, linkingType, ExpressionDirection.Left);
-                    queryPredicates.Add(predicate);
-                    return;
+                    return methodCall;
                 }
                 else
                 {
-                    predicate = new PredicateUnit();
-
-                    predicate.LeftOperand = GetPropertyName(memberLeft.ToString());
-                    predicate.LeftOperandType = memberLeft.Expression.Type;
-                    predicate.RightOperand = GetPropertyName(memberRight.ToString());
-                    predicate.RightOperandType = memberRight.Expression.Type;
-                    predicate.Operator = GetOperator(body.NodeType);
-                    predicate.Link = GetOperator(linkingType);                    
+                    throw new Exception("Method call arguments not supported");
+                }
+            }
+            else if (methodObject.NodeType == ExpressionType.MemberAccess && methodName == "Contains")
+            {
+                if (methodCall.Arguments.Count > 0 && ((MemberExpression)methodCall.Arguments[0]).NodeType == ExpressionType.MemberAccess)
+                {
+                    this.VisitMember((MemberExpression)methodCall.Arguments[0]);
+                    this.VisitMember((MemberExpression)methodObject);
+                }
+                else
+                {
+                    throw new Exception("Argument type not supported.");
                 }
 
-                queryPredicates.Add(predicate);
+                return methodCall;
             }
-            else
-            {
-                WalkTree((BinaryExpression)body.Left, body.NodeType, ref queryPredicates);
-                WalkTree((BinaryExpression)body.Right, body.NodeType, ref queryPredicates);
-            }
+
+            return base.VisitMethodCall(methodCall);
         }
 
-        internal static PredicateUnit GetPredicateWithConstant(ConstantExpression constant, BinaryExpression body, ExpressionType linkingType, ExpressionDirection direction = ExpressionDirection.Right)
-        {
-            var predicate = new PredicateUnit();            
+        protected override Expression VisitParameter(ParameterExpression p)
+        {            
+            if (SytemTypes.Numeric.Contains(p.Type))
+                parents.Enqueue(p.ToString());
 
-            if (direction == ExpressionDirection.Right)
-            {
-                predicate.RightOperand = constant.Value;
-                predicate.RightOperandType = constant.Value.GetType();
-                predicate.LeftOperand = GetPropertyName(body.Left.ToString());
-                predicate.LeftOperandType = ((MemberExpression)body.Left).Expression.Type;
-            }
-            else
-            {
-                predicate.LeftOperand = constant.Value;
-                predicate.LeftOperandType = constant.Value.GetType();
-                predicate.RightOperand = GetPropertyName(body.Right.ToString());
-                predicate.RightOperandType = ((MemberExpression)body.Right).Expression.Type;
-            }
-
-            predicate.Operator = GetOperator(body.NodeType);
-            predicate.Link = GetOperator(linkingType);
-            predicate.IsParameterized = true;
-
-            return predicate;
+            return p;
         }
 
-        internal static PredicateUnit GetPredicateWithMemberTypeField(BinaryExpression body, ExpressionType linkingType, ExpressionDirection direction = ExpressionDirection.Right)
+        protected override Expression VisitConstant(ConstantExpression exp)
         {
-            var predicate = new PredicateUnit();
-            MemberExpression memberRight = ((MemberExpression)(body.Right));
-            MemberExpression memberLeft = ((MemberExpression)(body.Left));
+            parents.Enqueue(exp.Value.ToString());
 
-            if (direction == ExpressionDirection.Right)
+            return base.VisitConstant(exp);
+        }
+
+        protected override Expression VisitMember(MemberExpression m)
+        {            
+            var propertyType = m.Type;
+            var member = ((MemberExpression)m).Member;
+
+            if (member.MemberType == MemberTypes.Field)
             {
+                dynamic values = GetValue(m);
+                Type valuesType = values.GetType();
 
-                predicate.LeftOperand = GetPropertyName(memberLeft.ToString());
-                predicate.LeftOperandType = memberLeft.Expression.Type;
-                predicate.RightOperand = GetValue(memberRight);
-                predicate.RightOperandType = memberRight.Expression.Type;
+                if ( valuesType.GetIEnumerableImpl() != null)
+                {
+                    var inClause = "IN (";
+
+                    inClause += String.Join(",", values);
+                    inClause += ")";
+
+                    parents.Enqueue(inClause);
+                }
+                else
+                {
+                    parents.Enqueue(values.ToString());
+                }
+                return m;
+
+            }
+            else if (propertyType == typeof(System.Boolean))
+                parents.Enqueue(m.ToString() + " = 1");
+            else
+                parents.Enqueue(m.ToString());
+
+            return base.VisitMember(m);
+        }
+
+        protected override Expression VisitUnary(UnaryExpression u)
+        {
+            Expression operand;
+
+            if ( comparer.Compare(u.Operand.NodeType, u.NodeType) < 0)
+            {
+                if (u.NodeType == ExpressionType.Not || u.NodeType == ExpressionType.Negate)
+                    parents.Enqueue(GetOperator(u.NodeType));
+                parents.Enqueue("(");
+                operand = this.Visit(u.Operand);
+                parents.Enqueue(")");
             }
             else
+                operand = this.Visit(u.Operand);
+
+            if (operand != u.Operand)
             {
-                predicate.LeftOperand = GetPropertyName(memberRight.ToString());
-                predicate.LeftOperandType = memberRight.Expression.Type;
-                predicate.RightOperand = GetValue(memberLeft);
-                predicate.RightOperandType = memberLeft.Expression.Type;
+                return Expression.MakeUnary(u.NodeType, operand, u.Type, u.Method);
             }
-
-            predicate.Operator = GetOperator(body.NodeType);
-            predicate.Link = GetOperator(linkingType);
-            predicate.IsParameterized = true;
-
-            return predicate;
+            return u;
         }
 
         internal static object GetValue(MemberExpression member)
@@ -159,24 +181,11 @@ namespace FluentSql.Support.Helpers
             var getter = getterLambda.Compile();
 
             return getter();
-        }
-
-        /// <summary>
-        /// Gets the property name from a BinaryExpression.
-        /// </summary>
-        /// <param name="body">The body.</param>
-        /// <returns>The property name for the property expression.</returns>
-        internal static string GetPropertyName(string stringExpression)
-        {
-            string propertyName = stringExpression.Split(period)[1];
-
-            return propertyName;
-        }
+        }        
 
         internal static string GetPropertyName(UnaryExpression body)
         {
             var token = body.Operand.ToString();
-
             var propertyName = token.Split(period)[1];
 
             return propertyName;

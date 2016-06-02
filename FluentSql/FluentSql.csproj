@@ -87,10 +87,14 @@
     <Compile Include="SqlGenerators\SqlServer\SqlServerSqlGenerator.cs" />
     <Compile Include="Support\Extensions\AssemblyExtensions.cs" />
     <Compile Include="Support\Enums.cs" />
+    <Compile Include="Support\Extensions\CollectionExtensions.cs" />
     <Compile Include="Support\Helpers\ExpressionHelper.cs" />
-    <Compile Include="Support\Helpers\ExpressionVisitor.cs" />
+    <Compile Include="Support\Helpers\ExpressionPrecedence.cs" />
+    <Compile Include="Support\Helpers\OperatorPrecedenceComparer.cs" />
+    <Compile Include="Support\Helpers\SytemTypes.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

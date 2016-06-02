@@ -94,8 +94,18 @@ namespace FluentSql.SqlGenerators.SqlServer
                 case ExpressionType.Or:
                 case ExpressionType.OrElse:
                     return "OR";
+                case ExpressionType.Add:
+                    return "+";
+                case ExpressionType.Subtract:
+                    return "-";
+                case ExpressionType.Divide:
+                    return "/";
+                case ExpressionType.Multiply:
+                    return "*";
                 case ExpressionType.Default:
                     return string.Empty;
+                case ExpressionType.Not:
+                    return "NOT";
                 default:
                     throw new NotImplementedException();
             }
