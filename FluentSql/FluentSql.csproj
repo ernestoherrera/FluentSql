@@ -88,6 +88,7 @@
     <Compile Include="Support\Extensions\AssemblyExtensions.cs" />
     <Compile Include="Support\Enums.cs" />
     <Compile Include="Support\Extensions\CollectionExtensions.cs" />
+    <Compile Include="Support\Extensions\TypeExtensions.cs" />
     <Compile Include="Support\Helpers\ExpressionHelper.cs" />
     <Compile Include="Support\Helpers\ExpressionPrecedence.cs" />
     <Compile Include="Support\Helpers\OperatorPrecedenceComparer.cs" />

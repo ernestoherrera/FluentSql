@@ -7,31 +7,69 @@ using FluentSql.Mappers;
 using FluentSql.SqlGenerators;
 using System.Reflection;
 using FluentSql.Support.Extensions;
+using Dapper;
+using System.Text;
 
 namespace FluentSql.Support.Helpers
 {
-    internal class ExpressionHelper : ExpressionVisitor
+    public class ExpressionHelper : ExpressionVisitor , IDisposable
     {
+        #region Constructor
+        public ExpressionHelper(Expression predicateExpression, SqlGeneratorHelper parameterNameGenerator)
+        {
+            this.paramNameGenerator = parameterNameGenerator;
+            this.Visit(predicateExpression);
+        }
+        #endregion
+
+        #region Private Properties
         private static readonly char[] period = new char[] { '.' };
         private IComparer<ExpressionType> comparer = new OperatorPrecedenceComparer();
+        private Queue<dynamic> predicateString = new Queue<dynamic>();
+        private SqlGeneratorHelper paramNameGenerator;
+        #endregion
 
-        public Queue<dynamic> parents = new Queue<dynamic>();
+        #region Public Properties
+        public DynamicParameters QueryParameters = new DynamicParameters();
+        #endregion
 
+        #region Public Methods
+        public string ToSql()
+        {
+            var sqlBuilder = new StringBuilder();
+
+            foreach (var token in predicateString)
+            {
+                sqlBuilder.Append(" " + token.ToString());
+            }
+
+            return sqlBuilder.ToString();
+        }
+
+        public void Dispose()
+        {
+            paramNameGenerator = null;
+            predicateString = null;
+            comparer = null;            
+        }
+        #endregion
+
+        #region Protected Methods
         protected override Expression VisitBinary(BinaryExpression exp)
         {
             if ( comparer.Compare(exp.Left.NodeType, exp.NodeType) < 0)
             {
-                parents.Enqueue("(");
-                Visit(exp.Left);
-                parents.Enqueue(GetOperator(exp.NodeType));
-                Visit(exp.Right);
-                parents.Enqueue(")");
+                predicateString.Enqueue("(");
+                this.Visit(exp.Left);
+                predicateString.Enqueue(GetOperator(exp.NodeType));
+                this.Visit(exp.Right);
+                predicateString.Enqueue(")");
             }
             else
             {
-                Visit(exp.Left);
-                parents.Enqueue(GetOperator(exp.NodeType));
-                Visit(exp.Right);
+                this.Visit(exp.Left);
+                predicateString.Enqueue(GetOperator(exp.NodeType));
+                this.Visit(exp.Right);
             }
 
             Expression conversion = this.Visit(exp.Conversion);
@@ -51,7 +89,7 @@ namespace FluentSql.Support.Helpers
                 var comparingArgument = string.Empty;
 
                 this.VisitMember((MemberExpression)methodObject);
-                parents.Enqueue(like);
+                predicateString.Enqueue(like);
 
                 if (methodCall.Arguments.Count > 0)
                 {
@@ -59,8 +97,10 @@ namespace FluentSql.Support.Helpers
 
                     if (compareTo is ConstantExpression)
                     {
-                        var expValue = Expression.Lambda(compareTo).Compile();
-                        comparingArgument = (string)expValue.DynamicInvoke();
+                        var lambdaExp = Expression.Lambda(compareTo).Compile();
+
+                        comparingArgument = (string)lambdaExp.DynamicInvoke();
+                                               
                     }
                     else if (((MemberExpression)compareTo).Member.MemberType == MemberTypes.Field)
                     {
@@ -72,7 +112,10 @@ namespace FluentSql.Support.Helpers
                     else
                         comparingArgument = wildcard + comparingArgument;
 
-                    parents.Enqueue(comparingArgument);
+                    var paramName = paramNameGenerator.GetNextParameterName(nameof(comparingArgument));
+
+                    QueryParameters.Add(paramName, comparingArgument);
+                    predicateString.Enqueue(comparingArgument);
 
                     return methodCall;
                 }
@@ -100,16 +143,24 @@ namespace FluentSql.Support.Helpers
         }
 
         protected override Expression VisitParameter(ParameterExpression p)
-        {            
+        {
             if (SytemTypes.Numeric.Contains(p.Type))
-                parents.Enqueue(p.ToString());
+            {
+                var paramName = paramNameGenerator.GetNextParameterName(nameof(p));
+
+                QueryParameters.Add(paramName, p.ToString());
+                predicateString.Enqueue(p.ToString());
+            }
 
             return p;
         }
 
         protected override Expression VisitConstant(ConstantExpression exp)
         {
-            parents.Enqueue(exp.Value.ToString());
+            var paramName = paramNameGenerator.GetNextParameterName(nameof(exp));
+
+            QueryParameters.Add(paramName, exp.Value);
+            predicateString.Enqueue(exp.Value.ToString());
 
             return base.VisitConstant(exp);
         }
@@ -124,26 +175,37 @@ namespace FluentSql.Support.Helpers
                 dynamic values = GetValue(m);
                 Type valuesType = values.GetType();
 
-                if ( valuesType.GetIEnumerableImpl() != null)
+                if (valuesType.GetIEnumerableImpl() != null)
                 {
-                    var inClause = "IN (";
+                    var parameterNames = new List<string>();
 
-                    inClause += String.Join(",", values);
-                    inClause += ")";
+                    foreach (var val in values)
+                    {
+                        var paramName = paramNameGenerator.GetNextParameterName(nameof(val));
 
-                    parents.Enqueue(inClause);
+                        parameterNames.Add(paramName);
+                        QueryParameters.Add(paramName, val);
+                    }
+
+                    var inClause = string.Format("IN ( {0} )", String.Join(",", parameterNames));
+
+                    predicateString.Enqueue(inClause);
                 }
                 else
                 {
-                    parents.Enqueue(values.ToString());
+                    predicateString.Enqueue(values.ToString());
                 }
                 return m;
 
             }
-            else if (propertyType == typeof(System.Boolean))
-                parents.Enqueue(m.ToString() + " = 1");
+            else if (member.MemberType == MemberTypes.Property && propertyType == typeof(System.Boolean))
+            {
+                predicateString.Enqueue(m.ToString() + " = 1");
+            }
             else
-                parents.Enqueue(m.ToString());
+            {
+                predicateString.Enqueue(m.ToString());
+            }
 
             return base.VisitMember(m);
         }
@@ -152,31 +214,39 @@ namespace FluentSql.Support.Helpers
         {
             Expression operand;
 
-            if ( comparer.Compare(u.Operand.NodeType, u.NodeType) < 0)
+            if (comparer.Compare(u.Operand.NodeType, u.NodeType) < 0)
             {
                 if (u.NodeType == ExpressionType.Not || u.NodeType == ExpressionType.Negate)
-                    parents.Enqueue(GetOperator(u.NodeType));
-                parents.Enqueue("(");
+                {
+                    predicateString.Enqueue(GetOperator(u.NodeType));
+                }
+
+                predicateString.Enqueue("(");
                 operand = this.Visit(u.Operand);
-                parents.Enqueue(")");
+                predicateString.Enqueue(")");
             }
             else
+            {
                 operand = this.Visit(u.Operand);
+            }
 
             if (operand != u.Operand)
             {
                 return Expression.MakeUnary(u.NodeType, operand, u.Type, u.Method);
             }
+
             return u;
         }
+        #endregion
 
+        #region Internal Static Methods
         internal static object GetValue(MemberExpression member)
         {
             if (member == null) return new object();
 
-            var objectMember = System.Linq.Expressions.Expression.Convert(member, typeof(object));
+            var objectMember = Expression.Convert(member, typeof(object));
 
-            var getterLambda = System.Linq.Expressions.Expression.Lambda<Func<object>>(objectMember);
+            var getterLambda = Expression.Lambda<Func<object>>(objectMember);
 
             var getter = getterLambda.Compile();
 
@@ -195,5 +265,15 @@ namespace FluentSql.Support.Helpers
         {
             return EntityMapper.SqlGenerator.GetOperator(type);
         }
+
+        #endregion
+
+        #region Override
+        public override string ToString()
+        {
+            return ToSql();
+        }       
+        #endregion
+
     }
 }

@@ -14,8 +14,7 @@ namespace FluentSql.SqlGenerators
     public class Query<TEntity> : IQuery<TEntity>
     {
         #region Properties
-
-        protected IPredicate<TEntity> Predicate;
+        protected ExpressionHelper Predicate;
 
         protected Queue<dynamic> Joins = new Queue<dynamic>();
 
@@ -35,8 +34,7 @@ namespace FluentSql.SqlGenerators
         public Query()
         {
             Parameters = new DynamicParameters();
-            Fields = new List<PropertyMap>();
-            Predicate = new Predicate<TEntity>(this);
+            Fields = new List<PropertyMap>();            
             ParameterNameGenerator = new SqlGeneratorHelper();
 
             if (EntityMapper.EntityMap.ContainsKey(typeof(TEntity)))
@@ -57,7 +55,7 @@ namespace FluentSql.SqlGenerators
         public virtual IQuery<TEntity> Where(Expression<Func<TEntity, bool>> expression)
         {
             ProcessExpression(expression);
-            CreateDynamicParameters();
+           
 
             return this;
         }
@@ -180,7 +178,7 @@ namespace FluentSql.SqlGenerators
         {
             Joins.Clear();
             Fields.Clear();
-            Predicate.Clear();
+            Predicate = null;
         }
         #endregion
 
@@ -200,50 +198,18 @@ namespace FluentSql.SqlGenerators
         {
             if (expression == null) return;
 
-            var predicates = new List<PredicateUnit>();
-
-            ExpressionHelper.WalkTree((BinaryExpression)expression.Body, ExpressionType.Default, ref predicates);
-
-            foreach (var unit in predicates)
-            {
-                Predicate.Add(unit);
-            }            
+            Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
+                     
         }
 
         protected void ProcessExpression(Expression<Func<TEntity, bool>> expression)
         {
             if (expression == null) return;
 
-            var predicates = new List<PredicateUnit>();
+            Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
 
-            ExpressionHelper.WalkTree((BinaryExpression)expression.Body, ExpressionType.Default, ref predicates);
-
-            foreach (var unit in predicates)
-            {
-                Predicate.Add(unit);
-            }
         }       
-
-        protected void CreateDynamicParameters()
-        {
-            var paramNames = Parameters.ParameterNames;
-            string paramName = string.Empty;
-
-            foreach (var unit in Predicate)
-            {
-                if ( unit.LeftOperandType.IsValueType && paramNames.FirstOrDefault(p =>
-                                    string.Compare(p, unit.LeftOperand, StringComparison.CurrentCultureIgnoreCase) != 0) == null)
-                {
-                    paramName = ParameterNameGenerator.GetNextParameterName(unit.LeftOperand);
-                    Parameters.Add("@" + paramName, unit.RightOperand);
-                }
-                else
-                {
-                    paramName = ParameterNameGenerator.GetNextParameterName(unit.RightOperand);
-                    Parameters.Add("@" + paramName, unit.LeftOperand);
-                }
-            }
-        }
+        
         #endregion
         
     }

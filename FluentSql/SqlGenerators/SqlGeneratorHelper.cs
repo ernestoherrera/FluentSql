@@ -55,5 +55,6 @@ namespace FluentSql.SqlGenerators
 
             return nextParamName;
         }
+        
     }
 }
