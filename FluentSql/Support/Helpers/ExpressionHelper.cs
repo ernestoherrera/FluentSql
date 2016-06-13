@@ -17,6 +17,12 @@ namespace FluentSql.Support.Helpers
         #region Constructor
         public ExpressionHelper(Expression predicateExpression, SqlGeneratorHelper parameterNameGenerator)
         {
+            if (predicateExpression == null)
+                throw new Exception("Predicate expression can't be null.");
+
+            if (parameterNameGenerator == null)
+                parameterNameGenerator = new SqlGeneratorHelper();
+
             this.paramNameGenerator = parameterNameGenerator;
             this.Visit(predicateExpression);
         }
@@ -30,13 +36,17 @@ namespace FluentSql.Support.Helpers
         #endregion
 
         #region Public Properties
-        public DynamicParameters QueryParameters = new DynamicParameters();
+        public DynamicParameters QueryParameters = new DynamicParameters();        
         #endregion
 
-        #region Public Methods
+        #region Public Methods        
         public string ToSql()
         {
+            if (predicateString.Count == 0) return string.Empty;
+
             var sqlBuilder = new StringBuilder();
+
+            sqlBuilder.Append("WHERE ");
 
             foreach (var token in predicateString)
             {
@@ -203,8 +213,10 @@ namespace FluentSql.Support.Helpers
                 predicateString.Enqueue(m.ToString() + " = 1");
             }
             else
-            {
-                predicateString.Enqueue(m.ToString());
+            {                
+                var token = GetFormattedField(m.Expression.Type, m.ToString());
+                
+                predicateString.Enqueue(token);
             }
 
             return base.VisitMember(m);
@@ -264,6 +276,11 @@ namespace FluentSql.Support.Helpers
         internal static string GetOperator(ExpressionType type)
         {
             return EntityMapper.SqlGenerator.GetOperator(type);
+        }
+
+        internal static string GetFormattedField(Type type, string fieldName)
+        {
+            return EntityMapper.SqlGenerator.FormatFieldforSql(type, fieldName);
         }
 
         #endregion

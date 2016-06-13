@@ -67,16 +67,38 @@ namespace FluentSql.SqlGenerators.Contracts
         string GetOperator(ExpressionType type);
 
         /// <summary>
-        /// Return the
+        /// Return the sort order direction for the specific SQL dialect.
         /// </summary>
         /// <param name="sortDirection"></param>
         /// <returns></returns>
         string GetSortOrderToken(SortOrder sortDirection);
 
+        /// <summary>
+        /// Return the And equivalent
+        /// </summary>
         string And { get; }
 
+        /// <summary>
+        /// Returns the Or equivalent.
+        /// </summary>
         string Or { get; }
 
+        /// <summary>
+        /// Returns the NULL equivalent.
+        /// </summary>
         string Null { get; }
+
+        /// <summary>
+        /// Return the keyword to refer to selecting a specific number of rows.
+        /// </summary>
+        string Top { get; }
+
+        /// <summary>
+        /// Returns the required field formatting for the specific SQL dialect.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
+        string FormatFieldforSql(Type type, string fieldName);
     }
 }

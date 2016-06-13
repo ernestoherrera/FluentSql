@@ -13,13 +13,13 @@ namespace FluentSql.SqlGenerators
 {
     public class Query<TEntity> : IQuery<TEntity>
     {
-        #region Properties
+        #region Protected Properties
         protected ExpressionHelper Predicate;
-
         protected Queue<dynamic> Joins = new Queue<dynamic>();
+        #endregion
 
-        protected SqlGeneratorHelper ParameterNameGenerator;
-
+        #region Public Properties
+        public SqlGeneratorHelper ParameterNameGenerator { get; set; }
         public Type EntityType { get; protected set; }
         public string TableName { get; protected set; }
         public string SchemaName { get; protected set; }
@@ -54,31 +54,9 @@ namespace FluentSql.SqlGenerators
         #region Virtual Methods
         public virtual IQuery<TEntity> Where(Expression<Func<TEntity, bool>> expression)
         {
-            ProcessExpression(expression);
-           
+            if (expression == null) return this;
 
-            return this;
-        }
-
-        public virtual IQuery<TEntity> Where(string propertyName, ExpressionType expressionType, dynamic value, string linkToNextPredicate = "")
-        {
-            if (string.IsNullOrEmpty(propertyName) || value == null )
-                throw new Exception("Property name can not be empty or null and value can not be null for use in the where clause");                
-            
-            var op = EntityMapper.SqlGenerator.GetOperator(expressionType);
-
-            var predicateUnit = new PredicateUnit
-            {
-                LeftOperand = typeof(TEntity).GetProperty(propertyName),
-                LeftOperandType = typeof(TEntity),
-                Operator = EntityMapper.SqlGenerator.GetOperator(expressionType),
-                RightOperandType = value.GetType(),
-                RightOperand = value,
-                Link = linkToNextPredicate
-            };
-
-            Predicate.Add(predicateUnit);
-            CreateDynamicParameters();
+            Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
 
             return this;
         }
@@ -87,39 +65,10 @@ namespace FluentSql.SqlGenerators
         {
             if (expression == null) return this;
 
-            ProcessExpression<TRightEntity>(expression);
-            CreateDynamicParameters();
+            Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
 
             return this;
-        }
-
-        public IQuery<TEntity> WhereOnKey<R>(R entity)
-        {
-
-            if (Fields == null || !Fields.Any()) return this;
-
-            var keyFields = Fields.Where(f => f.IsPrimaryKey);
-            var fieldCount = Fields.Count();
-
-            for (var i = 0 ; i < fieldCount; i++)
-            {
-                var field = Fields[i];
-                var predicateUnit = new PredicateUnit
-                {
-                    LeftOperand = field.ColumnName,
-                    LeftOperandType = typeof(TEntity),
-                    Operator = EntityMapper.SqlGenerator.GetOperator(ExpressionType.Equal),
-                    RightOperandType = field.PropertyInfo.GetType(),
-                    RightOperand = field.PropertyInfo.GetValue(entity),
-                    Link = ((i + 1) >= fieldCount ? "" : EntityMapper.SqlGenerator.And)
-                };
-
-                Predicate.Add(predicateUnit);
-            }
-
-            CreateDynamicParameters();
-            return this;
-        }
+        }       
 
         public virtual IQuery<TEntity> JoinOnKey<TRightEntity>() where TRightEntity : new()
         {

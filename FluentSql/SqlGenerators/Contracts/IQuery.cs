@@ -11,6 +11,8 @@ namespace FluentSql.SqlGenerators.Contracts
     {
         string Verb { get; }
 
+        SqlGeneratorHelper ParameterNameGenerator { get; }
+
         DynamicParameters Parameters { get; }
 
         List<PropertyMap> Fields { get; }
@@ -31,11 +33,7 @@ namespace FluentSql.SqlGenerators.Contracts
 
         IQuery<L> Where(Expression<Func<L, bool>> expression);
 
-        IQuery<L> Where<R>(Expression<Func<L, R, bool>> expression) where R : new();
-
-        IQuery<L> Where(string propertyName, ExpressionType expressionType, dynamic value, string linkToNextPredicate = "");
-
-        IQuery<L> WhereOnKey<TEntity>(TEntity entity);
+        IQuery<L> Where<R>(Expression<Func<L, R, bool>> expression) where R : new();        
 
         string ResolveTableAlias(Type type);       
     }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using FluentSql.SqlGenerators.Contracts;
 using System.Data.SqlClient;
 using System.Linq.Expressions;
+using FluentSql.Mappers;
 
 namespace FluentSql.SqlGenerators.SqlServer
 {
@@ -19,6 +20,8 @@ namespace FluentSql.SqlGenerators.SqlServer
 
 
         public string Null { get { return "NULL"; } }
+
+        public string Top { get { return "TOP"; } }
 
 
         /// <summary>
@@ -114,6 +117,14 @@ namespace FluentSql.SqlGenerators.SqlServer
         public string GetSortOrderToken(SortOrder sortDirection)
         {
             return sortDirection == SortOrder.Ascending ? "ASC" : "DESC";
+        }
+
+        public string FormatFieldforSql(Type type, string fieldName)
+        {
+            var tableAlias = EntityMapper.EntityMap[type].TableAlias;
+            var token = string.Format("[{0}].[{1}]", tableAlias, fieldName);
+
+            return token;
         }
     }
 }

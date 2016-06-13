@@ -1,4 +1,5 @@
-﻿using FluentSql.SqlGenerators.Contracts;
+﻿using FluentSql.Mappers;
+using FluentSql.SqlGenerators.Contracts;
 using FluentSql.Support.Helpers;
 using System;
 using System.Collections.Generic;
@@ -13,19 +14,14 @@ namespace FluentSql.SqlGenerators.SqlServer
     public class SqlServerSelectQuery<T> : SelectQuery<T>
     {
         #region Properties
-        protected int TopRows { get; set; }
 
-        public SqlServerSelectQuery<T> Top(int topRows)
-        {
-            TopRows = topRows;
-            return this;
-        }
-        #endregion
+        #endregion        
+
 
         #region Constructor
         public SqlServerSelectQuery() : base()
         {
-            Predicate = new SqlServerPredicate<T>(this);
+            
         }
         #endregion
 
@@ -39,6 +35,14 @@ namespace FluentSql.SqlGenerators.SqlServer
 
             return join.OnKey();
         }
+
+        public override IQuery<T> GetTopRows(int topNumberRows)
+        {
+            this.topRows = topNumberRows;
+
+            return this;
+        }
+
         public override ISelectQuery<T> OrderBy(Expression<Func<T, object>> expression)
         {
             if (OrderByFields == null) OrderByFields = new List<SortOrderField<T>>();
@@ -77,13 +81,14 @@ namespace FluentSql.SqlGenerators.SqlServer
                 sqlJoinBuilder.Append(join.ToSql());
             }
 
-            sqlBuilder.Append(string.Format("{0} {1} ", Verb, string.Join(",", selectFields)));
+            if (topRows > 0)
+                sqlBuilder.Append(string.Format("{0} {1} {2} {3} ", Verb, EntityMapper.SqlGenerator.Top, topRows, string.Join(",", selectFields)));
+            else
+                sqlBuilder.Append(string.Format("{0} {1} ", Verb, string.Join(",", selectFields)));
+            
             sqlBuilder.Append(string.Format("FROM [{0}] {1} ", TableName, TableAlias));
             sqlBuilder.Append(sqlJoinBuilder.ToString());
-
-
-            if (Predicate.Any())
-                sqlBuilder.Append(string.Format("WHERE {0}", Predicate.ToSql()));
+            sqlBuilder.Append(Predicate.ToSql());
 
             if (OrderByFields != null)
                 sqlBuilder.Append(string.Format("ORDER BY {0}", string.Join(",", OrderByFields.Select(f => f.ToSql()))));

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -24,7 +23,7 @@ namespace FluentSql.SqlGenerators
 
         public Type RightJoinType { get { return typeof(R); } }
 
-        protected Predicate<L> JoinPredicate;
+        protected ExpressionHelper Predicate;
         #endregion
 
         #region Constructor
@@ -34,9 +33,7 @@ namespace FluentSql.SqlGenerators
 
             LeftQuery = leftQuery;
             RightQuery = rightQuery;
-            JoinType = joinType;
-
-            JoinPredicate = new Predicate<L>(LeftQuery);
+            JoinType = joinType;            
         }
         #endregion
 
@@ -60,18 +57,15 @@ namespace FluentSql.SqlGenerators
                 RightOperandType = typeof(R)                
             };
 
-            JoinPredicate.Add(joinUnit);
-
             return LeftQuery;
         }
 
         public IQuery<L> On(Expression<Func<L, R, bool>> joinExpression)
         {
-            var predicates = new List<PredicateUnit>();
+            if (joinExpression == null) return LeftQuery;
 
-            ExpressionHelper.WalkTree((BinaryExpression)joinExpression.Body, ExpressionType.Default, ref predicates);
-
-
+            Predicate = new ExpressionHelper(joinExpression, LeftQuery.ParameterNameGenerator);
+            
             return LeftQuery;
         }
 
@@ -80,46 +74,11 @@ namespace FluentSql.SqlGenerators
             var sqlBuilder = new StringBuilder();
 
             sqlBuilder.Append(string.Format("JOIN {0} {1} ON ", RightQuery.TableName, RightQuery.TableAlias));
-
-            for (int i = 0; i < JoinPredicate.Count(); i++)
-            {
-                var item = JoinPredicate[i];
-
-                if (item.LeftOperandType.IsValueType)
-                {
-                    sqlBuilder.AppendFormat("{0}  @{1} ", string.IsNullOrEmpty(item.Link) ? "" : item.Link,
-                                                    item.LeftOperand);
-                }
-                else
-                {
-                    sqlBuilder.AppendFormat("{0}  {1}.{2} ", string.IsNullOrEmpty(item.Link) ? "" : item.Link,
-                                                    TableAliasResolver(item.LeftOperandType),
-                                                    item.LeftOperand);
-                }
-
-                sqlBuilder.AppendFormat("{0}", item.Operator);
-
-                if (item.RightOperandType.IsValueType)
-                {
-                    sqlBuilder.AppendFormat(" @{1} ", item.RightOperand);
-                }
-                else
-                {
-                    sqlBuilder.AppendFormat("{1}.{2} ", TableAliasResolver(item.RightOperandType),
-                                                        item.RightOperand);
-                }
-            }
-
+            sqlBuilder.Append(Predicate.ToSql());
+            
             return sqlBuilder.ToString();
         }
 
-        #endregion
-
-        #region Protected Methods
-        protected string TableAliasResolver(Type type)
-        {
-            return LeftQuery.EntityType == type ? LeftQuery.TableAlias : RightQuery.TableAlias;
-        }
-        #endregion
+        #endregion        
     }
 }

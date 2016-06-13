@@ -9,6 +9,13 @@ namespace FluentSql.SqlGenerators.Contracts
 {
     public interface ISelectQuery<T> : IQuery<T>
     {
+        /// <summary>
+        /// Selects the top n rows of the set.
+        /// </summary>
+        /// <param name="topNumberOfRows">The top number of rows to select from the set</param>
+        /// <returns></returns>
+        IQuery<T> GetTopRows(int topNumberOfRows);
+
         ISelectQuery<T> OrderBy(Expression<Func<T, object>> expression);
 
         ISelectQuery<T> OrderByDescending(Expression<Func<T, object>> expression);

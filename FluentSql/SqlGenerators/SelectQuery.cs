@@ -1,4 +1,5 @@
-﻿using FluentSql.SqlGenerators.Contracts;
+﻿using FluentSql.Mappers;
+using FluentSql.SqlGenerators.Contracts;
 using FluentSql.Support.Helpers;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ namespace FluentSql.SqlGenerators
     {
         #region Properties
         protected readonly string SELECT = "SELECT";
-
+        protected int topRows = 0;
         protected List<SortOrderField<T>> OrderByFields;
         #endregion
 
@@ -23,7 +24,15 @@ namespace FluentSql.SqlGenerators
         {
             Verb = SELECT;
         }
-        #endregion        
+        #endregion
+
+        #region Top Number of Rows
+        public virtual IQuery<T> GetTopRows(int topNumberOfRows)
+        {
+            topRows = topNumberOfRows;
+            return this;
+        }
+        #endregion
 
         #region Sort Order
         public virtual ISelectQuery<T> OrderBy(Expression<Func<T, object>> expression)
@@ -98,13 +107,14 @@ namespace FluentSql.SqlGenerators
                 sqlJoinBuilder.Append(join.ToSql());
             }
 
-            sqlBuilder.Append(string.Format("{0} {1} ", Verb, string.Join(",", selectFields)));
+            if(topRows > 0)
+                sqlBuilder.Append(string.Format("{0} {1} {2} {3} ", Verb, EntityMapper.SqlGenerator.Top, topRows, string.Join(",", selectFields)));
+            else
+                sqlBuilder.Append(string.Format("{0} {1} ", Verb, string.Join(",", selectFields)));
+
             sqlBuilder.Append(string.Format("FROM {0} {1} ", TableName, TableAlias));
             sqlBuilder.Append(sqlJoinBuilder.ToString());
-
-
-            if (Predicate.Any())
-                sqlBuilder.Append(string.Format("WHERE {0}", Predicate.ToSql()));
+            sqlBuilder.Append(Predicate.ToSql());
 
             if (OrderByFields != null)
                 sqlBuilder.Append(string.Format("ORDER BY {0}", string.Join(",", OrderByFields.Select(f => f.ToSql()))));
