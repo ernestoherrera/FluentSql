@@ -11,6 +11,7 @@ namespace FluentSql.SqlGenerators
         private Random RandomGen = new Random(DateTime.Now.Millisecond + DateTime.Now.Second + DateTime.Now.Minute);
         private Dictionary<Type, string> Aliases = new Dictionary<Type, string>();
         private List<string> ParameterNames = new List<string>();
+        private readonly string AT_SIGN = "@";
 
         public string GetTableAlias(Type type)
         {
@@ -53,8 +54,8 @@ namespace FluentSql.SqlGenerators
 
             ParameterNames.Add(nextParamName);
 
-            return nextParamName;
+            return AT_SIGN + nextParamName;
         }
-        
+
     }
 }

@@ -17,24 +17,14 @@ namespace FluentSql.SqlGenerators.SqlServer
 
         #endregion        
 
-
         #region Constructor
         public SqlServerSelectQuery() : base()
         {
-            
+
         }
         #endregion
 
-        #region Overrides
-        public override IQuery<T> JoinOnKey<TRightEntity>()
-        {
-            var rightQuery = new Query<TRightEntity>();
-            var join = new SqlServerJoin<T, TRightEntity>(this, rightQuery);
-
-            Joins.Enqueue(join);
-
-            return join.OnKey();
-        }
+        #region Overrides        
 
         public override IQuery<T> GetTopRows(int topNumberRows)
         {
@@ -85,8 +75,12 @@ namespace FluentSql.SqlGenerators.SqlServer
                 sqlBuilder.Append(string.Format("{0} {1} {2} {3} ", Verb, EntityMapper.SqlGenerator.Top, topRows, string.Join(",", selectFields)));
             else
                 sqlBuilder.Append(string.Format("{0} {1} ", Verb, string.Join(",", selectFields)));
-            
-            sqlBuilder.Append(string.Format("FROM [{0}] {1} ", TableName, TableAlias));
+
+            if (EntityMapper.SqlGenerator.IncludeDbNameInQuery)
+                sqlBuilder.Append(string.Format("FROM [{0}].[{1}].[{2}] {3} ", DatabaseName, SchemaName, TableName, TableAlias));
+            else
+                sqlBuilder.Append(string.Format("FROM [{0}].[{1}] {2} ", SchemaName, TableName, TableAlias));
+
             sqlBuilder.Append(sqlJoinBuilder.ToString());
             sqlBuilder.Append(Predicate.ToSql());
 

@@ -30,14 +30,15 @@ namespace FluentSql.Mappers
 
         public static ConcurrentDictionary<Type, EntityMap> EntityMap = new ConcurrentDictionary<Type, EntityMap>();
 
+        public static IEnumerable<Table> DatabaseTables { get; set; }
+
         public static ISqlGenerator SqlGenerator { get; private set; }
 
         #endregion
-       
+
         #region Private Properties
         private bool TableNamesInPlural { get; set; }
         private static IEnumerable<Type> EntityTypes { get; set; }
-        private static IEnumerable<Table> DatabaseTables { get; set; }
         #endregion
 
         #region Constructor
@@ -62,10 +63,10 @@ namespace FluentSql.Mappers
 
         public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames) :
             this(dbConnection, entityInterface, databaseNames, null)
-        {   }
+        { }
 
         public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames, Action onPostEntityMapping) :
-            this(dbConnection, entityInterface, databaseNames, null, true , onPostEntityMapping)
+            this(dbConnection, entityInterface, databaseNames, null, true, onPostEntityMapping)
         { }
 
         public EntityMapper(IDbConnection dbConnection, Type entityInterface, string databaseName) :
@@ -112,20 +113,20 @@ namespace FluentSql.Mappers
                 prop.OrdinalPosition = col.OrdinalPosition;
             }
 
-            map.IsMapped = true;
+            table.IsMapped = true;
             map.Properties.Sort();
 
             if (!EntityMap.TryAdd(entityType, map))
             {
                 throw new ArgumentNullException("Can not add a key with null value.");
-            }                                    
-         
+            }
+
         }
         #endregion
 
         #region Private Methods
         private void MapEntities(IDbConnection dbconnection, Type entityInterface, IEnumerable<string> databaseNames)
-        {                      
+        {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             var sqlHelper = new SqlGeneratorHelper();
             var entityReader = new DefaultEntityReader();
@@ -135,14 +136,14 @@ namespace FluentSql.Mappers
             EntityTypes = entityReader.ReadEntities(entityInterface, assemblies);
 
             foreach (var type in EntityTypes)
-            {               
+            {
                 var tableName = type.Name;
                 var tableAlias = sqlHelper.GetTableAlias(type);
 
-                if (TableNamesInPlural)              
+                if (TableNamesInPlural)
                     tableName = service.Pluralize(type.Name);
-                
-                MapEntity(type, tableName, tableAlias);  
+
+                MapEntity(type, tableName, tableAlias);
             }
         }
 

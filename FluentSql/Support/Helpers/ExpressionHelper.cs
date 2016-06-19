@@ -12,7 +12,7 @@ using System.Text;
 
 namespace FluentSql.Support.Helpers
 {
-    public class ExpressionHelper : ExpressionVisitor , IDisposable
+    public class ExpressionHelper : ExpressionVisitor, IDisposable
     {
         #region Constructor
         public ExpressionHelper(Expression predicateExpression, SqlGeneratorHelper parameterNameGenerator)
@@ -36,7 +36,7 @@ namespace FluentSql.Support.Helpers
         #endregion
 
         #region Public Properties
-        public DynamicParameters QueryParameters = new DynamicParameters();        
+        public DynamicParameters QueryParameters = new DynamicParameters();
         #endregion
 
         #region Public Methods        
@@ -60,14 +60,14 @@ namespace FluentSql.Support.Helpers
         {
             paramNameGenerator = null;
             predicateString = null;
-            comparer = null;            
+            comparer = null;
         }
         #endregion
 
-        #region Protected Methods
+        #region Protected Overriden Methods
         protected override Expression VisitBinary(BinaryExpression exp)
         {
-            if ( comparer.Compare(exp.Left.NodeType, exp.NodeType) < 0)
+            if (comparer.Compare(exp.Left.NodeType, exp.NodeType) < 0)
             {
                 predicateString.Enqueue("(");
                 this.Visit(exp.Left);
@@ -90,7 +90,7 @@ namespace FluentSql.Support.Helpers
         {
             var allowedMethods = new string[] { "StartsWith", "Contains", "EndsWith" };
             var methodObject = methodCall.Object;
-            var methodName = methodCall.Method.Name;            
+            var methodName = methodCall.Method.Name;
 
             if (methodCall.Method.DeclaringType == typeof(string) && allowedMethods.Contains(methodName))
             {
@@ -110,7 +110,7 @@ namespace FluentSql.Support.Helpers
                         var lambdaExp = Expression.Lambda(compareTo).Compile();
 
                         comparingArgument = (string)lambdaExp.DynamicInvoke();
-                                               
+
                     }
                     else if (((MemberExpression)compareTo).Member.MemberType == MemberTypes.Field)
                     {
@@ -175,14 +175,14 @@ namespace FluentSql.Support.Helpers
             return base.VisitConstant(exp);
         }
 
-        protected override Expression VisitMember(MemberExpression m)
-        {            
-            var propertyType = m.Type;
-            var member = ((MemberExpression)m).Member;
+        protected override Expression VisitMember(MemberExpression memberExpression)
+        {
+            var propertyType = memberExpression.Type;
+            var member = ((MemberExpression)memberExpression).Member;
 
             if (member.MemberType == MemberTypes.Field)
             {
-                dynamic values = GetValue(m);
+                dynamic values = GetValue(memberExpression);
                 Type valuesType = values.GetType();
 
                 if (valuesType.GetIEnumerableImpl() != null)
@@ -205,21 +205,34 @@ namespace FluentSql.Support.Helpers
                 {
                     predicateString.Enqueue(values.ToString());
                 }
-                return m;
+                return memberExpression;
 
             }
             else if (member.MemberType == MemberTypes.Property && propertyType == typeof(System.Boolean))
             {
-                predicateString.Enqueue(m.ToString() + " = 1");
+                predicateString.Enqueue(memberExpression.ToString() + " = 1");
             }
-            else
-            {                
-                var token = GetFormattedField(m.Expression.Type, m.ToString());
-                
+            else if (memberExpression.Expression.NodeType == ExpressionType.MemberAccess
+                     && ((MemberExpression)memberExpression.Expression).Member.MemberType == MemberTypes.Field)
+            {
+                var paramValue = GetValue(memberExpression);
+                var paramName = paramNameGenerator.GetNextParameterName(nameof(memberExpression));
+
+                QueryParameters.Add(paramName, paramValue);
+                predicateString.Enqueue(paramName);
+
+                return memberExpression;
+
+            }
+            else if (memberExpression.NodeType == ExpressionType.MemberAccess)
+            {
+                var propertyName = GetPropertyName(memberExpression.ToString());
+                var token = GetFormattedField(memberExpression.Expression.Type, propertyName);
+
                 predicateString.Enqueue(token);
             }
 
-            return base.VisitMember(m);
+            return base.VisitMember(memberExpression);
         }
 
         protected override Expression VisitUnary(UnaryExpression u)
@@ -263,12 +276,25 @@ namespace FluentSql.Support.Helpers
             var getter = getterLambda.Compile();
 
             return getter();
-        }        
+        }
 
         internal static string GetPropertyName(UnaryExpression body)
         {
             var token = body.Operand.ToString();
             var propertyName = token.Split(period)[1];
+
+            return propertyName;
+        }
+
+        internal static string GetPropertyName(string expression)
+        {
+            if (string.IsNullOrEmpty(expression)) return "";
+
+            var propertyName = string.Empty;
+            var expParts = expression.Split(period);
+
+            if (expParts.Length > 0)
+                propertyName = expParts[1];
 
             return propertyName;
         }
@@ -283,13 +309,20 @@ namespace FluentSql.Support.Helpers
             return EntityMapper.SqlGenerator.FormatFieldforSql(type, fieldName);
         }
 
+        internal static Expression<Func<TModel, TProperty>> CreateExpression<TModel, TProperty>(string propertyName)
+        {
+            var param = Expression.Parameter(typeof(TModel), "m");
+
+            return Expression.Lambda<Func<TModel, TProperty>>(Expression.PropertyOrField(param, propertyName), param);
+        }
+
         #endregion
 
         #region Override
         public override string ToString()
         {
             return ToSql();
-        }       
+        }
         #endregion
 
     }

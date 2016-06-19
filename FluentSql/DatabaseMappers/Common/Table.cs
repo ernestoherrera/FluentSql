@@ -13,13 +13,20 @@ namespace FluentSql.DatabaseMappers.Common
     {
         #region Public Properties
         public IEnumerable<Column> Columns { get; set; }
+
         public IEnumerable<ForeignKey> ForeignKeys { get; set; }
 
         public string Database { get; set; }
+
         public string Name { get; set; }
+
         public string Schema { get; set; }
+
         public bool IsView { get; set; }
+
         public bool Ignore { get; set; }
+
+        public bool IsMapped { get; internal set; }
 
         public List<Column> PrimaryKeys
         {
@@ -38,6 +45,15 @@ namespace FluentSql.DatabaseMappers.Common
                 return GetColumn(columnName);
             }
         }
-        #endregion       
+        #endregion
+
+        #region Constructor
+        public Table()
+        {
+            IsMapped = false;
+            Ignore = false;
+            IsView = false;
+        }
+        #endregion
     }
 }

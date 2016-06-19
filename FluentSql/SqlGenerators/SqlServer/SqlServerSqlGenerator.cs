@@ -13,6 +13,10 @@ namespace FluentSql.SqlGenerators.SqlServer
 {
     public class SqlServerSqlGenerator : ISqlGenerator
     {
+        public string DriverParameterIndicator { get { return "@"; } }
+
+        public bool IncludeDbNameInQuery { get; protected set; }
+
         public string And { get { return "AND"; } }
             
 
@@ -21,9 +25,14 @@ namespace FluentSql.SqlGenerators.SqlServer
 
         public string Null { get { return "NULL"; } }
 
-        public string Top { get { return "TOP"; } }
+        public string Top { get { return "TOP"; } }                
 
-
+        #region Constructor
+        public SqlServerSqlGenerator(bool includeDbNameInQuery = true)
+        {
+            this.IncludeDbNameInQuery = includeDbNameInQuery;
+        }
+        #endregion
         /// <summary>
         /// Creates a filtered select statement
         /// </summary>

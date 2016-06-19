@@ -34,13 +34,13 @@ namespace FluentSql.SqlGenerators
         public Query()
         {
             Parameters = new DynamicParameters();
-            Fields = new List<PropertyMap>();            
+            Fields = new List<PropertyMap>();
             ParameterNameGenerator = new SqlGeneratorHelper();
 
             if (EntityMapper.EntityMap.ContainsKey(typeof(TEntity)))
             {
                 var entityMap = EntityMapper.EntityMap[typeof(TEntity)];
-                
+
                 Fields = entityMap.Properties.Where(p => p.IsTableField).ToList();
                 TableName = entityMap.TableName;
                 TableAlias = entityMap.TableAlias;
@@ -57,6 +57,7 @@ namespace FluentSql.SqlGenerators
             if (expression == null) return this;
 
             Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
+            Parameters = Predicate.QueryParameters;
 
             return this;
         }
@@ -66,19 +67,10 @@ namespace FluentSql.SqlGenerators
             if (expression == null) return this;
 
             Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
+            Parameters = Predicate.QueryParameters;
 
             return this;
-        }       
-
-        public virtual IQuery<TEntity> JoinOnKey<TRightEntity>() where TRightEntity : new()
-        {
-            var rightQuery = new Query<TRightEntity>();
-            var join = new Join<TEntity, TRightEntity>(this, rightQuery);
-
-            Joins.Enqueue(join);
-
-            return join.OnKey();
-        }
+        }        
 
         public virtual IQuery<TEntity> JoinOn<TRightEntity>(Expression<Func<TEntity, TRightEntity, bool>> expression, JoinType joinType = JoinType.Inner)
         {
@@ -143,23 +135,7 @@ namespace FluentSql.SqlGenerators
             return rightQuery;
         }
 
-        protected void ProcessExpression<TRightEntity>(Expression<Func<TEntity, TRightEntity, bool>> expression) where TRightEntity : new()
-        {
-            if (expression == null) return;
-
-            Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
-                     
-        }
-
-        protected void ProcessExpression(Expression<Func<TEntity, bool>> expression)
-        {
-            if (expression == null) return;
-
-            Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
-
-        }       
-        
         #endregion
-        
+
     }
 }

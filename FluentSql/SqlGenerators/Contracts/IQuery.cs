@@ -25,9 +25,7 @@ namespace FluentSql.SqlGenerators.Contracts
 
         string DatabaseName { get; }
 
-        Type EntityType { get; }
-
-        IQuery<L> JoinOnKey<R>() where R : new();
+        Type EntityType { get; }       
 
         IQuery<L> JoinOn<R>(Expression<Func<L, R, bool>> expression, JoinType joinType = JoinType.Inner);
 

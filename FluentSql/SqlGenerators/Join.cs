@@ -7,6 +7,7 @@ using FluentSql.Support;
 using FluentSql.Mappers;
 using System.Linq.Expressions;
 using FluentSql.Support.Helpers;
+using Dapper;
 
 namespace FluentSql.SqlGenerators
 {
@@ -23,6 +24,8 @@ namespace FluentSql.SqlGenerators
 
         public Type RightJoinType { get { return typeof(R); } }
 
+        public DynamicParameters Parameters { get; protected set; }
+
         protected ExpressionHelper Predicate;
         #endregion
 
@@ -38,42 +41,23 @@ namespace FluentSql.SqlGenerators
         #endregion
 
         #region Public Methods
-        public virtual IQuery<L> OnKey()
-        {
-            var primaryField = LeftQuery.Fields.FirstOrDefault(f => f.IsPrimaryKey);
-            var linkedField = RightQuery.Fields.FirstOrDefault(f => string.Compare(f.Name,
-                                LeftQuery.TableName + primaryField.Name,
-                                StringComparison.CurrentCultureIgnoreCase) == 0);
-
-            if (primaryField == null || linkedField == null) return LeftQuery;
-
-            var equalOperator = EntityMapper.SqlGenerator.GetOperator(ExpressionType.Equal);
-            var joinUnit = new PredicateUnit
-            {
-                LeftOperand = primaryField.ColumnName,
-                LeftOperandType = typeof(L),
-                Operator = equalOperator,
-                RightOperand = linkedField.ColumnName,
-                RightOperandType = typeof(R)                
-            };
-
-            return LeftQuery;
-        }
-
+        
         public IQuery<L> On(Expression<Func<L, R, bool>> joinExpression)
         {
             if (joinExpression == null) return LeftQuery;
 
             Predicate = new ExpressionHelper(joinExpression, LeftQuery.ParameterNameGenerator);
-            
+            Parameters = Predicate.QueryParameters;
+
             return LeftQuery;
         }
 
         public virtual string ToSql()
         {
             var sqlBuilder = new StringBuilder();
+            var selectedJoin = Enum.GetName(typeof(JoinType), JoinType);
 
-            sqlBuilder.Append(string.Format("JOIN {0} {1} ON ", RightQuery.TableName, RightQuery.TableAlias));
+            sqlBuilder.Append(string.Format("{0} JOIN {1} {2} ON ", selectedJoin, RightQuery.TableName, RightQuery.TableAlias));
             sqlBuilder.Append(Predicate.ToSql());
             
             return sqlBuilder.ToString();

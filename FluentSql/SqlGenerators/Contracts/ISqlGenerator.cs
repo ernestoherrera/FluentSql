@@ -11,6 +11,35 @@ namespace FluentSql.SqlGenerators.Contracts
     public interface ISqlGenerator
     {
         /// <summary>
+        /// The parameter sign required by the specific SQL provider
+        /// </summary>
+        string DriverParameterIndicator { get; }
+        /// <summary>
+        /// Includes the database name in the query
+        /// </summary>
+        bool IncludeDbNameInQuery { get; }
+
+        /// <summary>
+        /// Return the And equivalent
+        /// </summary>
+        string And { get; }
+
+        /// <summary>
+        /// Returns the Or equivalent.
+        /// </summary>
+        string Or { get; }
+
+        /// <summary>
+        /// Returns the NULL equivalent.
+        /// </summary>
+        string Null { get; }
+
+        /// <summary>
+        /// Return the keyword to refer to selecting a specific number of rows.
+        /// </summary>
+        string Top { get; }
+
+        /// <summary>
         ///  Generates Select query object without where clause
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
@@ -72,26 +101,6 @@ namespace FluentSql.SqlGenerators.Contracts
         /// <param name="sortDirection"></param>
         /// <returns></returns>
         string GetSortOrderToken(SortOrder sortDirection);
-
-        /// <summary>
-        /// Return the And equivalent
-        /// </summary>
-        string And { get; }
-
-        /// <summary>
-        /// Returns the Or equivalent.
-        /// </summary>
-        string Or { get; }
-
-        /// <summary>
-        /// Returns the NULL equivalent.
-        /// </summary>
-        string Null { get; }
-
-        /// <summary>
-        /// Return the keyword to refer to selecting a specific number of rows.
-        /// </summary>
-        string Top { get; }
 
         /// <summary>
         /// Returns the required field formatting for the specific SQL dialect.
