@@ -48,6 +48,7 @@ namespace FluentSql.SqlGenerators
 
             Predicate = new ExpressionHelper(joinExpression, LeftQuery.ParameterNameGenerator);
             Parameters = Predicate.QueryParameters;
+            AddParametersToQuery(Parameters);
 
             return LeftQuery;
         }
@@ -61,6 +62,23 @@ namespace FluentSql.SqlGenerators
             sqlBuilder.Append(Predicate.ToSql());
             
             return sqlBuilder.ToString();
+        }
+
+        private void AddParametersToQuery(DynamicParameters otherParameters)
+        {
+            if (otherParameters == null) return;
+
+            var parameterLookup = (SqlMapper.IParameterLookup)otherParameters;
+            var lefQueryParameters = LeftQuery.Parameters;
+
+            foreach (var parameterName in otherParameters.ParameterNames)
+            {
+                if (lefQueryParameters.ParameterNames.FirstOrDefault(paramName => paramName == parameterName) != null)
+                    continue;
+
+                var value = parameterLookup[parameterName];
+                LeftQuery.Parameters.Add(parameterName, value);
+            }
         }
 
         #endregion        
