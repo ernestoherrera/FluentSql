@@ -135,5 +135,17 @@ namespace FluentSql.SqlGenerators.SqlServer
 
             return token;
         }
+
+        public string FormatFieldforSql(string fieldName, string tableAlias = "")
+        {
+            string token = string.Empty;
+
+            if (String.IsNullOrEmpty(tableAlias))
+                token = string.Format("[{0}]", fieldName);
+            else
+                token = string.Format("[{0}].[{1}]", tableAlias, fieldName);
+
+            return token;
+        }
     }
 }

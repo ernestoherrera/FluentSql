@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Contracts\IEntityStore.cs" />
+    <Compile Include="DapperHelpers.cs" />
     <Compile Include="DatabaseMappers\Contracts\IDatabaseMapper.cs" />
     <Compile Include="DatabaseMappers\DefaultDatabaseMapper.cs" />
     <Compile Include="DatabaseMappers\SqlServerMapper\SqlServerConstants.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="SqlGenerators\Contracts\IUpdateQuery.cs" />
     <Compile Include="SqlGenerators\InsertQuery.cs" />
     <Compile Include="SqlGenerators\Join.cs" />
+    <Compile Include="SqlGenerators\PredicateUnit.cs" />
     <Compile Include="SqlGenerators\SelectQuery.cs" />
     <Compile Include="SqlGenerators\SetClause.cs" />
     <Compile Include="SqlGenerators\SortOrderField.cs" />

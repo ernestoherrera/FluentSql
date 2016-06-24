@@ -14,7 +14,7 @@ namespace FluentSql.SqlGenerators
     public class Query<TEntity> : IQuery<TEntity>
     {
         #region Protected Properties
-        protected ExpressionHelper Predicate;
+        protected ExpressionHelper Predicate;        
         protected Queue<dynamic> Joins = new Queue<dynamic>();
         #endregion
 
@@ -22,12 +22,13 @@ namespace FluentSql.SqlGenerators
         public SqlGeneratorHelper ParameterNameGenerator { get; set; }
         public Type EntityType { get; protected set; }
         public string TableName { get; protected set; }
+        public string TableAlias { get; set; }
         public string SchemaName { get; protected set; }
         public string DatabaseName { get; protected set; }
         public List<PropertyMap> Fields { get; protected set; }
         public string Verb { get; protected set; }
         public DynamicParameters Parameters { get; protected set; }
-        public string TableAlias { get; set; }
+        public List<PredicateUnit> PredicateUnits { get; protected set; }        
         #endregion
 
         #region Constructor
@@ -133,6 +134,23 @@ namespace FluentSql.SqlGenerators
             Joins.Enqueue(join);
 
             return rightQuery;
+        }
+
+        public IQuery<TEntity> Where(PredicateUnit predicateUnit)
+        {
+            if (this.PredicateUnits == null)
+                this.PredicateUnits = new List<PredicateUnit>();
+
+            if (predicateUnit.IsRightOperandParameter)
+            {
+                var parameterName = this.ParameterNameGenerator.GetNextParameterName("param");
+
+                Parameters.Add(parameterName, predicateUnit.RightOperand);
+            }
+                    
+            this.PredicateUnits.Add(predicateUnit);
+
+            return this;
         }
 
         #endregion

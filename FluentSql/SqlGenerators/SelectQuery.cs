@@ -107,14 +107,18 @@ namespace FluentSql.SqlGenerators
                 sqlJoinBuilder.Append(join.ToSql());
             }
 
-            if(topRows > 0)
+            if (topRows > 0)
                 sqlBuilder.Append(string.Format("{0} {1} {2} {3} ", Verb, EntityMapper.SqlGenerator.Top, topRows, string.Join(",", selectFields)));
             else
                 sqlBuilder.Append(string.Format("{0} {1} ", Verb, string.Join(",", selectFields)));
 
             sqlBuilder.Append(string.Format("FROM {0} {1} ", TableName, TableAlias));
             sqlBuilder.Append(sqlJoinBuilder.ToString());
-            sqlBuilder.Append(Predicate.ToSql());
+
+            if (PredicateUnits != null && PredicateUnits.Any())
+                sqlBuilder.Append()
+            else
+                sqlBuilder.Append(Predicate.ToSql());
 
             if (OrderByFields != null)
                 sqlBuilder.Append(string.Format("ORDER BY {0}", string.Join(",", OrderByFields.Select(f => f.ToSql()))));

@@ -109,5 +109,13 @@ namespace FluentSql.SqlGenerators.Contracts
         /// <param name="fieldName"></param>
         /// <returns></returns>
         string FormatFieldforSql(Type type, string fieldName);
+
+        /// <summary>
+        /// Returns the required field formatting for the specific SQL dialect.
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <param name="tableAlias"></param>
+        /// <returns></returns>
+        string FormatFieldforSql(string fieldName, string tableAlias = "");
     }
 }

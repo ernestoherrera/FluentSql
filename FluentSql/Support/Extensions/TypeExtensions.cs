@@ -26,5 +26,13 @@ namespace FluentSql.Support.Extensions
             else
                 return null;
         }
+
+        public static bool IsAnonymous(this Type type)
+        {
+            if (type == null)
+                return false;
+
+            return type.Namespace == null;
+        }
     }
 }

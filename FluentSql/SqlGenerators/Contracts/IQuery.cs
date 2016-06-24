@@ -31,7 +31,9 @@ namespace FluentSql.SqlGenerators.Contracts
 
         IQuery<L> Where(Expression<Func<L, bool>> expression);
 
-        IQuery<L> Where<R>(Expression<Func<L, R, bool>> expression) where R : new();        
+        IQuery<L> Where<R>(Expression<Func<L, R, bool>> expression) where R : new();
+
+        IQuery<L> Where(PredicateUnit predicateUnit);
 
         string ResolveTableAlias(Type type);       
     }
