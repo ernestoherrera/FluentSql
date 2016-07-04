@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace FluentSql.SqlGenerators.SqlServer
 {
-    public class SqlServerSelectQuery<T> : SelectQuery<T>
+    public class SqlServerSelectQuery<T> : SelectQuery<T>, IQuery<T>
     {
         #region Properties
 
@@ -82,7 +82,11 @@ namespace FluentSql.SqlGenerators.SqlServer
                 sqlBuilder.Append(string.Format("FROM [{0}].[{1}] {2} ", SchemaName, TableName, TableAlias));
 
             sqlBuilder.Append(sqlJoinBuilder.ToString());
-            sqlBuilder.Append(Predicate.ToSql());
+
+            if (PredicateParts != null && PredicateParts.Any())
+                sqlBuilder.Append(PredicateParts.ToSql());
+            else if (Predicate != null)
+                sqlBuilder.Append(Predicate.ToSql());
 
             if (OrderByFields != null)
                 sqlBuilder.Append(string.Format("ORDER BY {0}", string.Join(",", OrderByFields.Select(f => f.ToSql()))));

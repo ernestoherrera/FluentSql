@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentSql.Mappers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -41,7 +42,13 @@ namespace FluentSql.SqlGenerators
 
         public virtual string ToSql()
         {
+            var linkingSql = "";
 
+            if (LinkingOperator.HasValue)
+                linkingSql = EntityMapper.SqlGenerator.GetOperator(LinkingOperator.Value);
+
+            return string.Format("{3} ({0} {1} {2}) ", LeftOperand, EntityMapper.SqlGenerator.GetOperator(Operator),
+                                                        RightOperand, linkingSql);
         }
 
         public override string ToString()

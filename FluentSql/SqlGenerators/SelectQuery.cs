@@ -115,8 +115,8 @@ namespace FluentSql.SqlGenerators
             sqlBuilder.Append(string.Format("FROM {0} {1} ", TableName, TableAlias));
             sqlBuilder.Append(sqlJoinBuilder.ToString());
 
-            if (PredicateUnits != null && PredicateUnits.Any())
-                sqlBuilder.Append()
+            if (PredicateParts != null && PredicateParts.Any())
+                sqlBuilder.Append(PredicateParts.ToSql());
             else
                 sqlBuilder.Append(Predicate.ToSql());
 

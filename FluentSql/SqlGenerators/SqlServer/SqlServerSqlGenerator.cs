@@ -39,7 +39,7 @@ namespace FluentSql.SqlGenerators.SqlServer
         /// <typeparam name="T">Enity type</typeparam>
         /// <param name="expression">Expression by which the enitity set is to be filtered</param>
         /// <returns></returns>
-        public ISelectQuery<T> Select<T>(Expression<Func<T, bool>> expression)
+        public SelectQuery<T> Select<T>(Expression<Func<T, bool>> expression)
         {
             var select = new SqlServerSelectQuery<T>();
 
@@ -51,27 +51,27 @@ namespace FluentSql.SqlGenerators.SqlServer
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns>SqlServerSelectQuery for T entity</returns>
-        public ISelectQuery<T> Select<T>()
+        public SelectQuery<T> Select<T>()
         {
             return new SqlServerSelectQuery<T>();
         }
 
-        public IInsertQuery<T> Insert<T>(T entity)
+        public InsertQuery<T> Insert<T>(T entity)
         {
             throw new NotImplementedException();
         }
 
-        public IUpdateQuery<T> Update<T>(T entity)
+        public UpdateQuery<T> Update<T>(T entity)
         {
             throw new NotImplementedException();
         }
 
-        public IUpdateQuery<T> UpdateMany<T>(T entity, Expression<Func<T, bool>> expression)
+        public UpdateQuery<T> UpdateMany<T>(T entity, Expression<Func<T, bool>> expression)
         {
             throw new NotImplementedException();
         }
 
-        public IDeleteQuery<T> Delete<T>(T entity)
+        public DeleteQuery<T> Delete<T>(T entity)
         {
             throw new NotImplementedException();
         }
@@ -143,7 +143,7 @@ namespace FluentSql.SqlGenerators.SqlServer
             if (String.IsNullOrEmpty(tableAlias))
                 token = string.Format("[{0}]", fieldName);
             else
-                token = string.Format("[{0}].[{1}]", tableAlias, fieldName);
+                token = string.Format("{0}.[{1}]", tableAlias, fieldName);
 
             return token;
         }

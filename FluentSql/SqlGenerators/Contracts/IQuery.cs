@@ -33,7 +33,7 @@ namespace FluentSql.SqlGenerators.Contracts
 
         IQuery<L> Where<R>(Expression<Func<L, R, bool>> expression) where R : new();
 
-        IQuery<L> Where(PredicateUnit predicateUnit);
+        IQuery<L> Where(string leftOperand, ExpressionType predicateOperator, string rightOperand, bool isParametized = false, ExpressionType? linkingOperator = null);
 
         string ResolveTableAlias(Type type);       
     }

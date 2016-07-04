@@ -28,7 +28,7 @@ namespace FluentSql.SqlGenerators
         public List<PropertyMap> Fields { get; protected set; }
         public string Verb { get; protected set; }
         public DynamicParameters Parameters { get; protected set; }
-        public List<PredicateUnit> PredicateUnits { get; protected set; }        
+        public PredicateUnits PredicateParts { get; protected set; }        
         #endregion
 
         #region Constructor
@@ -136,19 +136,24 @@ namespace FluentSql.SqlGenerators
             return rightQuery;
         }
 
-        public IQuery<TEntity> Where(PredicateUnit predicateUnit)
+        public IQuery<TEntity> Where(string leftOperand, ExpressionType predicateOperator, string rightOperand, bool isParametized = false, ExpressionType? linkingOperator = null)
         {
-            if (this.PredicateUnits == null)
-                this.PredicateUnits = new List<PredicateUnit>();
+            if (this.PredicateParts == null)
+                this.PredicateParts = new PredicateUnits();
 
-            if (predicateUnit.IsRightOperandParameter)
+            var parameterName = string.Empty;
+
+            if (isParametized)
             {
-                var parameterName = this.ParameterNameGenerator.GetNextParameterName("param");
+                parameterName = this.ParameterNameGenerator.GetNextParameterName("param");
 
-                Parameters.Add(parameterName, predicateUnit.RightOperand);
+                Parameters.Add(parameterName, rightOperand);
+                this.PredicateParts.Add(leftOperand, predicateOperator, parameterName, isParametized, linkingOperator);
             }
-                    
-            this.PredicateUnits.Add(predicateUnit);
+            else
+            {
+                this.PredicateParts.Add(leftOperand, predicateOperator, rightOperand, isParametized, linkingOperator);
+            }
 
             return this;
         }

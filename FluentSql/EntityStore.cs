@@ -58,42 +58,32 @@ namespace FluentSql
                                     
             var query = SqlGenerator.Select<T>();
             var keyColumns = query.Fields.Where(fld => fld.IsPrimaryKey).ToList();
-            ExpressionType? linkingField = null;
+            ExpressionType? linkingField = null;            
 
             if (!keyColumns.Any()) return default(T);
             
             if (key.GetType().Namespace == null)
             {
+                Type keyType = key.GetType();
+
                 foreach (var column in keyColumns)
                 {
-                    var value = column.PropertyInfo.GetValue(key);
-                    var keyPredicate = new PredicateUnit
-                    {
-                        LeftOperand = EntityMapper.SqlGenerator.FormatFieldforSql(column.Name, query.TableAlias),
-                        Operator = ExpressionType.Equal,
-                        RightOperand = value,
-                        IsRightOperandParameter = true,
-                        LinkingOperator = linkingField
-                    };
+                    var keyPropInfo = keyType.GetProperty(column.Name);
+                    var keyPropValue = keyPropInfo.GetValue(key);
+                    var lefOperand = EntityMapper.SqlGenerator.FormatFieldforSql(column.Name, query.TableAlias);
+                    var value = string.Format("{0}", keyPropValue);
 
-                    query.Where(keyPredicate);
+                    query.Where(lefOperand, ExpressionType.Equal, value, true, linkingField);
                     linkingField = ExpressionType.AndAlso;
                 }                
             }
             else
             {
                 var column = keyColumns.FirstOrDefault();
-                
-                var keyPredicate = new PredicateUnit
-                {
-                    LeftOperand = EntityMapper.SqlGenerator.FormatFieldforSql(column.Name, query.TableAlias),
-                    Operator = ExpressionType.Equal,
-                    RightOperand = key,
-                    IsRightOperandParameter = true,
-                    LinkingOperator = linkingField
-                };
+                var lefOperand = EntityMapper.SqlGenerator.FormatFieldforSql(column.Name, query.TableAlias);
+                var value = string.Format("{0}", key);
 
-                query.Where(keyPredicate);
+                query.Where(lefOperand, ExpressionType.Equal, value, true, linkingField);
             }
 
             var entities = DapperHelper.Query<T>(DbConnection, query.ToSql(), query.Parameters);

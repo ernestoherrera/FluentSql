@@ -73,6 +73,7 @@
     <Compile Include="SqlGenerators\InsertQuery.cs" />
     <Compile Include="SqlGenerators\Join.cs" />
     <Compile Include="SqlGenerators\PredicateUnit.cs" />
+    <Compile Include="SqlGenerators\PredicateUnits.cs" />
     <Compile Include="SqlGenerators\SelectQuery.cs" />
     <Compile Include="SqlGenerators\SetClause.cs" />
     <Compile Include="SqlGenerators\SortOrderField.cs" />
