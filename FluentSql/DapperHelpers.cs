@@ -81,5 +81,21 @@ namespace FluentSql
                 throw ex;
             }
         }
+
+        public static object ExecuteScalar(IDbConnection connection, string sql, object parameters = null, IDbTransaction transaction = null,
+                                    int? commandTimeout = null, CommandType? commandType = null)
+        {
+            //object ExecuteScalar(this IDbConnection cnn, string sql, object param = null, IDbTransaction transaction = null, int? commandTimeout = default(int?), CommandType? commandType = default(CommandType?));
+            try
+            {
+                var result = connection.ExecuteScalar(sql, parameters, transaction, commandTimeout, commandType);
+
+                return result;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }

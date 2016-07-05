@@ -22,6 +22,14 @@ namespace FluentSql.Contracts
         IEnumerable<T> Get<T>(Expression<Func<T, bool>> setFilterExpression);
 
         /// <summary>
+        /// Gets a single entity by selecting the first entity in the set
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="filterExpression"></param>
+        /// <returns></returns>
+        T GetSingle<T>(Expression<Func<T, bool>> filterExpression);
+
+        /// <summary>
         /// Gets the entity that matches its unique key
         /// </summary>
         /// <typeparam name="T">Enitity type</typeparam>
@@ -37,22 +45,21 @@ namespace FluentSql.Contracts
         IEnumerable<T> GetAll<T>();
 
         /// <summary>
-        /// Gets a resulting set of entity T and R
-        /// where T is join with R on T key = R referenced field
+        /// Gets a set of Entities T, R that match the join expression criteria       
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="R"></typeparam>
         /// <returns></returns>
-        IEnumerable<Tuple<T, R>> GetAll<T, R>() where R : new();
+        IEnumerable<Tuple<T, R>> GetAllWithJoin<T, R>(Expression<Func<T, R, bool>> joinExpression) where R : new();
 
         /// <summary>
-        /// Gets a set of Entities T, R that match the expression criteria
+        /// Gets a set of Entities T, R that match the join and filter expression criteria
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="R"></typeparam>
         /// <param name="filterExpression">Expression that determines how to filter the Entity set</param>
         /// <returns></returns>
-        IEnumerable<Tuple<T, R>> Get<T, R>(Expression<Func<T, R, bool>> filterExpression) where R : new();
+        IEnumerable<Tuple<T, R>> GetWithJoin<T, R>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new();
 
         #endregion
 
@@ -73,18 +80,7 @@ namespace FluentSql.Contracts
         /// <param name="expression"></param>
         /// <returns></returns>
         Task<IEnumerable<T>> GetAsync<T>(Expression<Func<T, bool>> expression);
-
-        /// <summary>
-        /// Gets the TResult entity set from the Join of T and R on T.Key = R.TName.TKey
-        /// 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="R"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="filterExpression"></param>
-        /// <returns></returns>
-        Task<IEnumerable<TResult>> GetAsync<T, R, TResult>(Expression<Func<T, R, bool>> filterExpression) where R : new()
-            where TResult : new();
+        
 
         /// <summary>
         /// Gets the first occurrance of T that matches the

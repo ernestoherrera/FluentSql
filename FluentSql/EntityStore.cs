@@ -44,6 +44,7 @@ namespace FluentSql
             return this;
         }
 
+        #region synchronous Get calls
         public IEnumerable<T> Get<T>(Expression<Func<T, bool>> filterExpression)
         {
             var selectQuery = SqlGenerator.Select<T>(filterExpression);
@@ -52,16 +53,170 @@ namespace FluentSql
             return resultSet;
         }
 
+        public T GetSingle<T>(Expression<Func<T, bool>> filterExpression)
+        {
+            var selectQuery = SqlGenerator.Select<T>(filterExpression).GetTopRows(1);
+            var resultSet = DapperHelper.Query<T>(DbConnection, selectQuery.ToSql(), selectQuery.Parameters);
+
+            return resultSet.FirstOrDefault();
+        }
+
         public T GetByKey<T>(dynamic key)
         {
             if (key == null) return default(T);
-                                    
+
+            var query = GetSelectQueryByKey<T>(key);
+            var resultSet = DapperHelper.Query<T>(DbConnection, query.ToSql(), query.Parameters);
+
+            T entity = default(T);
+
+            foreach (var ent in resultSet)
+            {
+                entity = ent;
+                break;
+            }
+
+            return entity;
+        }
+
+        public IEnumerable<T> GetAll<T>()
+        {
+            var selectQuery = SqlGenerator.Select<T>();
+            var resultSet = DapperHelper.Query<T>(DbConnection, selectQuery.ToSql());
+
+            return resultSet;
+
+        }
+
+        public IEnumerable<Tuple<T, R>> GetAllWithJoin<T, R>(Expression<Func<T, R, bool>> joinExpression) where R : new()
+        {
+            var selectQuery = SqlGenerator.Select<T>().JoinOn<R>(joinExpression);
+            var resultSet = DapperHelper.QueryMultiSet<T, R>(DbConnection, selectQuery.ToSql(), selectQuery.Parameters);
+
+            return resultSet;
+        }
+
+        public IEnumerable<Tuple<T, R>> GetWithJoin<T, R>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new()
+        {
+            var selectQuery = SqlGenerator.Select<T>().JoinOn<R>(joinExpression).Where(filterExpression);
+            var resultSet = DapperHelper.QueryMultiSet<T, R>(DbConnection, selectQuery.ToSql(), selectQuery.Parameters);
+
+            return resultSet;
+        }
+        #endregion
+
+        #region Asynchronous Get Calls
+        public async Task<T> GetByKeyAsync<T>(dynamic key)
+        {
+            if (key == null) return default(T);
+
+            var query = GetSelectQueryByKey<T>(key);
+            var resultSet = await DapperHelper.QueryAsync<T>(DbConnection, query.ToSql(), query.Parameters);
+
+            T entity = default(T);
+
+            foreach (var ent in resultSet)
+            {
+                entity = ent;
+                break;
+            }
+
+            return entity;
+        }
+
+        public async Task<IEnumerable<T>> GetAsync<T>(Expression<Func<T, bool>> filterExpression)
+        {
+            var selectQuery = SqlGenerator.Select<T>(filterExpression);
+            var resultSet = await DapperHelper.QueryAsync<T>(DbConnection, selectQuery.ToSql(), selectQuery.Parameters);
+
+            return resultSet;
+        }        
+
+        public async Task<T> GetSingleAsync<T>(Expression<Func<T, bool>> filterExpression)
+        {
+            var selectQuery = SqlGenerator.Select<T>(filterExpression).GetTopRows(1);
+            var resultSet = await DapperHelper.QueryAsync<T>(DbConnection, selectQuery.ToSql(), selectQuery.Parameters);
+
+            return resultSet.FirstOrDefault();
+        }
+        #endregion
+
+        #region Entity inserts
+        public T Insert<T>(T entity) where T : new()
+        {
+            var insertQuery = SqlGenerator.Insert<T>(entity);
+            var id = DapperHelper.ExecuteScalar(DbConnection, insertQuery.ToSql(), insertQuery.Parameters);
+
+            T result = new T();
+
+            result = entity;
+
+            if (id != null)
+            {
+                var field = EntityMapper.EntityMap[typeof(T)].Properties.FirstOrDefault(p => p.IsAutoIncrement);
+
+                if (field != null)
+                    field.PropertyInfo.SetValue(result, id);
+            }
+
+            return result;
+        }
+        
+        public IEnumerable<T> InsertMany<T>(IEnumerable<T> entityList) where T : new()
+        {
+            var resultSet = new List<T>();
+
+            if (entityList == null) return resultSet;
+            
+            var iter = entityList.GetEnumerator();
+            var field = EntityMapper.EntityMap[typeof(T)].Properties.FirstOrDefault(p => p.IsAutoIncrement);
+
+            while (iter.MoveNext())
+            {
+                T entity = iter.Current;
+                var insertQuery = SqlGenerator.Insert<T>(entity);
+                var id = DapperHelper.ExecuteScalar(DbConnection, insertQuery.ToSql(), insertQuery.Parameters);
+
+                if (field != null)
+                {
+                    var resultEntity = new T();
+
+                    resultEntity = entity;
+                    field.PropertyInfo.SetValue(resultEntity, id);
+                    resultSet.Add(resultEntity);
+                }
+            }
+
+            return resultSet;
+        }
+        #endregion
+
+        #region Entity Updates        
+        public int Update<T>(T entity)
+        {
+            var updateQuery = SqlGenerator.Update<T>(entity);
+            var recordsAffected = DapperHelper.Execute(DbConnection, updateQuery.ToSql(), updateQuery.Parameters);
+
+            return recordsAffected;
+        }
+
+        public int UpdateWithFilter<T>(T entity, Expression<Func<T, bool>> filterExpression)
+        {
+            var updateQuery = SqlGenerator.Update<T>(entity).Where(filterExpression);
+            var recordsAffected = DapperHelper.Execute(DbConnection, updateQuery.ToSql(), updateQuery.Parameters);
+
+            return recordsAffected;
+        }
+        #endregion
+
+        private SelectQuery<T> GetSelectQueryByKey<T>(dynamic key)
+        {
             var query = SqlGenerator.Select<T>();
             var keyColumns = query.Fields.Where(fld => fld.IsPrimaryKey).ToList();
-            ExpressionType? linkingField = null;            
+            ExpressionType? linkingField = null;
 
-            if (!keyColumns.Any()) return default(T);
-            
+            if (!keyColumns.Any()) return null;
+
             if (key.GetType().Namespace == null)
             {
                 Type keyType = key.GetType();
@@ -75,7 +230,7 @@ namespace FluentSql
 
                     query.Where(lefOperand, ExpressionType.Equal, value, true, linkingField);
                     linkingField = ExpressionType.AndAlso;
-                }                
+                }
             }
             else
             {
@@ -86,74 +241,7 @@ namespace FluentSql
                 query.Where(lefOperand, ExpressionType.Equal, value, true, linkingField);
             }
 
-            var entities = DapperHelper.Query<T>(DbConnection, query.ToSql(), query.Parameters);
-
-            T entity = default(T);
-
-            foreach (var ent in entities)
-            {
-                entity = ent;
-                break;
-            }
-
-            return entity;
-        }
-
-        public IEnumerable<T> GetAll<T>()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<Tuple<T, R>> GetAll<T, R>() where R : new()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<Tuple<T, R>> Get<T, R>(Expression<Func<T, R, bool>> filterExpression) where R : new()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<T> GetByKeyAsync<T>(dynamic key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<T>> GetAsync<T>(Expression<Func<T, bool>> expression)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<TResult>> GetAsync<T, R, TResult>(Expression<Func<T, R, bool>> filterExpression)
-            where R : new()
-            where TResult : new()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<T> GetSingleAsync<T>(Expression<Func<T, bool>> expression)
-        {
-            throw new NotImplementedException();
-        }
-
-        public T Insert<T>(T entity) where T : new()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<T> InsertMany<T>(IEnumerable<T> entityList) where T : new()
-        {
-            throw new NotImplementedException();
-        }
-
-        public int Update<T>(T entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int UpdateWithFilter<T>(T template, Expression<Func<T, bool>> expression)
-        {
-            throw new NotImplementedException();
+            return query;
         }
     }
 }
