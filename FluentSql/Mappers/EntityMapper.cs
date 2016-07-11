@@ -55,9 +55,9 @@ namespace FluentSql.Mappers
 
             TableNamesInPlural = tableNamesInPlural;
 
-            MapEntities(dbConnection, entityInterface, databaseNames);
             SetDefaultSqlGenerator();
-
+            MapEntities(dbConnection, entityInterface, databaseNames);
+            
             onPostEntityMapping?.Invoke();
         }
 

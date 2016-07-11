@@ -81,6 +81,7 @@
     <Compile Include="SqlGenerators\DeleteQuery.cs" />
     <Compile Include="SqlGenerators\Query.cs" />
     <Compile Include="SqlGenerators\SqlGeneratorHelper.cs" />
+    <Compile Include="SqlGenerators\SqlServer\SqlServerDeleteQuery.cs" />
     <Compile Include="SqlGenerators\SqlServer\SqlServerHelper.cs" />
     <Compile Include="SqlGenerators\SqlServer\SqlServerInsertQuery.cs" />
     <Compile Include="SqlGenerators\SqlServer\SqlServerJoin.cs" />

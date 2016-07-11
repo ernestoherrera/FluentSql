@@ -58,12 +58,12 @@ namespace FluentSql.SqlGenerators.SqlServer
 
         public InsertQuery<T> Insert<T>(T entity)
         {
-            throw new NotImplementedException();
+            return new SqlServerInsertQuery<T>(entity);
         }
 
         public UpdateQuery<T> Update<T>(T entity)
         {
-            throw new NotImplementedException();
+            return new SqlServerUpdateQuery<T>(entity);
         }
 
         public UpdateQuery<T> UpdateMany<T>(T entity, Expression<Func<T, bool>> expression)

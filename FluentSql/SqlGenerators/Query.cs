@@ -58,7 +58,12 @@ namespace FluentSql.SqlGenerators
             if (expression == null) return this;
 
             Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
-            Parameters = Predicate.QueryParameters;
+
+            if (Parameters == null)
+                Parameters = Predicate.QueryParameters;
+            else
+                Parameters.AddDynamicParams(Predicate.QueryParameters);
+
 
             return this;
         }
@@ -71,7 +76,29 @@ namespace FluentSql.SqlGenerators
             Parameters = Predicate.QueryParameters;
 
             return this;
-        }        
+        }
+
+        internal IQuery<TEntity> Where(string leftOperand, ExpressionType predicateOperator, string rightOperand, bool isParametized = false, ExpressionType? linkingOperator = null)
+        {
+            if (this.PredicateParts == null)
+                this.PredicateParts = new PredicateUnits();
+
+            var parameterName = string.Empty;
+
+            if (isParametized)
+            {
+                parameterName = this.ParameterNameGenerator.GetNextParameterName("param");
+
+                Parameters.Add(parameterName, rightOperand);
+                this.PredicateParts.Add(leftOperand, predicateOperator, parameterName, isParametized, linkingOperator);
+            }
+            else
+            {
+                this.PredicateParts.Add(leftOperand, predicateOperator, rightOperand, isParametized, linkingOperator);
+            }
+
+            return this;
+        }
 
         public virtual IQuery<TEntity> JoinOn<TRightEntity>(Expression<Func<TEntity, TRightEntity, bool>> expression, JoinType joinType = JoinType.Inner)
         {
@@ -134,29 +161,7 @@ namespace FluentSql.SqlGenerators
             Joins.Enqueue(join);
 
             return rightQuery;
-        }
-
-        public IQuery<TEntity> Where(string leftOperand, ExpressionType predicateOperator, string rightOperand, bool isParametized = false, ExpressionType? linkingOperator = null)
-        {
-            if (this.PredicateParts == null)
-                this.PredicateParts = new PredicateUnits();
-
-            var parameterName = string.Empty;
-
-            if (isParametized)
-            {
-                parameterName = this.ParameterNameGenerator.GetNextParameterName("param");
-
-                Parameters.Add(parameterName, rightOperand);
-                this.PredicateParts.Add(leftOperand, predicateOperator, parameterName, isParametized, linkingOperator);
-            }
-            else
-            {
-                this.PredicateParts.Add(leftOperand, predicateOperator, rightOperand, isParametized, linkingOperator);
-            }
-
-            return this;
-        }
+        }        
 
         #endregion
 

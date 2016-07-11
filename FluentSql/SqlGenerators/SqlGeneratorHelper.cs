@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentSql.Mappers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,12 @@ namespace FluentSql.SqlGenerators
         private Random RandomGen = new Random(DateTime.Now.Millisecond + DateTime.Now.Second + DateTime.Now.Minute);
         private Dictionary<Type, string> Aliases = new Dictionary<Type, string>();
         private List<string> ParameterNames = new List<string>();
-        private readonly string AT_SIGN = "@";
+        private string AT_SIGN = string.Empty;
+
+        public SqlGeneratorHelper()
+        {
+            AT_SIGN = EntityMapper.SqlGenerator.DriverParameterIndicator;
+        }
 
         public string GetTableAlias(Type type)
         {

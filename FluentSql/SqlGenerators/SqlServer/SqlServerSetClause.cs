@@ -14,11 +14,10 @@ namespace FluentSql.SqlGenerators.SqlServer
         public override string ToSql()
         {
             var setClause = new List<string>();
-            var paramGen = ParentQuery.ParameterNameGenerator;
 
-            foreach (var field in FieldsToUpate)
+            foreach (var pair in this.FieldParameterPairs)
             {
-                setClause.Add(string.Format(" [{0}] = {1} ", field.ColumnName, driverIndicator + paramGen.GetNextParameterName(field.ColumnName)));
+                setClause.Add(string.Format(" [{0}] = {1} ", pair.Key.ColumnName, pair.Value));
             }
 
             return string.Join(",", setClause);

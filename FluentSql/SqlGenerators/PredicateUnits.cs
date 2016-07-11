@@ -41,7 +41,7 @@ namespace FluentSql.SqlGenerators
 
         public string ToSql()
         {
-            var sqlBuilder = new StringBuilder("WHERE ");
+            var sqlBuilder = new StringBuilder();
 
             foreach (var unit in predicateUnits)
             {

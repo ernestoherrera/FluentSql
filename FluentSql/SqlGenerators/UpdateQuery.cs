@@ -14,6 +14,11 @@ namespace FluentSql.SqlGenerators
 
         public T Entity { get; set; }
 
+        protected UpdateQuery() : base()
+        {
+            Verb = UPDATE;
+        }
+
         public UpdateQuery(T entity) : base()
         {
             Verb = UPDATE;
@@ -24,14 +29,14 @@ namespace FluentSql.SqlGenerators
             Fields = Fields.Where(p => p.IsTableField &&
                                     !p.Ignored &&
                                     !p.IsReadOnly).ToList();
+
+            SetClause = new SetClause<T>(this);
             
         }
 
         public override string ToSql()
         {
-            if (Fields == null || !Fields.Any()) return string.Empty;
-
-            SetClause = new SetClause<T>(this);
+            if (Fields == null || !Fields.Any()) return string.Empty;           
 
             var sqlBuilder = new StringBuilder();
 

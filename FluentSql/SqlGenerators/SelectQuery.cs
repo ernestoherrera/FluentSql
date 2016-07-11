@@ -116,9 +116,9 @@ namespace FluentSql.SqlGenerators
             sqlBuilder.Append(sqlJoinBuilder.ToString());
 
             if (PredicateParts != null && PredicateParts.Any())
-                sqlBuilder.Append(PredicateParts.ToSql());
-            else
-                sqlBuilder.Append(Predicate.ToSql());
+                sqlBuilder.Append(string.Format("WHERE {0} ", PredicateParts.ToSql()));
+            else if (Predicate != null)
+                sqlBuilder.Append(string.Format("WHERE {0} ", Predicate.ToSql()));
 
             if (OrderByFields != null)
                 sqlBuilder.Append(string.Format("ORDER BY {0}", string.Join(",", OrderByFields.Select(f => f.ToSql()))));

@@ -44,9 +44,7 @@ namespace FluentSql.Support.Helpers
         {
             if (predicateString.Count == 0) return string.Empty;
 
-            var sqlBuilder = new StringBuilder();
-
-            sqlBuilder.Append("WHERE ");
+            var sqlBuilder = new StringBuilder();            
 
             foreach (var token in predicateString)
             {

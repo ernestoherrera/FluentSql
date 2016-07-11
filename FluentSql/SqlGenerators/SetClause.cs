@@ -5,12 +5,12 @@ using System.Linq;
 namespace FluentSql.SqlGenerators
 {
     public class SetClause<T>
-    {
-        protected string driverIndicator = EntityMapper.SqlGenerator.DriverParameterIndicator;
-
+    {        
         protected UpdateQuery<T> ParentQuery { get; set; }
 
         protected IEnumerable<PropertyMap> FieldsToUpate;
+
+        protected List<KeyValuePair<PropertyMap, string>> FieldParameterPairs;
                
         public SetClause(UpdateQuery<T> parentQuery)
         {
@@ -22,35 +22,39 @@ namespace FluentSql.SqlGenerators
                                                     f.IsTableField)
                                         .OrderBy(f => f.OrdinalPosition);
 
-            AddToQueryParameter();
-        }
+            GenerateFieldParameterPairs();
+            AddToQueryParameters();
+        }       
 
-        public SetClause(UpdateQuery<T> parentQuery, IEnumerable<PropertyMap> fieldsToUpdate )
+        protected virtual void GenerateFieldParameterPairs()
         {
-            this.ParentQuery = parentQuery;
-            this.FieldsToUpate = fieldsToUpdate.OrderBy(f => f.OrdinalPosition);
+            FieldParameterPairs = new List<KeyValuePair<PropertyMap, string>>();
+            var paramGen = this.ParentQuery.ParameterNameGenerator;
 
-            AddToQueryParameter();
+            foreach (var field in this.FieldsToUpate)
+            {
+                var parameterName = paramGen.GetNextParameterName(field.ColumnName);
+                FieldParameterPairs.Add(new KeyValuePair<PropertyMap, string>(field, parameterName));
+            }
         }
 
-        protected virtual void AddToQueryParameter()
+        protected virtual void AddToQueryParameters()
         {            
-            foreach (var field in FieldsToUpate)
+            foreach (var pair in this.FieldParameterPairs)
             {
-                var fieldValue = field.PropertyInfo.GetValue(ParentQuery.Entity);
+                var fieldValue = pair.Key.PropertyInfo.GetValue(this.ParentQuery.Entity);
 
-                ParentQuery.Parameters.Add(EntityMapper.SqlGenerator.DriverParameterIndicator + field.ColumnName + field.OrdinalPosition, fieldValue);
+                this.ParentQuery.Parameters.Add(pair.Value, fieldValue);
             }
         }            
 
         public virtual string ToSql()
         {            
             var setClause = new List<string>();
-            var paramGen = ParentQuery.ParameterNameGenerator;
-
-            foreach (var field in FieldsToUpate)
+           
+            foreach (var pair in this.FieldParameterPairs)
             {
-                setClause.Add(string.Format(" {0} = {1} ", field.ColumnName, driverIndicator + paramGen.GetNextParameterName(field.ColumnName) ));
+                setClause.Add(string.Format(" {0} = {1} ", pair.Key.ColumnName, pair.Value ));
             }
 
             return string.Join(",", setClause);

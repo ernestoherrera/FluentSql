@@ -66,6 +66,9 @@ namespace FluentSql
             if (key == null) return default(T);
 
             var query = GetSelectQueryByKey<T>(key);
+
+            if (query == null) return default(T);
+
             var resultSet = DapperHelper.Query<T>(DbConnection, query.ToSql(), query.Parameters);
 
             T entity = default(T);
@@ -111,6 +114,9 @@ namespace FluentSql
             if (key == null) return default(T);
 
             var query = GetSelectQueryByKey<T>(key);
+
+            if (query == null) return default(T);
+
             var resultSet = await DapperHelper.QueryAsync<T>(DbConnection, query.ToSql(), query.Parameters);
 
             T entity = default(T);
@@ -195,6 +201,7 @@ namespace FluentSql
         public int Update<T>(T entity)
         {
             var updateQuery = SqlGenerator.Update<T>(entity);
+
             var recordsAffected = DapperHelper.Execute(DbConnection, updateQuery.ToSql(), updateQuery.Parameters);
 
             return recordsAffected;

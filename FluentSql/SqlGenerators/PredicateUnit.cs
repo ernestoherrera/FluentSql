@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FluentSql.SqlGenerators
 {
-    public class PredicateUnit
+    internal class PredicateUnit
     {
         /// <summary>
         /// Predicate's left side name

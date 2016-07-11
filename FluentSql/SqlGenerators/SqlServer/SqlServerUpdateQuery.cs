@@ -1,33 +1,69 @@
-﻿using System;
+﻿using FluentSql.SqlGenerators.Contracts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FluentSql.Support;
+using FluentSql.Mappers;
 
 namespace FluentSql.SqlGenerators.SqlServer
 {
     public class SqlServerUpdateQuery<T> : UpdateQuery<T>
     {
-        public SqlServerUpdateQuery(T entity) : base(entity)
+        public SqlServerUpdateQuery(T entity) : base()
         {
+            Entity = entity;
 
+            if (Fields == null) return;
+
+            Fields = Fields.Where(p => p.IsTableField &&
+                                    !p.IsAutoIncrement &&
+                                    !p.Ignored &&
+                                    !p.IsReadOnly).ToList();
+
+            SetClause = new SqlServerSetClause<T>(this);
+        }        
+        
+        public override IQuery<T> JoinOn<TRightEntity>(System.Linq.Expressions.Expression<Func<T, TRightEntity, bool>> joinExpression, JoinType joinType = JoinType.Inner)
+        {
+            if (joinExpression == null)
+                throw new ArgumentNullException("Join expression can't be null.");
+
+            var sqlServerJoin = new SqlServerJoin<T, TRightEntity>(this, new SqlServerSelectQuery<TRightEntity>());
+
+            Joins.Enqueue(sqlServerJoin);
+
+            return sqlServerJoin.On(joinExpression);
         }
 
         public override string ToSql()
         {
-            if (Fields == null || !Fields.Any()) return string.Empty;
-
-            SetClause = new SqlServerSetClause<T>(this);
+            if (Fields == null || !Fields.Any()) return string.Empty;            
 
             var sqlBuilder = new StringBuilder();
 
-            sqlBuilder.AppendFormat("{0} {1}.[{2}] SET {3} WHERE {4} ",
+            if (EntityMapper.SqlGenerator.IncludeDbNameInQuery)
+            {
+                sqlBuilder.AppendFormat("{0} [{1}] SET {2} FROM [{3}].[{4}].[{5}] [{1}]  WHERE {6};",
                                     Verb,
+                                    TableAlias,
+                                    SetClause.ToSql(),
+                                    DatabaseName,
                                     SchemaName,
                                     TableName,
-                                    SetClause.ToSql(),
-                                    Predicate.ToSql());
-
+                                    Predicate == null ? "" : Predicate.ToSql());
+            }
+            else
+            {
+                sqlBuilder.AppendFormat("{0} [{1}] SET {2} FROM [{3}].[{4}] [{1}]  WHERE {5};",
+                                    Verb,
+                                    TableAlias,
+                                    SetClause.ToSql(),                                    
+                                    SchemaName,
+                                    TableName,
+                                    Predicate == null ? "" : Predicate.ToSql());
+            }
 
             sqlBuilder.Append("SELECT @@ROWCOUNT;");
 
