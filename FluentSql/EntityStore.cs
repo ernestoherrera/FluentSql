@@ -7,10 +7,9 @@ using System.Data;
 using FluentSql.Mappers;
 using Dapper;
 using System.Linq;
-using System.Reflection;
-using FluentSql.Support.Helpers;
 using FluentSql.SqlGenerators;
 using System.Threading.Tasks;
+using FluentSql.Support.Helpers;
 
 namespace FluentSql
 {
@@ -24,7 +23,7 @@ namespace FluentSql
 
         public IDbCommand DbCommand { get; private set; }
 
-        public int? CommandTimeout { get; private set; }
+        public int? CommandTimeout { get; private set; }        
 
         public EntityStore(IDbConnection dbConnection )
         {
@@ -65,7 +64,9 @@ namespace FluentSql
         {
             if (key == null) return default(T);
 
-            var query = GetSelectQueryByKey<T>(key);
+            var selectQuery = SqlGenerator.Select<T>();
+
+            var query = GetQueryByKey<T>(key, selectQuery);
 
             if (query == null) return default(T);
 
@@ -113,7 +114,9 @@ namespace FluentSql
         {
             if (key == null) return default(T);
 
-            var query = GetSelectQueryByKey<T>(key);
+            var selectQuery = SqlGenerator.Select<T>();
+
+            var query = GetQueryByKey<T>(key, selectQuery);
 
             if (query == null) return default(T);
 
@@ -202,6 +205,8 @@ namespace FluentSql
         {
             var updateQuery = SqlGenerator.Update<T>(entity);
 
+            var query = GetQueryByKey<T>(entity, updateQuery);
+
             var recordsAffected = DapperHelper.Execute(DbConnection, updateQuery.ToSql(), updateQuery.Parameters);
 
             return recordsAffected;
@@ -216,36 +221,35 @@ namespace FluentSql
         }
         #endregion
 
-        private SelectQuery<T> GetSelectQueryByKey<T>(dynamic key)
-        {
-            var query = SqlGenerator.Select<T>();
+        private Query<T> GetQueryByKey<T>(dynamic key, Query<T> query)
+        {            
             var keyColumns = query.Fields.Where(fld => fld.IsPrimaryKey).ToList();
             ExpressionType? linkingField = null;
 
-            if (!keyColumns.Any()) return null;
+            if (!keyColumns.Any()) return query;
 
-            if (key.GetType().Namespace == null)
+            var keyType = key.GetType();
+
+            foreach (var column in keyColumns)
             {
-                Type keyType = key.GetType();
-
-                foreach (var column in keyColumns)
+                var leftOperand = EntityMapper.SqlGenerator.FormatFieldforSql(column.Name, query.TableAlias);
+                var value = string.Empty;
+                 
+                if (keyType.Namespace == null || !SystemTypes.All.Contains(keyType))
                 {
                     var keyPropInfo = keyType.GetProperty(column.Name);
                     var keyPropValue = keyPropInfo.GetValue(key);
-                    var lefOperand = EntityMapper.SqlGenerator.FormatFieldforSql(column.Name, query.TableAlias);
-                    var value = string.Format("{0}", keyPropValue);
-
-                    query.Where(lefOperand, ExpressionType.Equal, value, true, linkingField);
-                    linkingField = ExpressionType.AndAlso;
+                    
+                    value = string.Format("{0}", keyPropValue);
                 }
-            }
-            else
-            {
-                var column = keyColumns.FirstOrDefault();
-                var lefOperand = EntityMapper.SqlGenerator.FormatFieldforSql(column.Name, query.TableAlias);
-                var value = string.Format("{0}", key);
+                else if (SystemTypes.All.Contains(keyType))
+                {                                        
+                    value = string.Format("{0}", key);                    
+                }
 
-                query.Where(lefOperand, ExpressionType.Equal, value, true, linkingField);
+                query.Where(leftOperand, ExpressionType.Equal, value, true, linkingField);
+                linkingField = ExpressionType.AndAlso;
+
             }
 
             return query;

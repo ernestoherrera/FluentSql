@@ -98,7 +98,7 @@
     <Compile Include="Support\Helpers\ExpressionHelper.cs" />
     <Compile Include="Support\Helpers\ExpressionPrecedence.cs" />
     <Compile Include="Support\Helpers\OperatorPrecedenceComparer.cs" />
-    <Compile Include="Support\Helpers\SytemTypes.cs" />
+    <Compile Include="Support\Helpers\SystemTypes.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -152,7 +152,7 @@ namespace FluentSql.Support.Helpers
 
         protected override Expression VisitParameter(ParameterExpression p)
         {
-            if (SytemTypes.Numeric.Contains(p.Type))
+            if (SystemTypes.Numeric.Contains(p.Type))
             {
                 var paramName = paramNameGenerator.GetNextParameterName(nameof(p));
 
