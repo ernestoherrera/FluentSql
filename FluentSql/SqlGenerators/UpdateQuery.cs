@@ -39,8 +39,14 @@ namespace FluentSql.SqlGenerators
             if (Fields == null || !Fields.Any()) return string.Empty;           
 
             var sqlBuilder = new StringBuilder();
+            var predicateSql = string.Empty;
 
-            if (Predicate == null)
+            if (PredicateParts != null)
+                predicateSql = PredicateParts.ToSql();
+            else
+                predicateSql = Predicate == null ? "" : Predicate.ToSql();
+
+            if (Predicate == null && PredicateParts == null)
             {
                 sqlBuilder.AppendFormat("{0} {1}.{2} SET {3} ",
                                     Verb,
@@ -55,7 +61,7 @@ namespace FluentSql.SqlGenerators
                                     SchemaName,
                                     TableName,
                                     SetClause.ToSql(),
-                                    Predicate.ToSql());
+                                    predicateSql);
             }
             
             return sqlBuilder.ToString();

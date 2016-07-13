@@ -222,11 +222,12 @@ namespace FluentSql
         #endregion
 
         private Query<T> GetQueryByKey<T>(dynamic key, Query<T> query)
-        {            
-            var keyColumns = query.Fields.Where(fld => fld.IsPrimaryKey).ToList();
+        {
+            var keyColumns = EntityMapper.EntityMap[typeof(T)].Properties.Where(p => p.IsPrimaryKey).ToList();
             ExpressionType? linkingField = null;
 
-            if (!keyColumns.Any()) return query;
+            if (!keyColumns.Any())
+                throw new Exception("There is no primary key for type " + typeof(T).ToString());
 
             var keyType = key.GetType();
 

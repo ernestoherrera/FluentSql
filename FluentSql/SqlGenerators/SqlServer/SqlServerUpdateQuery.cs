@@ -42,9 +42,15 @@ namespace FluentSql.SqlGenerators.SqlServer
             if (Fields == null || !Fields.Any()) return string.Empty;            
 
             var sqlBuilder = new StringBuilder();
+            var predicateSql = string.Empty;
+
+            if (PredicateParts != null)
+                predicateSql = PredicateParts.ToSql();
+            else
+                predicateSql = Predicate == null ? "" : Predicate.ToSql();
 
             if (EntityMapper.SqlGenerator.IncludeDbNameInQuery)
-            {
+            {                
                 sqlBuilder.AppendFormat("{0} [{1}] SET {2} FROM [{3}].[{4}].[{5}] [{1}]  WHERE {6};",
                                     Verb,
                                     TableAlias,
@@ -52,7 +58,7 @@ namespace FluentSql.SqlGenerators.SqlServer
                                     DatabaseName,
                                     SchemaName,
                                     TableName,
-                                    Predicate == null ? "" : Predicate.ToSql());
+                                    predicateSql);
             }
             else
             {
@@ -62,7 +68,7 @@ namespace FluentSql.SqlGenerators.SqlServer
                                     SetClause.ToSql(),                                    
                                     SchemaName,
                                     TableName,
-                                    Predicate == null ? "" : Predicate.ToSql());
+                                    predicateSql);
             }
 
             sqlBuilder.Append("SELECT @@ROWCOUNT;");

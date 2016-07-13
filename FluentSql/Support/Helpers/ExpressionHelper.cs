@@ -183,7 +183,7 @@ namespace FluentSql.Support.Helpers
                 dynamic values = GetValue(memberExpression);
                 Type valuesType = values.GetType();
 
-                if (valuesType.GetIEnumerableImpl() != null)
+                if (valuesType.GetIEnumerableImpl() != null && valuesType != typeof(string))
                 {
                     var parameterNames = new List<string>();
 
@@ -199,9 +199,13 @@ namespace FluentSql.Support.Helpers
 
                     predicateString.Enqueue(inClause);
                 }
+                else if(valuesType == typeof(string))
+                {
+                    predicateString.Enqueue(string.Format("'" + values.ToString() + "'"));
+                }
                 else
                 {
-                    predicateString.Enqueue(values.ToString());
+                    predicateString.Enqueue(values);
                 }
                 return memberExpression;
 
