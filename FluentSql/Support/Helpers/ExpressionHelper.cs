@@ -39,7 +39,14 @@ namespace FluentSql.Support.Helpers
         public DynamicParameters QueryParameters = new DynamicParameters();
         #endregion
 
-        #region Public Methods        
+        #region Public Methods
+        
+        public void Reset()
+        {
+            predicateString.Clear();
+            QueryParameters = new DynamicParameters();
+        }
+                
         public string ToSql()
         {
             if (predicateString.Count == 0) return string.Empty;
@@ -123,7 +130,7 @@ namespace FluentSql.Support.Helpers
                     var paramName = paramNameGenerator.GetNextParameterName(nameof(comparingArgument));
 
                     QueryParameters.Add(paramName, comparingArgument);
-                    predicateString.Enqueue(comparingArgument);
+                    predicateString.Enqueue(paramName);
 
                     return methodCall;
                 }
@@ -157,7 +164,7 @@ namespace FluentSql.Support.Helpers
                 var paramName = paramNameGenerator.GetNextParameterName(nameof(p));
 
                 QueryParameters.Add(paramName, p.ToString());
-                predicateString.Enqueue(p.ToString());
+                predicateString.Enqueue(paramName);
             }
 
             return p;
@@ -168,7 +175,7 @@ namespace FluentSql.Support.Helpers
             var paramName = paramNameGenerator.GetNextParameterName(nameof(exp));
 
             QueryParameters.Add(paramName, exp.Value);
-            predicateString.Enqueue(exp.Value.ToString());
+            predicateString.Enqueue(paramName);
 
             return base.VisitConstant(exp);
         }
@@ -198,14 +205,13 @@ namespace FluentSql.Support.Helpers
                     var inClause = string.Format("IN ( {0} )", String.Join(",", parameterNames));
 
                     predicateString.Enqueue(inClause);
-                }
-                else if(valuesType == typeof(string))
-                {
-                    predicateString.Enqueue(string.Format("'" + values.ToString() + "'"));
-                }
+                }                
                 else
                 {
-                    predicateString.Enqueue(values);
+                    var paramName = paramNameGenerator.GetNextParameterName(nameof(member.Name));
+
+                    QueryParameters.Add(paramName, values);
+                    predicateString.Enqueue(paramName);
                 }
                 return memberExpression;
 

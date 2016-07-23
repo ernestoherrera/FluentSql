@@ -1,7 +1,9 @@
-﻿using FluentSql.Support.Helpers;
+﻿using FluentSql.SqlGenerators.Contracts;
+using FluentSql.Support.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace FluentSql.SqlGenerators
@@ -17,6 +19,13 @@ namespace FluentSql.SqlGenerators
         protected UpdateQuery() : base()
         {
             Verb = UPDATE;
+            
+            if (Fields == null) return;
+
+            Fields = Fields.Where(p => p.IsTableField &&
+                                    !p.IsAutoIncrement &&
+                                    !p.Ignored &&
+                                    !p.IsReadOnly).ToList();
         }
 
         public UpdateQuery(T entity) : base()
@@ -27,11 +36,18 @@ namespace FluentSql.SqlGenerators
             if (Fields == null) return;
             
             Fields = Fields.Where(p => p.IsTableField &&
+                                    !p.IsAutoIncrement &&
                                     !p.Ignored &&
                                     !p.IsReadOnly).ToList();
 
             SetClause = new SetClause<T>(this);
             
+        }
+
+        public virtual UpdateQuery<T> Set(params Expression<Func<T, bool>>[] setExpression)
+        {
+            SetClause = new SetClause<T>(this, setExpression);
+            return this;
         }
 
         public override string ToSql()

@@ -1,11 +1,16 @@
 ﻿using FluentSql.Mappers;
+using FluentSql.Support.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace FluentSql.SqlGenerators
 {
     public class SetClause<T>
-    {        
+    {
+        protected List<string> SetClauseParts;
+
         protected UpdateQuery<T> ParentQuery { get; set; }
 
         protected IEnumerable<PropertyMap> FieldsToUpate;
@@ -22,10 +27,38 @@ namespace FluentSql.SqlGenerators
                                                     f.IsTableField)
                                         .OrderBy(f => f.OrdinalPosition);
 
-            GenerateFieldParameterPairs();
-            AddToQueryParameters();
-        }       
+            if (parentQuery.Entity != null)
+            {
+                GenerateFieldParameterPairs();
+                AddToQueryParameters();
+            }            
+        }
+        
+        public SetClause(UpdateQuery<T> parentQuery, params Expression<Func<T, bool>>[] setExpressions) : 
+            this(parentQuery)
+        {
+            SetClauseParts = new List<string>(setExpressions.Length);
+            ExpressionHelper setClauseExpression = null;
 
+            foreach (var setExp in setExpressions)
+            {
+                if (setClauseExpression == null)
+                    setClauseExpression = new ExpressionHelper(setExp, ParentQuery.ParameterNameGenerator);
+                else
+                    setClauseExpression.Visit(setExp);
+
+                SetClauseParts.Add(setClauseExpression.ToSql());
+                ParentQuery.Parameters.AddDynamicParams(setClauseExpression.QueryParameters);
+
+                setClauseExpression.Reset();
+            }            
+        }
+
+        /// <summary>
+        /// Generates a list of all updateable entity fields with its 
+        /// corresponding parameter name represented by the KeyValue pair.
+        /// KeyValuePair of Field, parameterName
+        /// </summary>
         protected virtual void GenerateFieldParameterPairs()
         {
             FieldParameterPairs = new List<KeyValuePair<PropertyMap, string>>();
@@ -34,6 +67,7 @@ namespace FluentSql.SqlGenerators
             foreach (var field in this.FieldsToUpate)
             {
                 var parameterName = paramGen.GetNextParameterName(field.ColumnName);
+
                 FieldParameterPairs.Add(new KeyValuePair<PropertyMap, string>(field, parameterName));
             }
         }
@@ -49,15 +83,18 @@ namespace FluentSql.SqlGenerators
         }            
 
         public virtual string ToSql()
-        {            
-            var setClause = new List<string>();
+        {
+            if (SetClauseParts != null)            
+                return String.Join(",", SetClauseParts);
+
+            SetClauseParts = new List<string>();
            
             foreach (var pair in this.FieldParameterPairs)
             {
-                setClause.Add(string.Format(" {0} = {1} ", pair.Key.ColumnName, pair.Value ));
+                SetClauseParts.Add(string.Format(" {0} = {1} ", pair.Key.ColumnName, pair.Value ));
             }
 
-            return string.Join(",", setClause);
+            return string.Join(",", SetClauseParts);
         }
 
         public override string ToString()

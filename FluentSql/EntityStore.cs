@@ -201,7 +201,7 @@ namespace FluentSql
         #endregion
 
         #region Entity Updates        
-        public int Update<T>(T entity)
+        public int UpdateByKey<T>(T entity)
         {
             var updateQuery = SqlGenerator.Update<T>(entity);
 

@@ -41,7 +41,7 @@ namespace FluentSql.Mappers
         private static IEnumerable<Type> EntityTypes { get; set; }
         #endregion
 
-        #region Constructor
+        #region Constructors
         public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames, IDatabaseMapper defaultDatabaseMapper = null, bool tableNamesInPlural = true, Action onPostEntityMapping = null)
         {
             if (dbConnection == null || entityInterface == null || databaseNames == null)

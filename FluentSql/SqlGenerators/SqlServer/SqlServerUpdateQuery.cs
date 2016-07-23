@@ -11,17 +11,16 @@ namespace FluentSql.SqlGenerators.SqlServer
 {
     public class SqlServerUpdateQuery<T> : UpdateQuery<T>
     {
+
+        public SqlServerUpdateQuery() : base()
+        {
+            
+        }
+
         public SqlServerUpdateQuery(T entity) : base()
         {
             Entity = entity;
-
-            if (Fields == null) return;
-
-            Fields = Fields.Where(p => p.IsTableField &&
-                                    !p.IsAutoIncrement &&
-                                    !p.Ignored &&
-                                    !p.IsReadOnly).ToList();
-
+            
             SetClause = new SqlServerSetClause<T>(this);
         }        
         
