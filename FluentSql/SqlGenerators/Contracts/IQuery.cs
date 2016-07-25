@@ -25,14 +25,14 @@ namespace FluentSql.SqlGenerators.Contracts
 
         string DatabaseName { get; }
 
-        Type EntityType { get; }       
+        Type EntityType { get; }
 
         IQuery<L> JoinOn<R>(Expression<Func<L, R, bool>> expression, JoinType joinType = JoinType.Inner);
 
         IQuery<L> Where(Expression<Func<L, bool>> expression);
 
-        IQuery<L> Where<R>(Expression<Func<L, R, bool>> expression) where R : new();        
+        IQuery<L> Where<R>(Expression<Func<L, R, bool>> expression) where R : new();
 
-        string ResolveTableAlias(Type type);       
+        string ResolveTableAlias(Type type);
     }
 }

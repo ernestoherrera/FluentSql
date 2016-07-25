@@ -1,4 +1,5 @@
-﻿using FluentSql.SqlGenerators.Contracts;
+﻿using FluentSql.SqlGenerators;
+using FluentSql.SqlGenerators.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -119,7 +120,14 @@ namespace FluentSql.Contracts
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
         /// <returns></returns>
-        int Update<T>(T entity);
+        int UpdateByKey<T>(T entity);
+
+        /// <summary>
+        /// Returns a Update query object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        UpdateQuery<T> Update<T>();
 
         /// <summary>
         /// Updates the resulting Entity set produced by applying the filter
@@ -129,7 +137,7 @@ namespace FluentSql.Contracts
         /// <param name="template"></param>
         /// <param name="expression"></param>
         /// <returns></returns>
-        int UpdateWithFilter<T>(T template, Expression<Func<T, bool>> expression);
+        int UpdateWithFilter<T>(Expression<Func<T, bool>> filterExpression, params Expression<Func<T, bool>>[] setExpression);
         #endregion
     }
 }

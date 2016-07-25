@@ -1,4 +1,5 @@
 ﻿using FluentSql.Mappers;
+using FluentSql.Support.Extensions;
 using FluentSql.Support.Helpers;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace FluentSql.SqlGenerators
 
         protected IEnumerable<PropertyMap> FieldsToUpate;
 
-        protected List<KeyValuePair<PropertyMap, string>> FieldParameterPairs;
+        protected List<KeyValuePair<string, PropertyMap>> FieldParameterPairs;
                
         public SetClause(UpdateQuery<T> parentQuery)
         {
@@ -29,29 +30,38 @@ namespace FluentSql.SqlGenerators
 
             if (parentQuery.Entity != null)
             {
-                GenerateFieldParameterPairs();
+                GenerateFieldParameterPairs(FieldsToUpate);
                 AddToQueryParameters();
-            }            
+            }
         }
         
-        public SetClause(UpdateQuery<T> parentQuery, params Expression<Func<T, bool>>[] setExpressions) : 
+        public SetClause(UpdateQuery<T> parentQuery, object setFields) : 
             this(parentQuery)
         {
-            SetClauseParts = new List<string>(setExpressions.Length);
-            ExpressionHelper setClauseExpression = null;
+            var setFieldsType = setFields.GetType();
 
-            foreach (var setExp in setExpressions)
+            if (!setFieldsType.IsAnonymous() || setFieldsType.IsIEnumerable())
+                throw new Exception("Set clause only supports anonymous parameters.");
+
+            var entityMap = EntityMapper.EntityMap[typeof(T)];
+            var setFieldsProps = setFieldsType.GetProperties();
+            var propMapDefault = default(PropertyMap);
+            var paramGen = ParentQuery.ParameterNameGenerator;
+
+            foreach (var setFieldPropInfo in setFieldsProps)
             {
-                if (setClauseExpression == null)
-                    setClauseExpression = new ExpressionHelper(setExp, ParentQuery.ParameterNameGenerator);
-                else
-                    setClauseExpression.Visit(setExp);
+                var propMap = entityMap.Properties.FirstOrDefault(p => p.Name == setFieldPropInfo.Name);
 
-                SetClauseParts.Add(setClauseExpression.ToSql());
-                ParentQuery.Parameters.AddDynamicParams(setClauseExpression.QueryParameters);
+                if (propMap == propMapDefault)
+                    throw new Exception(string.Format("Property {0} does not exists for entity {1}", setFieldPropInfo.Name, typeof(T).ToString()));
 
-                setClauseExpression.Reset();
-            }            
+                var paramName = paramGen.GetNextParameterName(propMap.Name);
+                var paramValue = setFieldsType.GetProperty(propMap.Name).GetValue(setFields);
+
+                ParentQuery.Parameters.Add(paramName, paramValue);
+
+                FieldParameterPairs.Add(new KeyValuePair<string, PropertyMap>(paramName, propMap));
+            }
         }
 
         /// <summary>
@@ -59,16 +69,16 @@ namespace FluentSql.SqlGenerators
         /// corresponding parameter name represented by the KeyValue pair.
         /// KeyValuePair of Field, parameterName
         /// </summary>
-        protected virtual void GenerateFieldParameterPairs()
+        protected virtual void GenerateFieldParameterPairs(IEnumerable<PropertyMap> fieldList)
         {
-            FieldParameterPairs = new List<KeyValuePair<PropertyMap, string>>();
+            FieldParameterPairs = new List<KeyValuePair<string, PropertyMap>>();
             var paramGen = this.ParentQuery.ParameterNameGenerator;
 
-            foreach (var field in this.FieldsToUpate)
+            foreach (var field in fieldList)
             {
                 var parameterName = paramGen.GetNextParameterName(field.ColumnName);
 
-                FieldParameterPairs.Add(new KeyValuePair<PropertyMap, string>(field, parameterName));
+                FieldParameterPairs.Add(new KeyValuePair<string, PropertyMap>(parameterName, field));
             }
         }
 
@@ -76,22 +86,19 @@ namespace FluentSql.SqlGenerators
         {            
             foreach (var pair in this.FieldParameterPairs)
             {
-                var fieldValue = pair.Key.PropertyInfo.GetValue(this.ParentQuery.Entity);
+                var fieldValue = pair.Value.PropertyInfo.GetValue(ParentQuery.Entity);
 
-                this.ParentQuery.Parameters.Add(pair.Value, fieldValue);
+                ParentQuery.Parameters.Add(pair.Key, fieldValue);
             }
-        }            
+        }
 
         public virtual string ToSql()
         {
-            if (SetClauseParts != null)            
-                return String.Join(",", SetClauseParts);
-
             SetClauseParts = new List<string>();
            
-            foreach (var pair in this.FieldParameterPairs)
+            foreach (var pair in FieldParameterPairs)
             {
-                SetClauseParts.Add(string.Format(" {0} = {1} ", pair.Key.ColumnName, pair.Value ));
+                SetClauseParts.Add(string.Format(" {0} = {1} ", pair.Value.ColumnName, pair.Key ));
             }
 
             return string.Join(",", SetClauseParts);

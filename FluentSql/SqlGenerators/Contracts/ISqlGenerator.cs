@@ -45,6 +45,7 @@ namespace FluentSql.SqlGenerators.Contracts
         /// <typeparam name="T">Entity type</typeparam>
         /// <returns>A set of entities of type T</returns>
         SelectQuery<T> Select<T>();
+
         /// <summary>
         /// Generates a filtered select statement
         /// </summary>
@@ -70,14 +71,12 @@ namespace FluentSql.SqlGenerators.Contracts
         UpdateQuery<T> Update<T>(T entity);
 
         /// <summary>
-        /// Generates an Update query object that updates a
-        /// filtered entity set
+        /// Generates an Update query object with
+        /// an empty Set Clause
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="entity"></param>
-        /// <param name="expression"></param>
         /// <returns></returns>
-        UpdateQuery<T> UpdateMany<T>(T entity, Expression<Func<T, bool>> expression);
+        UpdateQuery<T> Update<T>();
 
         /// <summary>
         /// Generates a Delete query object that deletes the passed entity

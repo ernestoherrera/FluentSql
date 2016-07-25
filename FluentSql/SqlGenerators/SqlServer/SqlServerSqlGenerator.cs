@@ -66,9 +66,9 @@ namespace FluentSql.SqlGenerators.SqlServer
             return new SqlServerUpdateQuery<T>(entity);
         }
 
-        public UpdateQuery<T> UpdateMany<T>(T entity, Expression<Func<T, bool>> expression)
+        public UpdateQuery<T> Update<T>()
         {
-            throw new NotImplementedException();
+            return new SqlServerUpdateQuery<T>();
         }
 
         public DeleteQuery<T> Delete<T>(T entity)

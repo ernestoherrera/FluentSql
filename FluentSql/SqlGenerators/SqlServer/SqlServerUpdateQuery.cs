@@ -6,24 +6,28 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentSql.Support;
 using FluentSql.Mappers;
+using System.Linq.Expressions;
 
 namespace FluentSql.SqlGenerators.SqlServer
 {
     public class SqlServerUpdateQuery<T> : UpdateQuery<T>
     {
-
         public SqlServerUpdateQuery() : base()
-        {
-            
-        }
+        {  }
 
         public SqlServerUpdateQuery(T entity) : base()
         {
             Entity = entity;
-            
+
             SetClause = new SqlServerSetClause<T>(this);
-        }        
-        
+        }
+
+        public override UpdateQuery<T> Set(dynamic setFields)
+        {
+            SetClause = new SqlServerSetClause<T>(this, setFields);
+            return this;
+        }
+
         public override IQuery<T> JoinOn<TRightEntity>(System.Linq.Expressions.Expression<Func<T, TRightEntity, bool>> joinExpression, JoinType joinType = JoinType.Inner)
         {
             if (joinExpression == null)
@@ -64,7 +68,7 @@ namespace FluentSql.SqlGenerators.SqlServer
                 sqlBuilder.AppendFormat("{0} [{1}] SET {2} FROM [{3}].[{4}] [{1}]  WHERE {5};",
                                     Verb,
                                     TableAlias,
-                                    SetClause.ToSql(),                                    
+                                    SetClause.ToSql(),
                                     SchemaName,
                                     TableName,
                                     predicateSql);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,16 +12,18 @@ namespace FluentSql.SqlGenerators.SqlServer
         public SqlServerSetClause(SqlServerUpdateQuery<T> parentQuery) : base(parentQuery)
         {  }
 
+        public SqlServerSetClause(SqlServerUpdateQuery<T> parentQuery, params Expression<Func<T, bool>>[] setExpressions)
+            :base (parentQuery, setExpressions)
+        { }
+
         public override string ToSql()
         {
-            var setClause = new List<string>();
-
-            foreach (var pair in this.FieldParameterPairs)
+            foreach (var pair in FieldParameterPairs)
             {
-                setClause.Add(string.Format(" [{0}] = {1} ", pair.Key.ColumnName, pair.Value));
+                SetClauseParts.Add(string.Format("[{0}].[{1}] = {2} ", ParentQuery.TableAlias, pair.Value.ColumnName, pair.Key));
             }
 
-            return string.Join(",", setClause);
+            return string.Join(",", SetClauseParts);
         }
     }
 }

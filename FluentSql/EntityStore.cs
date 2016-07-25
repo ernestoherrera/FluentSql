@@ -18,12 +18,6 @@ namespace FluentSql
         public ISqlGenerator SqlGenerator { get; private set; }
 
         public IDbConnection DbConnection { get; private set; }
-                
-        public IDbTransaction DbTransaction { get; private set; }
-
-        public IDbCommand DbCommand { get; private set; }
-
-        public int? CommandTimeout { get; private set; }        
 
         public EntityStore(IDbConnection dbConnection )
         {
@@ -200,7 +194,7 @@ namespace FluentSql
         }
         #endregion
 
-        #region Entity Updates        
+        #region Entity Updates
         public int UpdateByKey<T>(T entity)
         {
             var updateQuery = SqlGenerator.Update<T>(entity);
@@ -212,15 +206,21 @@ namespace FluentSql
             return recordsAffected;
         }
 
-        public int UpdateWithFilter<T>(T entity, Expression<Func<T, bool>> filterExpression)
+        public UpdateQuery<T> Update<T>()
         {
-            var updateQuery = SqlGenerator.Update<T>(entity).Where(filterExpression);
+            return SqlGenerator.Update<T>();
+        }
+
+        public int UpdateWithFilter<T>(Expression<Func<T, bool>> filterExpression, params Expression<Func<T, bool>>[] setExpression)
+        {
+            var updateQuery = SqlGenerator.Update<T>().Set(setExpression).Where(filterExpression);
             var recordsAffected = DapperHelper.Execute(DbConnection, updateQuery.ToSql(), updateQuery.Parameters);
 
             return recordsAffected;
         }
         #endregion
 
+        #region Private Methods
         private Query<T> GetQueryByKey<T>(dynamic key, Query<T> query)
         {
             var keyColumns = EntityMapper.EntityMap[typeof(T)].Properties.Where(p => p.IsPrimaryKey).ToList();
@@ -255,5 +255,6 @@ namespace FluentSql
 
             return query;
         }
+        #endregion
     }
 }

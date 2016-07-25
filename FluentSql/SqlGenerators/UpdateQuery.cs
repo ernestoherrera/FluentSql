@@ -12,11 +12,11 @@ namespace FluentSql.SqlGenerators
     {
         protected readonly string UPDATE = "UPDATE";
 
-        protected SetClause<T> SetClause;        
+        protected SetClause<T> SetClause;
 
         public T Entity { get; set; }
 
-        protected UpdateQuery() : base()
+        public UpdateQuery() : base()
         {
             Verb = UPDATE;
             
@@ -44,9 +44,10 @@ namespace FluentSql.SqlGenerators
             
         }
 
-        public virtual UpdateQuery<T> Set(params Expression<Func<T, bool>>[] setExpression)
+        public virtual UpdateQuery<T> Set(dynamic setFields)
         {
-            SetClause = new SetClause<T>(this, setExpression);
+            SetClause = new SetClause<T>(this, setFields);
+
             return this;
         }
 
