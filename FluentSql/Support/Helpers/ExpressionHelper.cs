@@ -40,13 +40,6 @@ namespace FluentSql.Support.Helpers
         #endregion
 
         #region Public Methods
-        
-        public void Reset()
-        {
-            predicateString.Clear();
-            QueryParameters = new DynamicParameters();
-        }
-                
         public string ToSql()
         {
             if (predicateString.Count == 0) return string.Empty;

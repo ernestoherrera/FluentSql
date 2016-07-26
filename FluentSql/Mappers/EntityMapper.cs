@@ -42,10 +42,11 @@ namespace FluentSql.Mappers
         #endregion
 
         #region Constructors
-        public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames, IDatabaseMapper defaultDatabaseMapper = null, bool tableNamesInPlural = true, Action onPostEntityMapping = null)
+        public EntityMapper(IDbConnection dbConnection, IEnumerable<string> databaseNames, Assembly[] assembliesOfModelTypes = null, 
+                            bool tableNamesInPlural = true, IDatabaseMapper defaultDatabaseMapper = null, Action onPostEntityMapping = null)
         {
-            if (dbConnection == null || entityInterface == null || databaseNames == null)
-                throw new ArgumentNullException("Database connection, Entity Interface or Database names can not be null.");
+            if (dbConnection == null || databaseNames == null)
+                throw new ArgumentNullException("Database connection, or Database names can not be null.");
 
             DefaultDatabaseMapper = defaultDatabaseMapper ?? new SqlServerDatabaseMapper();
             DatabaseNames = databaseNames;
@@ -56,25 +57,25 @@ namespace FluentSql.Mappers
             TableNamesInPlural = tableNamesInPlural;
 
             SetDefaultSqlGenerator();
-            MapEntities(dbConnection, entityInterface, databaseNames);
+            MapEntities(dbConnection, databaseNames, assembliesOfModelTypes);
             
             onPostEntityMapping?.Invoke();
         }
 
-        public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames) :
-            this(dbConnection, entityInterface, databaseNames, null)
+        public EntityMapper(IDbConnection dbConnection,IEnumerable<string> databaseNames) :
+            this(dbConnection, databaseNames, null)
         { }
 
-        public EntityMapper(IDbConnection dbConnection, Type entityInterface, IEnumerable<string> databaseNames, Action onPostEntityMapping) :
-            this(dbConnection, entityInterface, databaseNames, null, true, onPostEntityMapping)
+        public EntityMapper(IDbConnection dbConnection, IEnumerable<string> databaseNames, Action onPostEntityMapping) :
+            this(dbConnection, databaseNames, null, true, null, onPostEntityMapping)
         { }
 
-        public EntityMapper(IDbConnection dbConnection, Type entityInterface, string databaseName) :
-           this(dbConnection, entityInterface, new List<string> { databaseName }, null)
+        public EntityMapper(IDbConnection dbConnection, string databaseName) :
+           this(dbConnection, new List<string> { databaseName }, null)
         { }
 
-        public EntityMapper(IDbConnection dbConnection, Type entityInterface, string databaseName, Action onPostEntityMapping) :
-           this(dbConnection, entityInterface, new List<string> { databaseName }, null, true, onPostEntityMapping)
+        public EntityMapper(IDbConnection dbConnection, string databaseName, Assembly[] assembliesOfModelTypes) :
+           this(dbConnection, new List<string> { databaseName }, assembliesOfModelTypes, true, null, null)
         { }
 
         #endregion
@@ -125,15 +126,21 @@ namespace FluentSql.Mappers
         #endregion
 
         #region Private Methods
-        private void MapEntities(IDbConnection dbconnection, Type entityInterface, IEnumerable<string> databaseNames)
+        private void MapEntities(IDbConnection dbconnection, IEnumerable<string> databaseNames, Assembly[] assembliesOfModelTypes = null)
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            Assembly[] assemblies;
             var sqlHelper = new SqlGeneratorHelper();
             var entityReader = new DefaultEntityReader();
             var service = PluralizationService.CreateService(CultureInfo.CurrentCulture);
 
             DatabaseTables = DefaultDatabaseMapper.MapDatabase(dbconnection, databaseNames);
-            EntityTypes = entityReader.ReadEntities(entityInterface, assemblies);
+
+            if (assembliesOfModelTypes != null)
+                assemblies = assembliesOfModelTypes;
+            else
+                assemblies = AppDomain.CurrentDomain.GetAssemblies(); 
+
+            EntityTypes = entityReader.ReadEntities(assemblies);
 
             foreach (var type in EntityTypes)
             {

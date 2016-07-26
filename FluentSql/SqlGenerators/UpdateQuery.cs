@@ -53,7 +53,7 @@ namespace FluentSql.SqlGenerators
 
         public override string ToSql()
         {
-            if (Fields == null || !Fields.Any()) return string.Empty;           
+            if (Fields == null || !Fields.Any()) return string.Empty;
 
             var sqlBuilder = new StringBuilder();
             var predicateSql = string.Empty;

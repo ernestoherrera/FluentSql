@@ -22,7 +22,7 @@ namespace FluentSql.SqlGenerators.SqlServer
             SetClause = new SqlServerSetClause<T>(this);
         }
 
-        public override UpdateQuery<T> Set(dynamic setFields)
+        public override UpdateQuery<T> Set(object setFields)
         {
             SetClause = new SqlServerSetClause<T>(this, setFields);
             return this;
@@ -42,7 +42,7 @@ namespace FluentSql.SqlGenerators.SqlServer
 
         public override string ToSql()
         {
-            if (Fields == null || !Fields.Any()) return string.Empty;            
+            if (Fields == null || !Fields.Any()) return string.Empty;
 
             var sqlBuilder = new StringBuilder();
             var predicateSql = string.Empty;

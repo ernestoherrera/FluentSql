@@ -40,13 +40,14 @@ namespace FluentSql.SqlGenerators
         {
             var setFieldsType = setFields.GetType();
 
-            if (!setFieldsType.IsAnonymous() || setFieldsType.IsIEnumerable())
+            if (!string.IsNullOrEmpty(setFieldsType.Namespace) || setFieldsType.IsIEnumerable())
                 throw new Exception("Set clause only supports anonymous parameters.");
 
             var entityMap = EntityMapper.EntityMap[typeof(T)];
             var setFieldsProps = setFieldsType.GetProperties();
             var propMapDefault = default(PropertyMap);
             var paramGen = ParentQuery.ParameterNameGenerator;
+            FieldParameterPairs = new List<KeyValuePair<string, PropertyMap>>();
 
             foreach (var setFieldPropInfo in setFieldsProps)
             {
@@ -94,6 +95,9 @@ namespace FluentSql.SqlGenerators
 
         public virtual string ToSql()
         {
+            if (FieldParameterPairs == null)
+                return string.Empty;
+
             SetClauseParts = new List<string>();
            
             foreach (var pair in FieldParameterPairs)

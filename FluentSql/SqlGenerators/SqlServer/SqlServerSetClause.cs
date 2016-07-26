@@ -12,12 +12,18 @@ namespace FluentSql.SqlGenerators.SqlServer
         public SqlServerSetClause(SqlServerUpdateQuery<T> parentQuery) : base(parentQuery)
         {  }
 
-        public SqlServerSetClause(SqlServerUpdateQuery<T> parentQuery, params Expression<Func<T, bool>>[] setExpressions)
-            :base (parentQuery, setExpressions)
+        public SqlServerSetClause(SqlServerUpdateQuery<T> parentQuery, object setFields)
+            :base (parentQuery, setFields)
         { }
 
         public override string ToSql()
         {
+            if (FieldParameterPairs == null)
+                return string.Empty;
+
+            if (SetClauseParts == null)
+                SetClauseParts = new List<string>();
+
             foreach (var pair in FieldParameterPairs)
             {
                 SetClauseParts.Add(string.Format("[{0}].[{1}] = {2} ", ParentQuery.TableAlias, pair.Value.ColumnName, pair.Key));
