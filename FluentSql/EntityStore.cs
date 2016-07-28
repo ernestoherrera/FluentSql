@@ -220,7 +220,108 @@ namespace FluentSql
         }
         #endregion
 
+        #region Stored Procedures - SQL script Execution
+        public int Execute(string sql, object parameters = null, bool executeInTransaction = false, CommandType? commandType = null, int? commandTimeout = 0)
+        {
+            try
+            {
+                int result = 0;
+
+                if (executeInTransaction)
+                {
+                    using (var dbTransaction = DbConnection.BeginTransaction())
+                    {
+                        result = DapperHelper.Execute(DbConnection, sql, parameters, dbTransaction, commandTimeout, commandType);
+                        dbTransaction.Commit();
+                    }
+                }
+                else
+                {
+                    result = DapperHelper.Execute(DbConnection, sql, parameters, null, commandTimeout, commandType);
+                }
+
+                return result;
+            }
+            finally
+            {
+            }
+        }
+
+        public IEnumerable<SqlDbParameter> ExecuteProcedure(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null)
+        {
+            var dynamicParams = ConvertToDynamc(parameters);
+
+            Execute(sql, dynamicParams, executeInTransaction, CommandType.StoredProcedure, commandTimeout);
+
+            var returnParams = ConvertToSqlDbParameter(parameters, dynamicParams);
+
+            return returnParams;
+        }
+
+        public object ExecuteScalar(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            if (executeInTransaction)
+            {
+                using (var dbTransaction = DbConnection.BeginTransaction())
+                {
+                    var dynamicParams = ConvertToDynamc(parameters);
+                    var result = DapperHelper.ExecuteScalar(DbConnection, sql, dynamicParams, dbTransaction, commandTimeout, commandType);
+
+                    parameters = ConvertToSqlDbParameter(parameters, dynamicParams);
+
+                    return result;
+                }
+            }
+            else
+            {
+                var dynamicParams = ConvertToDynamc(parameters);
+                var result = DapperHelper.ExecuteScalar(DbConnection, sql, dynamicParams, null, commandTimeout, commandType);
+
+                parameters = ConvertToSqlDbParameter(parameters, dynamicParams);
+
+                return result;
+            }
+
+        }
+        #endregion
+
         #region Private Methods
+
+        private DynamicParameters ConvertToDynamc(IEnumerable<SqlDbParameter> parameters)
+        {
+            if (parameters == null) return null;
+
+            var dynamicParams = new DynamicParameters();
+
+            if (parameters == null) return dynamicParams;
+
+            foreach (var param in parameters)
+            {
+                dynamicParams.Add(param.ParameterName, param.Value, param.DbType, param.Direction, param.Size);
+            }
+
+            return dynamicParams;
+        }
+
+        private IEnumerable<SqlDbParameter> ConvertToSqlDbParameter(IEnumerable<SqlDbParameter> dbParameters, DynamicParameters dynamicParameters)
+        {
+            if (dynamicParameters == null || dbParameters == null) return dbParameters;
+
+            foreach (var paramName in dynamicParameters.ParameterNames)
+            {
+
+                var paramValue = dynamicParameters.Get<dynamic>(paramName);
+
+                var dbParam = dbParameters.FirstOrDefault(p => p.ParameterName == $"@{paramName}");
+
+                if (dbParam == null) continue;
+
+                dbParam.Value = paramValue;
+            }
+
+            return dbParameters;
+        }
+
         private Query<T> GetQueryByKey<T>(dynamic key, Query<T> query)
         {
             var keyColumns = EntityMapper.EntityMap[typeof(T)].Properties.Where(p => p.IsPrimaryKey).ToList();

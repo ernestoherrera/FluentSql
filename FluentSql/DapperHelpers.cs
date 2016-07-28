@@ -9,24 +9,23 @@ namespace FluentSql
 {
     public static class DapperHelper
     {
-        public static async Task<IEnumerable<T>> QueryAsync<T>(IDbConnection connection, string sql, dynamic parameters = null, 
+        internal static async Task<IEnumerable<T>> QueryAsync<T>(IDbConnection connection, string sql, dynamic parameters = null, 
                                                                 IDbTransaction transaction = null, int? commandTimeout = null, 
                                                                 CommandType? commandType = null)
         {
             try
-            {                
+            {
                 var results = await SqlMapper.QueryAsync<T>(connection, sql, parameters, transaction, commandTimeout, commandType);
 
                 return results;
             }
-            catch (Exception ex)
+            finally
             {
-                throw ex;
             }
 
         }
 
-        public static IEnumerable<T> Query<T>(IDbConnection connection, string sql, object parameters = null)
+        internal static IEnumerable<T> Query<T>(IDbConnection connection, string sql, object parameters = null)
         {
             try
             {
@@ -36,13 +35,11 @@ namespace FluentSql
 
                 return results;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            finally
+            { }
         }
 
-        public static async Task<IEnumerable<TReturn>> QueryAsync<TFirst, TSecond, TReturn>(IDbConnection connection, string sql, Func<TFirst, TSecond, TReturn> map, 
+        internal static async Task<IEnumerable<TReturn>> QueryAsync<TFirst, TSecond, TReturn>(IDbConnection connection, string sql, Func<TFirst, TSecond, TReturn> map, 
                                                             dynamic param = null, IDbTransaction transaction = null, 
                                                             bool buffered = true, string splitOn = "Id", 
                                                             int? commandTimeout = default(int?), CommandType? commandType = default(CommandType?))
@@ -53,49 +50,48 @@ namespace FluentSql
 
                 return result;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            finally
+            { }
         }
 
-        public static IEnumerable<Tuple<T, R>> QueryMultiSet<T, R>(IDbConnection connection, string sql, dynamic parameters, string splitOn = "Id", 
+        internal static IEnumerable<Tuple<T, R>> QueryMultiSet<T, R>(IDbConnection connection, string sql, dynamic parameters, string splitOn = "Id", 
                                                                     IDbTransaction transaction = null, int? commandTimeout = null,
                                                                     CommandType? commandType = null)
         {
-            return connection.Query<T, R, Tuple<T, R>>(sql, Tuple.Create, parameters as object, transaction, true, splitOn, commandTimeout, commandType);
+            try
+            {
+                var result = connection.Query<T, R, Tuple<T, R>>(sql, Tuple.Create, parameters as object, transaction, true, splitOn, commandTimeout, commandType);
+
+                return result;
+            }
+            finally
+            { }
         }
 
-        public static int Execute(IDbConnection connection, string sql, object parameters = null, IDbTransaction transaction = null,
+        internal static int Execute(IDbConnection connection, string sql, object parameters = null, IDbTransaction transaction = null,
                                     int? commandTimeout = null, CommandType? commandType = null)
         {
             try
             {
-
                 var result = connection.Execute(sql, parameters, transaction, commandTimeout, commandType);
 
                 return result;
             }
-            catch (Exception ex)
-            {                
-                throw ex;
-            }
+            finally
+            { }
         }
 
-        public static object ExecuteScalar(IDbConnection connection, string sql, object parameters = null, IDbTransaction transaction = null,
+        internal static object ExecuteScalar(IDbConnection connection, string sql, object parameters = null, IDbTransaction transaction = null,
                                     int? commandTimeout = null, CommandType? commandType = null)
         {
-            //object ExecuteScalar(this IDbConnection cnn, string sql, object param = null, IDbTransaction transaction = null, int? commandTimeout = default(int?), CommandType? commandType = default(CommandType?));
             try
             {
                 var result = connection.ExecuteScalar(sql, parameters, transaction, commandTimeout, commandType);
 
                 return result;
             }
-            catch(Exception ex)
-            {
-                throw ex;
-            }
+            finally
+            { }
         }
     }
 }

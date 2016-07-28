@@ -80,6 +80,7 @@
     <Compile Include="SqlGenerators\DefaultSqlGenerator.cs" />
     <Compile Include="SqlGenerators\DeleteQuery.cs" />
     <Compile Include="SqlGenerators\Query.cs" />
+    <Compile Include="SqlGenerators\SqlDbParameter.cs" />
     <Compile Include="SqlGenerators\SqlGeneratorHelper.cs" />
     <Compile Include="SqlGenerators\SqlServer\SqlServerDeleteQuery.cs" />
     <Compile Include="SqlGenerators\SqlServer\SqlServerHelper.cs" />

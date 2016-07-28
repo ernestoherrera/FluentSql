@@ -2,6 +2,7 @@
 using FluentSql.SqlGenerators.Contracts;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -138,6 +139,14 @@ namespace FluentSql.Contracts
         /// <param name="expression"></param>
         /// <returns></returns>
         int UpdateWithFilter<T>(Expression<Func<T, bool>> filterExpression, params Expression<Func<T, bool>>[] setExpression);
+        #endregion
+
+        #region Stored Procedure T-Sql script support
+        int Execute(string sql, object parameters = null, bool executeInTransaction = false, CommandType? commandType = null, int? commandTimeout = 0);
+
+        IEnumerable<SqlDbParameter> ExecuteProcedure(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null);
+
+        object ExecuteScalar(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null, CommandType? commandType = null);
         #endregion
     }
 }
