@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using FluentSql.Mappers;
+using FluentSql.Tests.Models;
 using FluentSql.Tests.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -13,30 +14,28 @@ using Xunit;
 namespace FluentSql.Tests.SelectStatement
 {
     [TestClass]
-    class SelectTest
+    public class SelectTest
     {
         private DbConnectionTest _dbConnection;
-        private readonly string _testDatabaseName = "FluentSqlTestDb";
+        private readonly string _serverName = "localhost";
+        private readonly string _testDatabaseName = "Northwind";
         private readonly string _username = "appUser";
-        private readonly string _password = "supersecretpasswordnumber1";
+        private readonly string _password = "3044171035Fluent";
 
         public SelectTest()
         {
-            string connString = $"Server=localhost;Database={_testDatabaseName};User ID={_username};Password={_password};";
-            _dbConnection = new DbConnectionTest(connString);
+            string serverToken = string.Format("Server={0};", _serverName);
+            string databaseToken = string.Format("Database={0};", _testDatabaseName);
+            string usernameToken = string.Format("User ID={0};", _username);
+            string passwordToken = string.Format("Password={0};", _password);
 
-            _dbConnection.Open();
+            string connString = serverToken + databaseToken + usernameToken + passwordToken;
+            _dbConnection = new DbConnectionTest(connString);
 
             var assemblies = new[]
                {
                     Assembly.Load("FluentSql.Tests")
                };
-
-            var sqlDbSetup = TestSqlScripts.CREATE_DATABASE;
-            SqlMapper.Execute(_dbConnection, sqlDbSetup);
-
-            _dbConnection.ChangeDatabase(_testDatabaseName);
-            SqlMapper.Execute(_dbConnection, TestSqlScripts.CREATE_TABLES);
 
             var testDatabase = new Database();
 
@@ -50,147 +49,150 @@ namespace FluentSql.Tests.SelectStatement
         }
 
         [Fact]
-        public async void SelectStatementWithJoinOnKeyAndTResult()
+        public async void SelectAsyncWherePredicateIsConstant()
         {
             var entityStore = new EntityStore(_dbConnection);
-            var tResult = await entityStore.GetAsync<Person, User, User>((p, u) => p.Id == u.PersonId);
 
-            Xunit.Assert.NotNull(tResult);
+            var employees = await entityStore.GetAsync<Employee>(emp => emp.Id == 1);
 
-            var firstUser = tResult.FirstOrDefault();
+            Xunit.Assert.NotNull(employees);
 
-            Xunit.Assert.IsType<User>(firstUser);
+            Xunit.Assert.IsType<Employee>(employees.FirstOrDefault());
+
         }
 
         [Fact]
-        public void SelectStatementWithJoinOnKeyAndTupleReturnSet()
+        public async void SelectAsyncConstant2()
         {
+            var loginRequest = new LoginRequest { Username = "NDavolio", Password = _password };
             var entityStore = new EntityStore(_dbConnection);
-            var tuples = entityStore.GetAll<Person, User>();
 
-            Xunit.Assert.NotNull(tuples);
+            var employees = await entityStore.GetAsync<Employee>(u => 1 == u.Id);
 
-            var firstTuple = tuples.FirstOrDefault();
-            var person = firstTuple.Item1;
-            var user = firstTuple.Item2;
+            Xunit.Assert.NotNull(employees);
 
-            Xunit.Assert.IsType<Person>(person);
+            Xunit.Assert.IsType<Employee>(employees.FirstOrDefault());
 
-            Xunit.Assert.IsType<User>(user);
+            var employee = employees.FirstOrDefault();
+
+            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Nancy");
+
         }
 
         [Fact]
-        public void SelectStatementWithJoinOnKeyAndWhereClause()
+        public async void SelectAsyncGetByKeyAnonymous()
         {
             var entityStore = new EntityStore(_dbConnection);
-            var tuples = entityStore.Get<Person, User>((p, u) => p.Id == u.PersonId);
 
-            Xunit.Assert.NotNull(tuples);
+            var employee = await entityStore.GetByKeyAsync<Employee>(new { Id = 1 });
 
-            var firstTuple = tuples.FirstOrDefault();
-            var person = firstTuple.Item1;
-            var user = firstTuple.Item2;
+            Xunit.Assert.NotNull(employee);
 
-            Xunit.Assert.IsType<Person>(person);
+            Xunit.Assert.IsType<Employee>(employee);
 
-            Xunit.Assert.IsType<User>(user);
+            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Nancy");
+        }
+
+        [Fact]
+        public async void SelectAsyncGetByKeyEntity()
+        {
+            var entityStore = new EntityStore(_dbConnection);
+            var employeeTemplate = new Employee { Id = 1 };
+            var employee = await entityStore.GetByKeyAsync<Employee>(employeeTemplate);
+
+            Xunit.Assert.NotNull(employee);
+
+            Xunit.Assert.IsType<Employee>(employee);
+
+            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Nancy");
+
+        }
+
+        [Fact]
+        public async void SelectAsyncGetSingle()
+        {
+            var loginRequest = new LoginRequest { Username = "NDavolio", Password = _password };
+            var entityStore = new EntityStore(_dbConnection);
+
+            var employee = await entityStore.GetSingleAsync<Employee>(u => u.Username == loginRequest.Username);
+
+            Xunit.Assert.NotNull(employee);
+
+            Xunit.Assert.IsType<Employee>(employee);
+
+            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Nancy");
         }
 
         [Fact]
         public void SelectStatementWherePredicateIsFieldAccess()
         {
             var entityStore = new EntityStore(_dbConnection);
-            var tonyLastname = "Stark";
+            var nancyLastname = "Davolio";
 
-            var persons = entityStore.Get<Person>(p => p.LastName == tonyLastname);
+            var employees = entityStore.Get<Employee>(p => p.LastName == nancyLastname);
 
-            Xunit.Assert.NotNull(persons);
+            Xunit.Assert.NotNull(employees);
 
-            Xunit.Assert.IsType<Person>(persons.FirstOrDefault());
+            Xunit.Assert.IsType<Employee>(employees.FirstOrDefault());
         }
 
         [Fact]
-        public async void SelectStatementWherePredicateIsClass()
-        {
-            var loginRequest = new LoginRequest { username = "tstark", password = _password };
-            var entityStore = new EntityStore(_dbConnection);
-
-            var users = await entityStore.GetAsync<User>(u => u.UserName == loginRequest.username);
-
-            Xunit.Assert.NotNull(users);
-
-            Xunit.Assert.IsType<User>(users.FirstOrDefault());
-        }
-
-        [Fact]
-        public async void SelectStatementWherePredicateIsConstant()
-        {
-            var loginRequest = new LoginRequest { username = "tstark", password = _password };
-            var entityStore = new EntityStore(_dbConnection);
-
-            var users = await entityStore.GetAsync<User>(u => u.Id == 1);
-
-            Xunit.Assert.NotNull(users);
-
-            Xunit.Assert.IsType<User>(users.FirstOrDefault());
-
-        }
-
-        [Fact]
-        public async void SelectStatementWherePredicateIsConstant2()
-        {
-            var loginRequest = new LoginRequest { username = "tstark", password = _password };
-            var entityStore = new EntityStore(_dbConnection);
-
-            var users = await entityStore.GetAsync<User>(u => 1 == u.Id);
-
-            Xunit.Assert.NotNull(users);
-
-            Xunit.Assert.IsType<User>(users.FirstOrDefault());
-
-        }
-
-        [Fact]
-        public async void SelectStatementGetSingleWithWhere()
-        {
-            var loginRequest = new LoginRequest { username = "tstark", password = _password };
-            var entityStore = new EntityStore(_dbConnection);
-
-            var user = await entityStore.GetSingleAsync<User>(u => u.UserName == loginRequest.username);
-
-            Xunit.Assert.NotNull(user);
-
-            Xunit.Assert.IsType<User>(user);
-        }
-
-        [Fact]
-        public async void SelectStatementGetByKeyAnonymous()
+        public void SelectJoin()
         {
             var entityStore = new EntityStore(_dbConnection);
 
-            var user = await entityStore.GetByKeyAsync<User>(new { Id = 1 });
+            var nancysOrders = entityStore.GetAllWithJoin<Employee, Order>((e, o) => e.Id == o.EmployeeID && e.Id == 1);
 
-            Xunit.Assert.NotNull(user);
-
-            Xunit.Assert.IsType<User>(user);
-
-            Xunit.Assert.True(user.Id == 1);
-        }
-
-        [Fact]
-        public async void SelectStatementGetByKeyEntity()
-        {
-            var entityStore = new EntityStore(_dbConnection);
-            var userTemplate = new User { Id = 1 };
-            var user = await entityStore.GetByKeyAsync<User>(userTemplate);
-
-            Xunit.Assert.NotNull(user);
-
-            Xunit.Assert.IsType<User>(user);
-
-            Xunit.Assert.True(user.Id == 1);
+            Xunit.Assert.NotNull(nancysOrders);
 
         }
+
+        //[Fact]
+        //public async void SelectStatementWithJoinOnKeyAndTResult()
+        //{
+        //    var entityStore = new EntityStore(_dbConnection);
+        //    var tResult = await entityStore.GetAsync<Person, User, User>((p, u) => p.Id == u.PersonId);
+
+        //    Xunit.Assert.NotNull(tResult);
+
+        //    var firstUser = tResult.FirstOrDefault();
+
+        //    Xunit.Assert.IsType<User>(firstUser);
+        //}
+
+        //[Fact]
+        //public void SelectStatementWithJoinOnKeyAndTupleReturnSet()
+        //{
+        //    var entityStore = new EntityStore(_dbConnection);
+        //    var tuples = entityStore.GetAll<Person, User>();
+
+        //    Xunit.Assert.NotNull(tuples);
+
+        //    var firstTuple = tuples.FirstOrDefault();
+        //    var person = firstTuple.Item1;
+        //    var user = firstTuple.Item2;
+
+        //    Xunit.Assert.IsType<Person>(person);
+
+        //    Xunit.Assert.IsType<User>(user);
+        //}
+
+        //[Fact]
+        //public void SelectStatementWithJoinOnKeyAndWhereClause()
+        //{
+        //    var entityStore = new EntityStore(_dbConnection);
+        //    var tuples = entityStore.Get<Person, User>((p, u) => p.Id == u.PersonId);
+
+        //    Xunit.Assert.NotNull(tuples);
+
+        //    var firstTuple = tuples.FirstOrDefault();
+        //    var person = firstTuple.Item1;
+        //    var user = firstTuple.Item2;
+
+        //    Xunit.Assert.IsType<Person>(person);
+
+        //    Xunit.Assert.IsType<User>(user);
+        //}
 
         public void Dispose()
         {
