@@ -6,11 +6,11 @@ namespace FluentSql.Tests.Models
     /// Order entity
     public class Order
     {
-        public int OrderID { get; set; } 
+        public int Id { get; set; } 
 
-        public string CustomerID { get; set; } 
+        public string CustomerId { get; set; } 
 
-        public int? EmployeeID { get; set; } 
+        public int? EmployeeId { get; set; } 
 
         public DateTime? OrderDate { get; set; } 
 

@@ -17,34 +17,30 @@ namespace FluentSql.Tests.SelectStatement
     public class SelectTest
     {
         private DbConnectionTest _dbConnection;
-        private readonly string _serverName = "localhost";
-        private readonly string _testDatabaseName = "Northwind";
-        private readonly string _username = "appUser";
-        private readonly string _password = "3044171035Fluent";
 
         public SelectTest()
         {
-            string serverToken = string.Format("Server={0};", _serverName);
-            string databaseToken = string.Format("Database={0};", _testDatabaseName);
-            string usernameToken = string.Format("User ID={0};", _username);
-            string passwordToken = string.Format("Password={0};", _password);
+            string connString = TestConstants.ServerPair + TestConstants.DatabasePair + 
+                                TestConstants.UsernamePair + TestConstants.PasswordPair;
 
-            string connString = serverToken + databaseToken + usernameToken + passwordToken;
             _dbConnection = new DbConnectionTest(connString);
 
-            var assemblies = new[]
+            if (!EntityMapper.EntityMap.Keys.Any())
+            {
+                var assemblies = new[]
                {
                     Assembly.Load("FluentSql.Tests")
                };
 
-            var testDatabase = new Database();
+                var testDatabase = new Database();
 
-            testDatabase.Name = _testDatabaseName;
-            testDatabase.TableNamesInPlural = false;
+                testDatabase.Name = TestConstants.TestDatabaseName;
+                testDatabase.TableNamesInPlural = false;
 
-            if (!EntityMapper.EntityMap.Keys.Any())
-            {
-                new EntityMapper(_dbConnection, _testDatabaseName, assemblies);
+                SqlMapper.Execute(_dbConnection, SqlScripts.CREATE_DATABASE, null);
+                SqlMapper.Execute(_dbConnection, SqlScripts.CREATE_TABLES, null);
+
+                new EntityMapper(_dbConnection, TestConstants.TestDatabaseName, assemblies);
             }
         }
 
@@ -64,7 +60,7 @@ namespace FluentSql.Tests.SelectStatement
         [Fact]
         public async void SelectAsyncConstant2()
         {
-            var loginRequest = new LoginRequest { Username = "NDavolio", Password = _password };
+            var loginRequest = new LoginRequest { Username = "GDiaz" };
             var entityStore = new EntityStore(_dbConnection);
 
             var employees = await entityStore.GetAsync<Employee>(u => 1 == u.Id);
@@ -75,7 +71,7 @@ namespace FluentSql.Tests.SelectStatement
 
             var employee = employees.FirstOrDefault();
 
-            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Nancy");
+            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Gary");
 
         }
 
@@ -90,7 +86,7 @@ namespace FluentSql.Tests.SelectStatement
 
             Xunit.Assert.IsType<Employee>(employee);
 
-            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Nancy");
+            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Gary");
         }
 
         [Fact]
@@ -104,14 +100,14 @@ namespace FluentSql.Tests.SelectStatement
 
             Xunit.Assert.IsType<Employee>(employee);
 
-            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Nancy");
+            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Gary");
 
         }
 
         [Fact]
         public async void SelectAsyncGetSingle()
         {
-            var loginRequest = new LoginRequest { Username = "NDavolio", Password = _password };
+            var loginRequest = new LoginRequest { Username = "GDiaz" };
             var entityStore = new EntityStore(_dbConnection);
 
             var employee = await entityStore.GetSingleAsync<Employee>(u => u.Username == loginRequest.Username);
@@ -120,16 +116,16 @@ namespace FluentSql.Tests.SelectStatement
 
             Xunit.Assert.IsType<Employee>(employee);
 
-            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Nancy");
+            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Gary");
         }
 
         [Fact]
         public void SelectStatementWherePredicateIsFieldAccess()
         {
             var entityStore = new EntityStore(_dbConnection);
-            var nancyLastname = "Davolio";
+            var lastname = "Diaz";
 
-            var employees = entityStore.Get<Employee>(p => p.LastName == nancyLastname);
+            var employees = entityStore.Get<Employee>(p => p.LastName == lastname);
 
             Xunit.Assert.NotNull(employees);
 
@@ -141,7 +137,7 @@ namespace FluentSql.Tests.SelectStatement
         {
             var entityStore = new EntityStore(_dbConnection);
 
-            var nancysOrders = entityStore.GetAllWithJoin<Employee, Order>((e, o) => e.Id == o.EmployeeID && e.Id == 1);
+            var nancysOrders = entityStore.GetAllWithJoin<Employee, Order>((e, o) => e.Id == o.EmployeeId && e.Id == 1);
 
             Xunit.Assert.NotNull(nancysOrders);
 

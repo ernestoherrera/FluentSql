@@ -29,14 +29,14 @@ var sqlLogin = "appUser";
 // The SQL password
 var sqlPassword = "3044171035Fluent";
 // The SQL database to generate the POCOs for
-var sqlDatabaseName = "Northwind";
+var sqlDatabaseName = "FluentSqlTestDb";
 // The namespace to apply to the generated classes
 var classNamespace = "FluentSql.Tests.Models";
 // The destination folder for the generated classes, relative to this file's location.
 var destinationFolder = @"C:\Source\FluentSql\FluentSql\FluentSql.Tests\Models\";
 var fileExtension = ".cs";
 // Name of the one model to be refreshed. If empty string it will refresh all models
-var mapSingleTable = "Employees";
+var mapSingleTable = "";
 
 var sqlServerConnection = new SqlConnection($"Server={serverName};Database={sqlDatabaseName};User ID={sqlLogin};Password={sqlPassword};");
 
@@ -93,6 +93,7 @@ void SavePoco(string className, string fileName, List<Column> columns)
         builder.Append(' ', 4).AppendLine("{");
 
         var iCounter = 0;
+        var columnsAdded = new List<string>();
 
         foreach (var col in columns)
         {
@@ -103,21 +104,22 @@ void SavePoco(string className, string fileName, List<Column> columns)
 
             if (string.IsNullOrEmpty(propType)) continue;
 
+            if (columnsAdded.Contains(columnName)) continue;
+
             if (col.IsNullable && propType != "string" && propType != "byte[]")
                 propType += "?";
 
             if (invalidColumnNames.Contains(columnName.ToLower()))
-                columnName = $"@{columnName}";
+                throw new Exception($"Invalid column name: {columnName}");
 
             var kvp = invalidFirstLetters.FirstOrDefault(vp => vp.Key == columnName[0]);
 
             if (!kvp.Equals(defaultKvP))
-            {
-                columnName = columnName.Substring(1);
-                columnName = $"{kvp.Value}{columnName}";
-            }
+                throw new Exception($"Invalid column name: {columnName}");
 
             builder.Append(' ', 8).AppendLine($"public {propType} {columnName} {{ get; set; }} ");
+
+            columnsAdded.Add(columnName);
 
             if (iCounter < columns.Count())
                 builder.AppendLine();

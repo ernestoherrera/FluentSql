@@ -72,20 +72,16 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Models\Category.cs" />
     <Compile Include="Models\Customer.cs" />
     <Compile Include="Models\Employee.cs" />
     <Compile Include="Models\Order.cs" />
-    <Compile Include="Models\Product.cs" />
-    <Compile Include="Models\Region.cs" />
-    <Compile Include="Models\Shipper.cs" />
-    <Compile Include="Models\Supplier.cs" />
-    <Compile Include="Models\Territory.cs" />
     <Compile Include="SelectStatement\SelectTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Support\Database.cs" />
     <Compile Include="Support\DbConnectionTest.cs" />
     <Compile Include="Support\LoginRequest.cs" />
+    <Compile Include="Support\SqlScripst.cs" />
+    <Compile Include="Support\TestConstants.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Models\ModelBuilder.csx" />
