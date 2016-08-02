@@ -142,6 +142,15 @@ namespace FluentSql
 
             return resultSet.FirstOrDefault();
         }
+
+        public async Task<IEnumerable<T>> GetAllAsync<T>()
+        {
+            var selectQuery = SqlGenerator.Select<T>();
+            var resultSet = await DapperHelper.QueryAsync<T>(DbConnection, selectQuery.ToSql());
+
+            return resultSet;
+        }
+
         #endregion
 
         #region Entity inserts
@@ -283,10 +292,10 @@ namespace FluentSql
             }
 
         }
+
         #endregion
 
         #region Private Methods
-
         private DynamicParameters ConvertToDynamc(IEnumerable<SqlDbParameter> parameters)
         {
             if (parameters == null) return null;
@@ -356,6 +365,7 @@ namespace FluentSql
 
             return query;
         }
+
         #endregion
     }
 }

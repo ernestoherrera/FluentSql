@@ -5,6 +5,7 @@ using FluentSql.Tests.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -37,8 +38,10 @@ namespace FluentSql.Tests.SelectStatement
                 testDatabase.Name = TestConstants.TestDatabaseName;
                 testDatabase.TableNamesInPlural = false;
 
-                SqlMapper.Execute(_dbConnection, SqlScripts.CREATE_DATABASE, null);
-                SqlMapper.Execute(_dbConnection, SqlScripts.CREATE_TABLES, null);
+                var store = new EntityStore(_dbConnection);
+
+                store.Execute(SqlScripts.CREATE_DATABASE, null, false, CommandType.Text);
+                store.Execute(SqlScripts.CREATE_TABLES, null, false, CommandType.Text);
 
                 new EntityMapper(_dbConnection, TestConstants.TestDatabaseName, assemblies);
             }
@@ -120,6 +123,16 @@ namespace FluentSql.Tests.SelectStatement
         }
 
         [Fact]
+        public async void SelectGetAllAsync()
+        {
+            var store = new EntityStore(_dbConnection);
+            var employees = await store.GetAllAsync<Employee>();
+
+            Xunit.Assert.NotNull(employees);
+            Xunit.Assert.IsType<Employee>(employees.FirstOrDefault());
+        }
+
+        [Fact]
         public void SelectStatementWherePredicateIsFieldAccess()
         {
             var entityStore = new EntityStore(_dbConnection);
@@ -137,11 +150,17 @@ namespace FluentSql.Tests.SelectStatement
         {
             var entityStore = new EntityStore(_dbConnection);
 
-            var nancysOrders = entityStore.GetAllWithJoin<Employee, Order>((e, o) => e.Id == o.EmployeeId && e.Id == 1);
+            var orders = entityStore.GetAllWithJoin<Employee, Order>((e, o) => e.Id == o.EmployeeId && e.Id == 1);
 
-            Xunit.Assert.NotNull(nancysOrders);
+            Xunit.Assert.NotNull(orders);
 
-        }
+            var tupleEmployee = orders.FirstOrDefault().Item1;
+            var tupleOrder = orders.FirstOrDefault().Item2;
+
+            Xunit.Assert.IsType<Employee>(tupleEmployee);
+
+            Xunit.Assert.IsType<Order>(tupleOrder);
+        }        
 
         //[Fact]
         //public async void SelectStatementWithJoinOnKeyAndTResult()
@@ -155,6 +174,16 @@ namespace FluentSql.Tests.SelectStatement
 
         //    Xunit.Assert.IsType<User>(firstUser);
         //}
+
+        [Fact]
+        public void SelectGetAll()
+        {
+            var store = new EntityStore(_dbConnection);
+            var employees = store.GetAll<Employee>();
+
+            Xunit.Assert.NotNull(employees);
+            Xunit.Assert.IsType<Employee>(employees.FirstOrDefault());
+        }
 
         //[Fact]
         //public void SelectStatementWithJoinOnKeyAndTupleReturnSet()

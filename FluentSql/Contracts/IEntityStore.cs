@@ -92,6 +92,15 @@ namespace FluentSql.Contracts
         /// <param name="expression">Expression by which to filter the Entity set</param>
         /// <returns>Entity T</returns>
         Task<T> GetSingleAsync<T>(Expression<Func<T, bool>> expression);
+
+        /// <summary>
+        /// Gets all the entities from the 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="filterExpression"></param>
+        /// <returns></returns>
+        Task<IEnumerable<T>> GetAllAsync<T>();
+
         #endregion
 
         #region Insert
