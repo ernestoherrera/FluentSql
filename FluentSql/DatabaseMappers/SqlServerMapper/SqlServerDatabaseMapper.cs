@@ -12,38 +12,36 @@ namespace FluentSql.DatabaseMappers.SqlServerMapper
     class SqlServerDatabaseMapper : IDatabaseMapper
     {
         #region Private Properties
-        private IDbConnection DbConnection;
+        private IDbConnection _dbConnection;
 
-        private IEnumerable<string> DatabaseNames;
-        #endregion
-
-        #region Public Properties
-        public IEnumerable<Table> DatabaseTables { get; private set; }
+        private IEnumerable<Database> _allDatabases;
         #endregion
 
         #region IDatabaseMapper Implementation
-        public IEnumerable<Table> MapDatabase(IDbConnection dbConnection, IEnumerable<string> databaseNames)
+        public IEnumerable<Table> MapDatabase(IDbConnection dbConnection, IEnumerable<Database> databases)
         {
-            if (dbConnection == null || databaseNames == null)
+            if (dbConnection == null || databases == null)
                 throw new ArgumentNullException("Database connection or database name(s) can not be null.");
 
-            DbConnection = dbConnection;
-            DatabaseNames = databaseNames;
+            _dbConnection = dbConnection;
+            _allDatabases = databases;
 
-            if (DbConnection.State == ConnectionState.Closed)
-                DbConnection.Open();
+            if (_dbConnection.State == ConnectionState.Closed)
+                _dbConnection.Open();
 
             var dbTableList = new List<Table>();
 
             try
             {
-                foreach (var dbName in DatabaseNames)
+                foreach (var db in _allDatabases)
                 {
-                    DbConnection.ChangeDatabase(dbName);
+                    _dbConnection.ChangeDatabase(db.Name);
 
-                    var tableList = DbConnection.Query<Table>(SqlServerConstants.USER_TABLES_QUERY);
-                    var dbColumns = DbConnection.Query<Column>(SqlServerConstants.USER_COLUMNS_QUERY);
-                    var dbForeignKeys = DbConnection.Query<ForeignKey>(SqlServerConstants.USER_FOREIGN_KEYS_QUERY);
+                    var tableList = _dbConnection.Query<Table>(SqlServerConstants.USER_TABLES_QUERY);
+                    var dbColumns = _dbConnection.Query<Column>(SqlServerConstants.USER_COLUMNS_QUERY);
+                    var dbForeignKeys = _dbConnection.Query<ForeignKey>(SqlServerConstants.USER_FOREIGN_KEYS_QUERY);
+                    var primaryKeys = _dbConnection.Query<Column>(SqlServerConstants.PRIMARY_KEYS);
+                    var columnDefault = default(Column);
 
                     foreach (var column in dbColumns)
                     {
@@ -57,12 +55,22 @@ namespace FluentSql.DatabaseMappers.SqlServerMapper
 
                         tbl.ForeignKeys = dbForeignKeys.Where(fk => string.Equals(fk.BaseTableName, tbl.Name, StringComparison.CurrentCultureIgnoreCase))
                                                         .ToList();
+
+                        var tablePrimaryKeys = primaryKeys.Where(pk => string.Equals(pk.TableName, tbl.Name, StringComparison.CurrentCultureIgnoreCase))
+                                                            .ToList();
+
+                        foreach (var primaryKey in tablePrimaryKeys)
+                        {
+                            var pkColumn = tbl.Columns.FirstOrDefault(pk => string.Equals(pk.ColumnName, primaryKey.ColumnName, StringComparison.CurrentCultureIgnoreCase));
+
+                            if (pkColumn == columnDefault) continue;
+
+                            pkColumn.IsPrimaryKey = true;
+                        }
                     }
 
-                    dbTableList.AddRange(tableList);                    
+                    dbTableList.AddRange(tableList);
                 }
-
-                DatabaseTables = dbTableList;
 
                 return dbTableList;
             }

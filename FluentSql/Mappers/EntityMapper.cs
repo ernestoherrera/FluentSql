@@ -15,68 +15,69 @@ using FluentSql.Support.Extensions;
 using FluentSql.SqlGenerators.SqlServer;
 using System.Reflection;
 using FluentSql.EntityReaders;
+using System.Diagnostics;
 
 namespace FluentSql.Mappers
 {
     public class EntityMapper
     {
+        #region
+        private static IEnumerable<Table> Tables { get; set; }
+        #endregion
+
         #region Public Properties
         /// <summary>
         /// Default Database mapper
         /// </summary>
         public IDatabaseMapper DefaultDatabaseMapper { get; private set; }
 
-        public IEnumerable<string> DatabaseNames { get; private set; }
+        internal IEnumerable<Database> TargetDatabases { get; private set; }
 
         public static ConcurrentDictionary<Type, EntityMap> EntityMap = new ConcurrentDictionary<Type, EntityMap>();
-
-        public static IEnumerable<Table> DatabaseTables { get; set; }
-
+        
         public static ISqlGenerator SqlGenerator { get; private set; }
-
-        #endregion
-
-        #region Private Properties
-        private bool TableNamesInPlural { get; set; }
-        private static IEnumerable<Type> EntityTypes { get; set; }
         #endregion
 
         #region Constructors
-        public EntityMapper(IDbConnection dbConnection, IEnumerable<string> databaseNames, Assembly[] assembliesOfModelTypes = null, 
-                            bool tableNamesInPlural = true, IDatabaseMapper defaultDatabaseMapper = null, Action onPostEntityMapping = null)
+        public EntityMapper(IDbConnection dbConnection, IEnumerable<Database> targetDatabases, Assembly[] assembliesOfModelTypes = null, 
+                            IDatabaseMapper defaultDatabaseMapper = null, Action onPostEntityMapping = null)
         {
-            if (dbConnection == null || databaseNames == null)
+            if (dbConnection == null || targetDatabases == null)
                 throw new ArgumentNullException("Database connection, or Database names can not be null.");
 
             DefaultDatabaseMapper = defaultDatabaseMapper ?? new SqlServerDatabaseMapper();
-            DatabaseNames = databaseNames;
+            TargetDatabases = targetDatabases;
 
             if (dbConnection.State == ConnectionState.Closed)
                 dbConnection.Open();
 
-            TableNamesInPlural = tableNamesInPlural;
-
             SetDefaultSqlGenerator();
-            MapEntities(dbConnection, databaseNames, assembliesOfModelTypes);
+            MapTablesToEntities(dbConnection, assembliesOfModelTypes);
             
             onPostEntityMapping?.Invoke();
         }
 
-        public EntityMapper(IDbConnection dbConnection,IEnumerable<string> databaseNames) :
-            this(dbConnection, databaseNames, null)
+        public EntityMapper(IDbConnection dbConnection, IEnumerable<Database> allDatabases, Action onPostEntityMapping = null) :
+            this(dbConnection, allDatabases, null, null, onPostEntityMapping)
         { }
 
-        public EntityMapper(IDbConnection dbConnection, IEnumerable<string> databaseNames, Action onPostEntityMapping) :
-            this(dbConnection, databaseNames, null, true, null, onPostEntityMapping)
+        public EntityMapper(IDbConnection dbConnection, bool tableNamesInPlural = true) :
+           this(dbConnection, new List<Database> { new Database { Name = dbConnection.Database, TableNamesInPlural = tableNamesInPlural } }, null, null, null)
         { }
 
-        public EntityMapper(IDbConnection dbConnection, string databaseName) :
-           this(dbConnection, new List<string> { databaseName }, null)
+        public EntityMapper(IDbConnection dbConnection, bool tableNamesInPlural = true, Assembly[] assembliesOfModelTypes = null, IDatabaseMapper databaseMapper = null) :
+           this(dbConnection, new List<Database> { new Database { Name = dbConnection.Database, TableNamesInPlural = tableNamesInPlural } }, assembliesOfModelTypes, databaseMapper)
         { }
 
-        public EntityMapper(IDbConnection dbConnection, string databaseName, Assembly[] assembliesOfModelTypes) :
-           this(dbConnection, new List<string> { databaseName }, assembliesOfModelTypes, true, null, null)
+        public EntityMapper(IDbConnection dbConnection, bool tableNamesInPlural = true, Assembly[] assembliesOfModelTypes = null, IDatabaseMapper databaseMapper = null, Action onPostEntityMapping = null) :
+          this(dbConnection, new List<Database> { new Database { Name = dbConnection.Database, TableNamesInPlural = tableNamesInPlural } }, assembliesOfModelTypes, databaseMapper, onPostEntityMapping)
         { }
+
+        public EntityMapper(IDbConnection dbConnection, Assembly[] assembliesOfModelTypes = null, bool tableNamesInPlural = true) :
+           this(dbConnection, new List<Database> { new Database { Name = dbConnection.Database, TableNamesInPlural = tableNamesInPlural } },
+               assembliesOfModelTypes)
+        { }
+        
 
         #endregion
 
@@ -85,10 +86,11 @@ namespace FluentSql.Mappers
         {
             if (entityType == null || string.IsNullOrEmpty(tableName) || string.IsNullOrEmpty(tableAlias)) return;
 
-            var table = DatabaseTables.FirstOrDefault(
+            var table = Tables.FirstOrDefault(
                t => string.Compare(t.Name, tableName, StringComparison.CurrentCultureIgnoreCase) == 0);
 
-            if (table == null) return;
+            if (table == null)
+                throw new Exception(string.Format("Table {0} not found", tableName));
 
             var map = new EntityMap(entityType);
 
@@ -126,31 +128,65 @@ namespace FluentSql.Mappers
         #endregion
 
         #region Private Methods
-        private void MapEntities(IDbConnection dbconnection, IEnumerable<string> databaseNames, Assembly[] assembliesOfModelTypes = null)
+        private void MapTablesToEntities(IDbConnection dbconnection,  Assembly[] assembliesOfModelTypes = null)
         {
             Assembly[] assemblies;
             var sqlHelper = new SqlGeneratorHelper();
             var entityReader = new DefaultEntityReader();
             var service = PluralizationService.CreateService(CultureInfo.CurrentCulture);
 
-            DatabaseTables = DefaultDatabaseMapper.MapDatabase(dbconnection, databaseNames);
+           Tables = DefaultDatabaseMapper.MapDatabase(dbconnection, TargetDatabases);
 
             if (assembliesOfModelTypes != null)
                 assemblies = assembliesOfModelTypes;
             else
-                assemblies = AppDomain.CurrentDomain.GetAssemblies(); 
+                assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-            EntityTypes = entityReader.ReadEntities(assemblies);
+            var entityTypes = entityReader.ReadEntities(assemblies).ToList();
+            var typeDefault = default(Type);
 
-            foreach (var type in EntityTypes)
+            foreach (var dbObject in TargetDatabases)
             {
-                var tableName = type.Name;
-                var tableAlias = sqlHelper.GetTableAlias(type);
+                var dbTables = Tables.Where(t => string.Equals(t.Database == dbObject.Name,
+                                                StringComparer.InvariantCultureIgnoreCase))
+                                     .ToArray();
 
-                if (TableNamesInPlural)
-                    tableName = service.Pluralize(type.Name);
+                foreach (var tbl in dbTables)
+                {
+                    Type selectedType = null;
+                    var typeName = "";
 
-                MapEntity(type, tableName, tableAlias);
+                    if (dbObject.TableNamesInPlural)
+                        typeName = service.Singularize(tbl.Name);
+                    else
+                        typeName = tbl.Name;
+
+                    if (!string.IsNullOrEmpty(dbObject.NameSpace))
+                    {
+                        selectedType = entityTypes.FirstOrDefault(t => string.Equals(t.Name, typeName,
+                                                                   StringComparison.CurrentCultureIgnoreCase) &&
+                                                                   string.Equals(t.Namespace, dbObject.NameSpace,
+                                                                   StringComparison.CurrentCultureIgnoreCase));
+                    }
+                    else
+                    {
+                        selectedType = entityTypes.FirstOrDefault(t => string.Equals(t.Name, typeName,
+                                                                   StringComparison.CurrentCultureIgnoreCase));
+                    }
+
+                    if (selectedType == typeDefault)
+                    {
+#if DEBUG
+                        Debug.WriteLine(string.Format("Table {0}.{1}.{2} was not mapped", tbl.Database, tbl.Schema, tbl.Name));
+#endif
+                        continue;
+                    }
+
+                    var tableAlias = sqlHelper.GetTableAlias(selectedType);
+
+                    MapEntity(selectedType, tbl.Name, tableAlias);
+                    entityTypes.RemoveAt(entityTypes.IndexOf(selectedType));
+                }
             }
         }
 

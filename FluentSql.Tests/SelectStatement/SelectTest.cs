@@ -33,17 +33,12 @@ namespace FluentSql.Tests.SelectStatement
                     Assembly.Load("FluentSql.Tests")
                };
 
-                var testDatabase = new Database();
-
-                testDatabase.Name = TestConstants.TestDatabaseName;
-                testDatabase.TableNamesInPlural = false;
-
                 var store = new EntityStore(_dbConnection);
 
                 store.Execute(SqlScripts.CREATE_DATABASE, null, false, CommandType.Text);
                 store.Execute(SqlScripts.CREATE_TABLES, null, false, CommandType.Text);
 
-                new EntityMapper(_dbConnection, TestConstants.TestDatabaseName, assemblies);
+                new EntityMapper(_dbConnection, assemblies);
             }
         }
 
@@ -63,7 +58,6 @@ namespace FluentSql.Tests.SelectStatement
         [Fact]
         public async void SelectAsyncConstant2()
         {
-            var loginRequest = new LoginRequest { Username = "GDiaz" };
             var entityStore = new EntityStore(_dbConnection);
 
             var employees = await entityStore.GetAsync<Employee>(u => 1 == u.Id);

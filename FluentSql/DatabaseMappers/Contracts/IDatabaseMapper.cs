@@ -10,6 +10,6 @@ namespace FluentSql.DatabaseMappers.Contracts
 {
     public interface IDatabaseMapper
     {        
-        IEnumerable<Table> MapDatabase(IDbConnection connection, IEnumerable<string> databaseNames);
+        IEnumerable<Table> MapDatabase(IDbConnection connection, IEnumerable<Database> targetDatabases);
     }
 }

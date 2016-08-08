@@ -21,9 +21,9 @@ namespace FluentSql.DatabaseMappers
         /// <param name="connection"></param>
         /// <param name="databaseNames"></param>
         /// <returns></returns>
-        public IEnumerable<Table> MapDatabase(IDbConnection connection, IEnumerable<string> databaseNames)
+        public IEnumerable<Table> MapDatabase(IDbConnection connection, IEnumerable<Database> allDatabases)
         {
-            if (connection == null || databaseNames == null)
+            if (connection == null || allDatabases == null)
                 throw new ArgumentNullException("Connection or DatabaseNames objects can not be null.");
 
             SetDatabaseMapper(DatabaseMapper);
@@ -31,7 +31,7 @@ namespace FluentSql.DatabaseMappers
             if (DatabaseMapper == null)
                 throw new ArgumentNullException("Database mapper cannot be null.");
 
-            var dbTables = DatabaseMapper.MapDatabase(connection, databaseNames);
+            var dbTables = DatabaseMapper.MapDatabase(connection, allDatabases);
 
             AfterDatabaseMapping(dbTables);
 

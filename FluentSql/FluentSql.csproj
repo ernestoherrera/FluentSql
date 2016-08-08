@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Contracts\IEntityStore.cs" />
     <Compile Include="DapperHelpers.cs" />
+    <Compile Include="DatabaseMappers\Common\Database.cs" />
     <Compile Include="DatabaseMappers\Contracts\IDatabaseMapper.cs" />
     <Compile Include="DatabaseMappers\DefaultDatabaseMapper.cs" />
     <Compile Include="DatabaseMappers\SqlServerMapper\SqlServerConstants.cs" />
