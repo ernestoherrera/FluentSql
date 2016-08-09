@@ -150,12 +150,32 @@ namespace FluentSql.Contracts
         int UpdateWithFilter<T>(Expression<Func<T, bool>> filterExpression, params Expression<Func<T, bool>>[] setExpression);
         #endregion
 
+        #region Delete
+        int Delete<T>(T entity);
+        #endregion
+
+        #region Get query objects
+
+        SelectQuery<T> GetSelectQuery<T>();
+        SelectQuery<T> GetSelectQuery<T, R>(Expression<Func<T, R, bool>> joinExpression) where R : new();
+        #endregion
+
         #region Stored Procedure T-Sql script support
         int Execute(string sql, object parameters = null, bool executeInTransaction = false, CommandType? commandType = null, int? commandTimeout = 0);
 
         IEnumerable<SqlDbParameter> ExecuteProcedure(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null);
 
         object ExecuteScalar(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null, CommandType? commandType = null);
+        #endregion
+
+        #region Execute Query
+        Task<IEnumerable<T>> ExecuteQueryAsync<T>(IQuery<T> query);
+
+        IEnumerable<T> ExecuteQuery<T>(IQuery<T> query);
+
+        IEnumerable<TResult> ExecuteQuery<T, R, TResult>(IQuery<T> query);
+
+        IEnumerable<Tuple<T, R>> ExecuteQuery<T, R>(IQuery<T> query);
         #endregion
     }
 }

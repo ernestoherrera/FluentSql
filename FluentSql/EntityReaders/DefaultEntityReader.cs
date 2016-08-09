@@ -26,7 +26,10 @@ namespace FluentSql.EntityReaders
 
             foreach (var lib in assemblySearch)
             {
-                entityTypes.AddRange(lib.GetTypes());
+                var libTypes = lib.GetTypes();
+
+                if (libTypes != null)
+                    entityTypes.AddRange(lib.GetTypes());
             }
 
             AfterEntityRead(entityTypes);

@@ -57,7 +57,7 @@ namespace FluentSql.Mappers
             onPostEntityMapping?.Invoke();
         }
 
-        public EntityMapper(IDbConnection dbConnection, IEnumerable<Database> allDatabases, Action onPostEntityMapping = null) :
+        public EntityMapper(IDbConnection dbConnection, IEnumerable<Database> allDatabases, Action onPostEntityMapping) :
             this(dbConnection, allDatabases, null, null, onPostEntityMapping)
         { }
 
@@ -147,8 +147,8 @@ namespace FluentSql.Mappers
 
             foreach (var dbObject in TargetDatabases)
             {
-                var dbTables = Tables.Where(t => string.Equals(t.Database == dbObject.Name,
-                                                StringComparer.InvariantCultureIgnoreCase))
+                var dbTables = Tables.Where(t => string.Equals(t.Database , dbObject.Name,
+                                                StringComparison.InvariantCultureIgnoreCase))
                                      .ToArray();
 
                 foreach (var tbl in dbTables)

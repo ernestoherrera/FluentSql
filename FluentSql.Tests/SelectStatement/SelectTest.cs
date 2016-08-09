@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using FluentSql.DatabaseMappers.Common;
 using FluentSql.Mappers;
 using FluentSql.Tests.Models;
 using FluentSql.Tests.Support;
@@ -34,11 +35,18 @@ namespace FluentSql.Tests.SelectStatement
                };
 
                 var store = new EntityStore(_dbConnection);
+                var database = new Database
+                {
+                    Name = TestConstants.TestDatabaseName,
+                    TableNamesInPlural = true,
+                    NameSpace = "FluentSql.Tests.Models"
+                };
 
                 store.Execute(SqlScripts.CREATE_DATABASE, null, false, CommandType.Text);
                 store.Execute(SqlScripts.CREATE_TABLES, null, false, CommandType.Text);
 
-                new EntityMapper(_dbConnection, assemblies);
+                //new EntityMapper(_dbConnection, assemblies);
+                new EntityMapper(_dbConnection, new List<Database> { database }, null);
             }
         }
 

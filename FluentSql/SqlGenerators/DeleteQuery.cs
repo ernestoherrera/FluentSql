@@ -20,7 +20,7 @@ namespace FluentSql.SqlGenerators
 
         public override string ToSql()
         {
-            var sqlBuilder = new StringBuilder(Verb);            
+            var sqlBuilder = new StringBuilder(Verb);
 
             if (EntityMapper.SqlGenerator.IncludeDbNameInQuery)
                 sqlBuilder.Append(string.Format("FROM {0}.{1}.{2} {3} ", DatabaseName, SchemaName, TableName, TableAlias));

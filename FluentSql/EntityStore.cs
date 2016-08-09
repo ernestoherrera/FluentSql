@@ -207,7 +207,6 @@ namespace FluentSql
         public int UpdateByKey<T>(T entity)
         {
             var updateQuery = SqlGenerator.Update<T>(entity);
-
             var query = GetQueryByKey<T>(entity, updateQuery);
 
             var recordsAffected = DapperHelper.Execute(DbConnection, updateQuery.ToSql(), updateQuery.Parameters);
@@ -227,6 +226,65 @@ namespace FluentSql
 
             return recordsAffected;
         }
+        #endregion
+
+        #region Delete
+        int Delete<T>(T entity)
+        {
+            var deleteQuery = SqlGenerator.Delete<T>(entity);
+            var query = GetQueryByKey<T>(entity, deleteQuery);
+
+            var recordsAffected = DapperHelper.Execute(DbConnection, deleteQuery.ToSql(), deleteQuery.Parameters);
+
+            return recordsAffected;
+        }
+        #endregion
+
+        #region Get query objects
+
+        public SelectQuery<T> GetSelectQuery<T>()
+        {
+            return SqlGenerator.Select<T>();
+        }
+
+        public SelectQuery<T> GetSelectQuery<T, R>(Expression<Func<T, R, bool>> joinExpression) where R : new()
+        {
+            var leftQuery = SqlGenerator.Select<T>().JoinOn<R>(joinExpression);
+
+            return leftQuery as SelectQuery<T>;
+        }
+
+        #endregion
+
+        #region Execute Query Methods
+
+        public async Task<IEnumerable<T>> ExecuteQueryAsync<T>(IQuery<T> query)
+        {
+            var entities = await DapperHelper.QueryAsync<T>(DbConnection, query.ToSql(), query.Parameters);
+            return entities;
+        }
+
+        public IEnumerable<T> ExecuteQuery<T>(IQuery<T> query)
+        {
+            var entities = DapperHelper.Query<T>(DbConnection, query.ToSql(), query.Parameters);
+
+            return entities;
+        }
+
+        public IEnumerable<TResult> ExecuteQuery<T, R, TResult>(IQuery<T> query)
+        {
+            var entities = DapperHelper.Query<TResult>(DbConnection, query.ToSql(), query.Parameters);
+
+            return entities;
+        }
+
+        public IEnumerable<Tuple<T, R>> ExecuteQuery<T, R>(IQuery<T> query)
+        {
+            var entities = DapperHelper.QueryMultiSet<T, R>(DbConnection, query.ToSql(), query.Parameters);
+
+            return entities;
+        }
+
         #endregion
 
         #region Stored Procedures - SQL script Execution

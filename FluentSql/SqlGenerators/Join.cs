@@ -36,7 +36,7 @@ namespace FluentSql.SqlGenerators
 
             LeftQuery = leftQuery;
             RightQuery = rightQuery;
-            JoinType = joinType;            
+            JoinType = joinType;
         }
         #endregion
 
