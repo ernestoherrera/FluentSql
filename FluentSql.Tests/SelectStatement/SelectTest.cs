@@ -135,6 +135,35 @@ namespace FluentSql.Tests.SelectStatement
         }
 
         [Fact]
+        public void SelectByKey()
+        {
+            var store = new EntityStore(_dbConnection);
+            var garyEmployeeId = 1;
+
+            var employee = store.GetByKey<Employee>(1);
+            var employee1 = store.GetByKey<Employee>(new { Id = 1 });
+            var employee2 = store.GetByKey<Employee>(new Employee { Id = 1, FirstName = "Gary", LastName = "Diaz" });
+            var employee3 = store.GetByKey<Employee>(garyEmployeeId);
+
+            var order = store.GetByKey<Order>(1);
+            var order1 = store.GetByKey<Order>(new { Id = 1 });
+
+            Xunit.Assert.NotNull(employee);
+            Xunit.Assert.NotNull(employee1);
+            Xunit.Assert.NotNull(employee2);
+            Xunit.Assert.NotNull(employee3);
+            Xunit.Assert.True(employee.Id == 1);
+            Xunit.Assert.True(employee1.Id == 1);
+            Xunit.Assert.True(employee2.Id == 1);
+            Xunit.Assert.True(employee3.Id == 1);
+
+            Xunit.Assert.NotNull(order);
+            Xunit.Assert.NotNull(order1);
+            Xunit.Assert.True(order.Id == 1);
+            Xunit.Assert.True(order1.Id == 1);
+        }
+
+        [Fact]
         public void SelectStatementWherePredicateIsFieldAccess()
         {
             var entityStore = new EntityStore(_dbConnection);
@@ -148,34 +177,36 @@ namespace FluentSql.Tests.SelectStatement
         }
 
         [Fact]
+        public void SelectWithJoinOnAndTResult()
+        {
+            var entityStore = new EntityStore(_dbConnection);
+            var gary = new Employee { Id = 1, FirstName = "Gary" };
+            var tResult = entityStore.GetWithJoin<Employee, Order, Order>((e, o) => e.Id == o.EmployeeId,
+                                                            (e, o) => e.FirstName == gary.FirstName);
+
+            Xunit.Assert.NotNull(tResult);
+
+            var firstOrder = tResult.FirstOrDefault();
+
+            Xunit.Assert.IsType<Order>(firstOrder);
+        }
+
+        [Fact]
         public void SelectJoin()
         {
             var entityStore = new EntityStore(_dbConnection);
 
-            var orders = entityStore.GetAllWithJoin<Employee, Order>((e, o) => e.Id == o.EmployeeId && e.Id == 1);
+            var orderTuples = entityStore.GetAllWithJoin<Employee, Order>((e, o) => e.Id == o.EmployeeId && e.Id == 1);
 
-            Xunit.Assert.NotNull(orders);
+            Xunit.Assert.NotNull(orderTuples);
 
-            var tupleEmployee = orders.FirstOrDefault().Item1;
-            var tupleOrder = orders.FirstOrDefault().Item2;
+            var tupleEmployee = orderTuples.FirstOrDefault().Item1;
+            var tupleOrder = orderTuples.FirstOrDefault().Item2;
 
             Xunit.Assert.IsType<Employee>(tupleEmployee);
 
             Xunit.Assert.IsType<Order>(tupleOrder);
-        }        
-
-        //[Fact]
-        //public async void SelectStatementWithJoinOnKeyAndTResult()
-        //{
-        //    var entityStore = new EntityStore(_dbConnection);
-        //    var tResult = await entityStore.GetAsync<Person, User, User>((p, u) => p.Id == u.PersonId);
-
-        //    Xunit.Assert.NotNull(tResult);
-
-        //    var firstUser = tResult.FirstOrDefault();
-
-        //    Xunit.Assert.IsType<User>(firstUser);
-        //}
+        }
 
         [Fact]
         public void SelectGetAll()
@@ -187,39 +218,27 @@ namespace FluentSql.Tests.SelectStatement
             Xunit.Assert.IsType<Employee>(employees.FirstOrDefault());
         }
 
-        //[Fact]
-        //public void SelectStatementWithJoinOnKeyAndTupleReturnSet()
-        //{
-        //    var entityStore = new EntityStore(_dbConnection);
-        //    var tuples = entityStore.GetAll<Person, User>();
+        [Fact]
+        public void SelectWithJoinAndWhereClause()
+        {
+            var entityStore = new EntityStore(_dbConnection);
+            var tuples = entityStore.GetWithJoin<Employee, Order>((e, o) => e.Id == o.EmployeeId,
+                                                                    (e, o) => e.Id == 1);
 
-        //    Xunit.Assert.NotNull(tuples);
+            Xunit.Assert.NotNull(tuples);
 
-        //    var firstTuple = tuples.FirstOrDefault();
-        //    var person = firstTuple.Item1;
-        //    var user = firstTuple.Item2;
+            var firstTuple = tuples.FirstOrDefault();
+            var employee = firstTuple.Item1;
+            var order = firstTuple.Item2;
 
-        //    Xunit.Assert.IsType<Person>(person);
+            Xunit.Assert.IsType<Employee>(employee);
 
-        //    Xunit.Assert.IsType<User>(user);
-        //}
+            Xunit.Assert.True(employee.Id == 1);
 
-        //[Fact]
-        //public void SelectStatementWithJoinOnKeyAndWhereClause()
-        //{
-        //    var entityStore = new EntityStore(_dbConnection);
-        //    var tuples = entityStore.Get<Person, User>((p, u) => p.Id == u.PersonId);
+            Xunit.Assert.IsType<Order>(order);
 
-        //    Xunit.Assert.NotNull(tuples);
-
-        //    var firstTuple = tuples.FirstOrDefault();
-        //    var person = firstTuple.Item1;
-        //    var user = firstTuple.Item2;
-
-        //    Xunit.Assert.IsType<Person>(person);
-
-        //    Xunit.Assert.IsType<User>(user);
-        //}
+            Xunit.Assert.True(order.EmployeeId == 1);
+        }
 
         public void Dispose()
         {

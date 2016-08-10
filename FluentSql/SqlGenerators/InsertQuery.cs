@@ -12,7 +12,7 @@ namespace FluentSql.SqlGenerators
         protected readonly string INSERT = "INSERT";
         protected T Entity { get; set; }
 
-        public InsertQuery() : base()
+        protected InsertQuery() : base()
         {
             Verb = INSERT;
 
@@ -39,7 +39,7 @@ namespace FluentSql.SqlGenerators
         {
             if (Fields == null || !Fields.Any()) return string.Empty;
 
-            var sqlBuilder = new StringBuilder();            
+            var sqlBuilder = new StringBuilder();
 
             sqlBuilder.AppendFormat("{0} INTO {1}.{2} ({3}) VALUES ({4}) ",
                                     Verb,

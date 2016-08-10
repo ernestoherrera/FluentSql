@@ -63,9 +63,20 @@ namespace FluentSql.Contracts
         /// <returns></returns>
         IEnumerable<Tuple<T, R>> GetWithJoin<T, R>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new();
 
+        /// <summary>
+        /// Get TResult entity set that match the join and filter expression criteria
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="joinExpression"></param>
+        /// <param name="filterExpression"></param>
+        /// <returns></returns>
+        IEnumerable<TResult> GetWithJoin<T, R, TResult>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new();
+
         #endregion
 
-        #region GetAsynch
+            #region GetAsynch
         /// <summary>
         /// Gets an entity by key 
         /// </summary>
@@ -130,14 +141,7 @@ namespace FluentSql.Contracts
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
         /// <returns></returns>
-        int UpdateByKey<T>(T entity);
-
-        /// <summary>
-        /// Returns a Update query object
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        UpdateQuery<T> Update<T>();
+        int UpdateByKey<T>(T entity);       
 
         /// <summary>
         /// Updates the resulting Entity set produced by applying the filter

@@ -101,6 +101,14 @@ namespace FluentSql
 
             return resultSet;
         }
+
+        public IEnumerable<TResult> GetWithJoin<T, R, TResult>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new()
+        {
+            var selectQuery = SqlGenerator.Select<T>().JoinOn<R>(joinExpression).Where(filterExpression);
+            var resultSet = DapperHelper.Query<TResult>(DbConnection, selectQuery.ToSql(), selectQuery.Parameters);
+
+            return resultSet;
+        }
         #endregion
 
         #region Asynchronous Get Calls
@@ -214,11 +222,6 @@ namespace FluentSql
             return recordsAffected;
         }
 
-        public UpdateQuery<T> Update<T>()
-        {
-            return SqlGenerator.Update<T>();
-        }
-
         public int UpdateWithFilter<T>(Expression<Func<T, bool>> filterExpression, params Expression<Func<T, bool>>[] setExpression)
         {
             var updateQuery = SqlGenerator.Update<T>().Set(setExpression).Where(filterExpression);
@@ -229,7 +232,7 @@ namespace FluentSql
         #endregion
 
         #region Delete
-        int Delete<T>(T entity)
+        public int Delete<T>(T entity)
         {
             var deleteQuery = SqlGenerator.Delete<T>(entity);
             var query = GetQueryByKey<T>(entity, deleteQuery);
@@ -252,6 +255,35 @@ namespace FluentSql
             var leftQuery = SqlGenerator.Select<T>().JoinOn<R>(joinExpression);
 
             return leftQuery as SelectQuery<T>;
+        }
+
+        public UpdateQuery<T> GetUpdateQuery<T>(T entity)
+        {
+            var updateQuery = SqlGenerator.Update<T>(entity);
+            var query = GetQueryByKey<T>(entity, updateQuery);
+
+            return query as UpdateQuery<T>;
+        }
+
+        public UpdateQuery<T> GetUpdateQuery<T>()
+        {
+            var updateQuery = SqlGenerator.Update<T>();
+
+            return updateQuery;
+        }
+
+        public InsertQuery<T> GetInsertQuery<T>(T entity)
+        {
+            var insertQuery = SqlGenerator.Insert<T>(entity);
+
+            return insertQuery;
+        }
+
+        public DeleteQuery<T> GetDeleteQuery<T>(T entity)
+        {
+            var deleteQuery = SqlGenerator.Delete<T>(entity);
+
+            return deleteQuery;
         }
 
         #endregion
