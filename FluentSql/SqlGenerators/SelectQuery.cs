@@ -11,12 +11,10 @@ using System.Threading.Tasks;
 
 namespace FluentSql.SqlGenerators
 {
-    public class SelectQuery<T> : Query<T> , ISelectQuery<T>, IDisposable
+    public class SelectQuery<T> : Query<T> , IDisposable
     {
         #region Properties
         protected readonly string SELECT = "SELECT";
-        protected int topRows = 0;
-        protected List<SortOrderField<T>> OrderByFields;
         #endregion
 
         #region Constructors
@@ -24,67 +22,7 @@ namespace FluentSql.SqlGenerators
         {
             Verb = SELECT;
         }
-        #endregion
-
-        #region Top Number of Rows
-        public virtual IQuery<T> GetTopRows(int topNumberOfRows)
-        {
-            topRows = topNumberOfRows;
-            return this;
-        }
-        #endregion
-
-        #region Sort Order
-        public virtual ISelectQuery<T> OrderBy(Expression<Func<T, object>> expression)
-        {
-            return SetOrderByClause(expression, SortOrder.Ascending);
-        }
-
-        public virtual ISelectQuery<T> OrderByDescending(Expression<Func<T, object>> expression)
-        {
-            return SetOrderByClause(expression, SortOrder.Descending);
-        }
-
-        protected ISelectQuery<T> SetOrderByClause(Expression<Func<T, object>> expression, SortOrder sortOrderDirection)
-        {
-            if (OrderByFields == null) OrderByFields = new List<SortOrderField<T>>();
-
-            if (expression == null) return this;
-
-            var orderByFieldName = ExpressionHelper.GetPropertyName((UnaryExpression)expression.Body);
-
-            OrderByFields.Add(new SortOrderField<T>
-            {
-                FieldName = orderByFieldName,
-                SortOrderDirection = sortOrderDirection,
-                TableAlias = ResolveTableAlias(typeof(T))
-            });
-
-            return this;
-        }
-
-        public virtual ISelectQuery<T> OrderBy(params SortOrderField<T>[] sortOrderArray)
-        {
-            if (sortOrderArray == null) return this;
-
-            if (OrderByFields == null) OrderByFields = new List<SortOrderField<T>>();
-
-            OrderByFields.AddRange(sortOrderArray);
-
-            return this;
-        }
-
-        public virtual ISelectQuery<T> OrderBy(List<SortOrderField<T>> sortOrderFields)
-        {
-            if (sortOrderFields == null) return this;
-
-            if (OrderByFields == null) OrderByFields = new List<SortOrderField<T>>();
-
-            OrderByFields.AddRange(sortOrderFields);
-
-            return this;
-        }
-        #endregion
+        #endregion       
 
         #region ToString methods
         public override string ToSql()
@@ -107,8 +45,8 @@ namespace FluentSql.SqlGenerators
                 sqlJoinBuilder.Append(join.ToSql());
             }
 
-            if (topRows > 0)
-                sqlBuilder.Append(string.Format("{0} {1} {2} {3} ", Verb, EntityMapper.SqlGenerator.Top, topRows, string.Join(",", selectFields)));
+            if (TopRows > 0)
+                sqlBuilder.Append(string.Format("{0} {1} {2} {3} ", Verb, EntityMapper.SqlGenerator.Top, TopRows, string.Join(",", selectFields)));
             else
                 sqlBuilder.Append(string.Format("{0} {1} ", Verb, string.Join(",", selectFields)));
 

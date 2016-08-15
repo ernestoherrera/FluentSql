@@ -67,7 +67,6 @@
     <Compile Include="SqlGenerators\Contracts\IDeleteQuery.cs" />
     <Compile Include="SqlGenerators\Contracts\IInsertQuery.cs" />
     <Compile Include="SqlGenerators\Contracts\IQuery.cs" />
-    <Compile Include="SqlGenerators\Contracts\ISelectQuery.cs" />
     <Compile Include="SqlGenerators\Contracts\ISqlGenerator.cs" />
     <Compile Include="SqlGenerators\Contracts\IToSql.cs" />
     <Compile Include="SqlGenerators\Contracts\IUpdateQuery.cs" />

@@ -53,6 +53,17 @@ namespace FluentSql.SqlGenerators
             return LeftQuery;
         }
 
+        public IQuery<L> On<T1, T2>(Expression<Func<T1, T2, bool>> joinExpression)
+        {
+            if (joinExpression == null) return LeftQuery;
+
+            Predicate = new ExpressionHelper(joinExpression, LeftQuery.ParameterNameGenerator);
+            Parameters = Predicate.QueryParameters;
+            AddParametersToQuery(Parameters);
+
+            return LeftQuery;
+        }
+
         public virtual string ToSql()
         {
             var sqlBuilder = new StringBuilder();

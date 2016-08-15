@@ -6,7 +6,7 @@ namespace FluentSql.Tests.Models
     /// Customer entity
     public class Customer
     {
-        public string Id { get; set; } 
+        public int Id { get; set; } 
 
         public string CompanyName { get; set; } 
 

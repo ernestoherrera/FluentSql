@@ -61,7 +61,7 @@ END
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Customers]') AND type in (N'U'))
 BEGIN
 CREATE TABLE [dbo].[Customers](
-	[Id] [nchar](5) NOT NULL,
+	[Id] [int] IDENTITY(1,1) NOT NULL,
 	[CompanyName] [nvarchar](40) NOT NULL,
 	[ContactName] [nvarchar](30) NULL,
 	[ContactTitle] [nvarchar](30) NULL,
@@ -106,32 +106,35 @@ END
 INSERT INTO Employees (FirstName,LastName,Email,[Address],City,[State],[SSN])
 VALUES
 
-('Gary','Diaz','gdiaz0@bloglines.com','5 Schlimgen Lane','Mobile','AL','443-89-5912'),
-('Joe','Spencer','jspencer1@msn.com','4 Waubesa Pass','Sarasota','FL','100-96-5760'),
-('Andrew','Shaw','ashaw2@vinaora.com','93290 Blue Bill Park Park','Jacksonville','FL','511-45-0763'),
+('Steve','Rogers','srogers@bloglines.com','5 Schlimgen Lane','Mobile','AL','443-89-5912'),
+('Nathan','Spencer','nspencer1@msn.com','4 Waubesa Pass','Sarasota','FL','100-96-5760'),
+('Margaret','Carter','mcarter2@marvel.com','93290 Blue Bill Park Park','Jacksonville','FL','511-45-0763'),
 ('Joan','Daniels','jdaniels3@moonfruit.com','92 Paget Trail','Kansas City','MN','657-24-5146'),
 ('Brenda','Stone','bstone4@oakley.com','05 Pennsylvania Pass','Humble','TX','945-17-1532');
 
-INSERT [Customers] VALUES('MCGRL','Romano''s Macaroni Grill','Joseph Smith','Sales Representative','6419 W Newberry Rd','Gainesville',NULL,'32606','USA','(352) 331-0637','');
-INSERT [Customers] VALUES('LEOPZ','Leonardo''s Pizza','Leonardo Daglio','Owner','1245 W University Ave','Gainesville',NULL,'32601','USA','(352) 375-2008','');
+
+
+INSERT [Customers] VALUES('Romano''s Macaroni Grill','Joseph Smith','Sales Representative','6419 W Newberry Rd','Gainesville',NULL,'32606','USA','(352) 331-0637','');
+INSERT [Customers] VALUES('Leonardo''s Pizza','Leonardo Daglio','Owner','1245 W University Ave','Gainesville',NULL,'32601','USA','(352) 375-2008','');
+
 
 INSERT INTO [Orders] (CustomerId,EmployeeId,OrderDate,RequiredDate,
 	ShippedDate,ShipVia,Freight,ShipName,ShipAddress,
 	ShipCity,ShipRegion,ShipPostalCode,ShipCountry)
-VALUES (N'MCGRL',1,'1/17/2016','2/14/2016','2/23/2016',1,140.51,
+VALUES (1,1,'1/17/2016','2/14/2016','2/23/2016',1,140.51,
 	N'Macarroni Grill',N'Queen Elizabeth 34th street',N'Gainesville',
 	NULL,N'32601',N'USA');
 
 INSERT INTO [Orders] (CustomerId,EmployeeID,OrderDate,RequiredDate,
 	ShippedDate,ShipVia,Freight,ShipName,ShipAddress,
 	ShipCity,ShipRegion,ShipPostalCode,ShipCountry)
-VALUES (N'MCGRL',4,'1/18/2016','2/15/2016','2/25/2016',3,3.25,
+VALUES (1,4,'1/18/2016','2/15/2016','2/25/2016',3,3.25,
 	N'Mexico Centre',N'345 Toledo Drive',N'New México',
 	NULL,N'456878',N'USA');
 INSERT INTO [Orders] (CustomerId,EmployeeID,OrderDate,RequiredDate,
 	ShippedDate,ShipVia,Freight,ShipName,ShipAddress,
 	ShipCity,ShipRegion,ShipPostalCode,ShipCountry)
-VALUES (N'LEOPZ',1,'1/19/2016','2/16/2016','2/29/2016',1,55.09,
+VALUES (2,1,'1/19/2016','2/16/2016','2/29/2016',1,55.09,
 	N'Prince of York',N'Henry VIII drive',N'London',
 	NULL,N'50739',N'England');
 ", TestConstants.TestDatabaseName);

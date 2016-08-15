@@ -94,7 +94,7 @@ namespace FluentSql
             return resultSet;
         }
 
-        public IEnumerable<Tuple<T, R>> GetWithJoin<T, R>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new()
+        public IEnumerable<Tuple<T, R>> GetWithJoin<T, R>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new() where T : new()
         {
             var selectQuery = SqlGenerator.Select<T>().JoinOn<R>(joinExpression).Where(filterExpression);
             var resultSet = DapperHelper.QueryMultiSet<T, R>(DbConnection, selectQuery.ToSql(), selectQuery.Parameters);
@@ -102,7 +102,7 @@ namespace FluentSql
             return resultSet;
         }
 
-        public IEnumerable<TResult> GetWithJoin<T, R, TResult>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new()
+        public IEnumerable<TResult> GetWithJoin<T, R, TResult>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new() where T : new()
         {
             var selectQuery = SqlGenerator.Select<T>().JoinOn<R>(joinExpression).Where(filterExpression);
             var resultSet = DapperHelper.Query<TResult>(DbConnection, selectQuery.ToSql(), selectQuery.Parameters);
@@ -159,9 +159,16 @@ namespace FluentSql
             return resultSet;
         }
 
+        public async Task<IEnumerable<TResult>> GetWithJoinAsync<T, R, TResult>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new() where T : new()
+        {
+            var selectQuery = SqlGenerator.Select<T>().JoinOn<R>(joinExpression).Where(filterExpression);
+            var resultSet = await DapperHelper.QueryAsync<TResult>(DbConnection, selectQuery.ToSql(), selectQuery.Parameters);
+
+            return resultSet;
+        }
         #endregion
 
-        #region Entity inserts
+            #region Entity inserts
         public T Insert<T>(T entity) where T : new()
         {
             var insertQuery = SqlGenerator.Insert<T>(entity);

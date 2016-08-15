@@ -8,7 +8,7 @@ namespace FluentSql.Tests.Models
     {
         public int Id { get; set; } 
 
-        public string CustomerId { get; set; } 
+        public int CustomerId { get; set; } 
 
         public int? EmployeeId { get; set; } 
 

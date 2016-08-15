@@ -28,18 +28,19 @@ namespace FluentSql.SqlGenerators.SqlServer
 
         public override IQuery<T> GetTopRows(int topNumberRows)
         {
-            this.topRows = topNumberRows;
+            TopRows = topNumberRows;
 
             return this;
         }
 
-        public override ISelectQuery<T> OrderBy(Expression<Func<T, object>> expression)
+        public override IQuery<T> OrderBy(Expression<Func<T, object>> expression)
         {
             if (OrderByFields == null) OrderByFields = new List<SortOrderField<T>>();
 
-            if (expression == null) return this;
+            if (expression == null || expression.Body.NodeType != ExpressionType.MemberAccess)
+                throw new Exception("Incorrect sort order expression");
 
-            var orderByFieldName = ExpressionHelper.GetPropertyName((UnaryExpression)expression.Body);
+            var orderByFieldName = ExpressionHelper.GetPropertyName(expression.Body.ToString());
 
             OrderByFields.Add(new SqlServerSortOrderField<T>
             {
@@ -71,8 +72,8 @@ namespace FluentSql.SqlGenerators.SqlServer
                 sqlJoinBuilder.Append(join.ToSql());
             }
 
-            if (topRows > 0)
-                sqlBuilder.Append(string.Format("{0} {1} {2} {3} ", Verb, EntityMapper.SqlGenerator.Top, topRows, string.Join(",", selectFields)));
+            if (TopRows > 0)
+                sqlBuilder.Append(string.Format("{0} {1} {2} {3} ", Verb, EntityMapper.SqlGenerator.Top, TopRows, string.Join(",", selectFields)));
             else
                 sqlBuilder.Append(string.Format("{0} {1} ", Verb, string.Join(",", selectFields)));
 

@@ -20,8 +20,7 @@ namespace FluentSql
                 return results;
             }
             finally
-            {
-            }
+            { }
 
         }
 

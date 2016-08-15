@@ -14,7 +14,7 @@ namespace FluentSql.Contracts
     {
         ISqlGenerator SqlGenerator { get; }
 
-        #region Get
+        #region Synchronous Get
         /// <summary>
         /// Gets all the enities that match the criteria
         /// </summary>
@@ -47,7 +47,8 @@ namespace FluentSql.Contracts
         IEnumerable<T> GetAll<T>();
 
         /// <summary>
-        /// Gets a set of Entities T, R that match the join expression criteria       
+        /// Gets a set of Entities T, R that match the join expression criteria.
+        /// It splits the entities base 
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="R"></typeparam>
@@ -55,13 +56,16 @@ namespace FluentSql.Contracts
         IEnumerable<Tuple<T, R>> GetAllWithJoin<T, R>(Expression<Func<T, R, bool>> joinExpression) where R : new();
 
         /// <summary>
-        /// Gets a set of Entities T, R that match the join and filter expression criteria
+        /// Gets a set of Entities T, R that match the join and filter expression criteria.
+        /// The Field we should split and start reading the second object (default is Id)
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="R"></typeparam>
         /// <param name="filterExpression">Expression that determines how to filter the Entity set</param>
         /// <returns></returns>
-        IEnumerable<Tuple<T, R>> GetWithJoin<T, R>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new();
+        IEnumerable<Tuple<T, R>> GetWithJoin<T, R>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) 
+            where R : new() 
+            where T : new();
 
         /// <summary>
         /// Get TResult entity set that match the join and filter expression criteria
@@ -72,11 +76,13 @@ namespace FluentSql.Contracts
         /// <param name="joinExpression"></param>
         /// <param name="filterExpression"></param>
         /// <returns></returns>
-        IEnumerable<TResult> GetWithJoin<T, R, TResult>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new();
+        IEnumerable<TResult> GetWithJoin<T, R, TResult>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) 
+            where R : new() 
+            where T : new();
 
         #endregion
 
-            #region GetAsynch
+        #region Asynchronous Gets
         /// <summary>
         /// Gets an entity by key 
         /// </summary>
@@ -112,9 +118,21 @@ namespace FluentSql.Contracts
         /// <returns></returns>
         Task<IEnumerable<T>> GetAllAsync<T>();
 
+        /// <summary>
+        /// Get TResult entity set that match the join and filter expression criteria
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="joinExpression"></param>
+        /// <param name="filterExpression"></param>
+        /// <returns></returns>
+        Task<IEnumerable<TResult>> GetWithJoinAsync<T, R, TResult>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new() where T : new();
+
+
         #endregion
 
-        #region Insert
+            #region Insert
 
         /// <summary>
         /// Inserts an entity into the database

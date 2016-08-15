@@ -5,6 +5,7 @@ using FluentSql.Support;
 using FluentSql.Support.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -14,8 +15,10 @@ namespace FluentSql.SqlGenerators
     public class Query<TEntity> : IQuery<TEntity>
     {
         #region Protected Properties
-        protected ExpressionHelper Predicate;        
+        protected ExpressionHelper Predicate;
         protected Queue<dynamic> Joins = new Queue<dynamic>();
+        protected List<SortOrderField<TEntity>> OrderByFields;
+        protected int TopRows = 0;
         #endregion
 
         #region Public Properties
@@ -53,17 +56,26 @@ namespace FluentSql.SqlGenerators
         #endregion
 
         #region Virtual Methods
+
+        #region Top Number of Rows
+        public virtual IQuery<TEntity> GetTopRows(int topNumberOfRows)
+        {
+            TopRows = topNumberOfRows;
+            return this;
+        }
+        #endregion
+
+        #region Where clause
         public virtual IQuery<TEntity> Where(Expression<Func<TEntity, bool>> expression)
         {
             if (expression == null) return this;
 
             Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
 
-            if (Parameters == null)
-                Parameters = Predicate.QueryParameters;
-            else
+            if (Parameters.ParameterNames.Any())
                 Parameters.AddDynamicParams(Predicate.QueryParameters);
-
+            else
+                Parameters = Predicate.QueryParameters;
 
             return this;
         }
@@ -73,7 +85,25 @@ namespace FluentSql.SqlGenerators
             if (expression == null) return this;
 
             Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
-            Parameters = Predicate.QueryParameters;
+
+            if (Parameters.ParameterNames.Any())
+                Parameters.AddDynamicParams(Predicate.QueryParameters);
+            else
+                Parameters = Predicate.QueryParameters;
+
+            return this;
+        }
+
+        public IQuery<TEntity> Where<T1, T2>(Expression<Func<T1, T2, bool>> expression) where T1 : new() where T2 : new()
+        {
+            if (expression == null) return this;
+
+            Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
+
+            if (Parameters.ParameterNames.Any())
+                Parameters.AddDynamicParams(Predicate.QueryParameters);
+            else
+                Parameters = Predicate.QueryParameters;
 
             return this;
         }
@@ -100,15 +130,94 @@ namespace FluentSql.SqlGenerators
             return this;
         }
 
+        #endregion
+
+        #region Join
         public virtual IQuery<TEntity> JoinOn<TRightEntity>(Expression<Func<TEntity, TRightEntity, bool>> expression, JoinType joinType = JoinType.Inner)
         {
+            if (expression == null)
+                throw new Exception("Join expression cannot be null.");
+
             var rightQuery = new Query<TRightEntity>();
-            var join = new Join<TEntity, TRightEntity>(this, rightQuery, joinType);
+            var queryJoin = new Join<TEntity, TRightEntity>(this, rightQuery, joinType);
 
-            Joins.Enqueue(join);
+            queryJoin.On(expression);
+            Joins.Enqueue(queryJoin);
 
-            return join.On(expression);
+            return Joins.Peek().LeftQuery;
         }
+
+        public virtual IQuery<TEntity> JoinOn<T1, T2>(Expression<Func<T1, T2, bool>> expression, JoinType joinType = JoinType.Inner)
+        {
+            if (expression == null && joinType != JoinType.Cross)
+                throw new Exception("Join expression cannot be null. Join expression can only be null if the JoinType is a Cross join.");
+
+            var leftQuery = new Query<T1>();
+
+            var rightQuery = new Query<T2>();
+
+            var queryJoin = new Join<T1, T2>(leftQuery, rightQuery, joinType);
+
+            queryJoin.On(expression);
+            Joins.Enqueue(queryJoin);
+            
+            return Joins.Peek().LeftQuery;
+        }
+
+        #endregion
+
+        #region Order by
+        public virtual IQuery<TEntity> OrderBy(Expression<Func<TEntity, object>> expression)
+        {
+            return SetOrderByClause(expression, SortOrder.Ascending);
+        }
+
+        public virtual IQuery<TEntity> OrderByDescending(Expression<Func<TEntity, object>> expression)
+        {
+            return SetOrderByClause(expression, SortOrder.Descending);
+        }
+
+        protected IQuery<TEntity> SetOrderByClause(Expression<Func<TEntity, object>> expression, SortOrder sortOrderDirection)
+        {
+            if (OrderByFields == null) OrderByFields = new List<SortOrderField<TEntity>>();
+
+            if (expression == null || expression.Body.NodeType != ExpressionType.MemberAccess)
+                throw new Exception("Incorrect sort order expression");
+
+            var orderByFieldName = ExpressionHelper.GetPropertyName(expression.Body.ToString());
+
+            OrderByFields.Add(new SortOrderField<TEntity>
+            {
+                FieldName = orderByFieldName,
+                SortOrderDirection = sortOrderDirection,
+                TableAlias = ResolveTableAlias(typeof(TEntity))
+            });
+
+            return this;
+        }
+
+        public virtual IQuery<TEntity> OrderBy(params SortOrderField<TEntity>[] sortOrderArray)
+        {
+            if (sortOrderArray == null) return this;
+
+            if (OrderByFields == null) OrderByFields = new List<SortOrderField<TEntity>>();
+
+            OrderByFields.AddRange(sortOrderArray);
+
+            return this;
+        }
+
+        public virtual IQuery<TEntity> OrderBy(List<SortOrderField<TEntity>> sortOrderFields)
+        {
+            if (sortOrderFields == null) return this;
+
+            if (OrderByFields == null) OrderByFields = new List<SortOrderField<TEntity>>();
+
+            OrderByFields.AddRange(sortOrderFields);
+
+            return this;
+        }
+        #endregion
 
         public string ResolveTableAlias(Type type)
         {

@@ -50,6 +50,7 @@ namespace FluentSql.Tests.SelectStatement
             }
         }
 
+        #region Asynchronous Gets
         [Fact]
         public async void SelectAsyncWherePredicateIsConstant()
         {
@@ -60,7 +61,6 @@ namespace FluentSql.Tests.SelectStatement
             Xunit.Assert.NotNull(employees);
 
             Xunit.Assert.IsType<Employee>(employees.FirstOrDefault());
-
         }
 
         [Fact]
@@ -76,7 +76,7 @@ namespace FluentSql.Tests.SelectStatement
 
             var employee = employees.FirstOrDefault();
 
-            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Gary");
+            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Steve");
 
         }
 
@@ -91,7 +91,7 @@ namespace FluentSql.Tests.SelectStatement
 
             Xunit.Assert.IsType<Employee>(employee);
 
-            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Gary");
+            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Steve");
         }
 
         [Fact]
@@ -105,14 +105,14 @@ namespace FluentSql.Tests.SelectStatement
 
             Xunit.Assert.IsType<Employee>(employee);
 
-            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Gary");
+            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Steve");
 
         }
 
         [Fact]
         public async void SelectAsyncGetSingle()
         {
-            var loginRequest = new LoginRequest { Username = "GDiaz" };
+            var loginRequest = new LoginRequest { Username = "SRogers" };
             var entityStore = new EntityStore(_dbConnection);
 
             var employee = await entityStore.GetSingleAsync<Employee>(u => u.Username == loginRequest.Username);
@@ -121,7 +121,7 @@ namespace FluentSql.Tests.SelectStatement
 
             Xunit.Assert.IsType<Employee>(employee);
 
-            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Gary");
+            Xunit.Assert.True(employee.Id == 1 && employee.FirstName == "Steve");
         }
 
         [Fact]
@@ -135,15 +135,33 @@ namespace FluentSql.Tests.SelectStatement
         }
 
         [Fact]
+        public async void SelectWithJoinOnAndTResultAsync()
+        {
+            var entityStore = new EntityStore(_dbConnection);
+            var steve = new Employee { Id = 1, FirstName = "Steve" };
+            var tResult = await entityStore.GetWithJoinAsync<Employee, Order, Order>((e, o) => e.Id == o.EmployeeId,
+                                                            (e, o) => e.FirstName == steve.FirstName);
+
+            Xunit.Assert.NotNull(tResult);
+
+            var firstOrder = tResult.FirstOrDefault();
+
+            Xunit.Assert.IsType<Order>(firstOrder);
+        }
+
+        #endregion
+
+        #region synchronous tests
+        [Fact]
         public void SelectByKey()
         {
             var store = new EntityStore(_dbConnection);
-            var garyEmployeeId = 1;
+            var SteveEmployeeId = 1;
 
             var employee = store.GetByKey<Employee>(1);
             var employee1 = store.GetByKey<Employee>(new { Id = 1 });
-            var employee2 = store.GetByKey<Employee>(new Employee { Id = 1, FirstName = "Gary", LastName = "Diaz" });
-            var employee3 = store.GetByKey<Employee>(garyEmployeeId);
+            var employee2 = store.GetByKey<Employee>(new Employee { Id = 1, FirstName = "Steve", LastName = "Rogers" });
+            var employee3 = store.GetByKey<Employee>(SteveEmployeeId);
 
             var order = store.GetByKey<Order>(1);
             var order1 = store.GetByKey<Order>(new { Id = 1 });
@@ -164,10 +182,23 @@ namespace FluentSql.Tests.SelectStatement
         }
 
         [Fact]
+        public void SelectSingle()
+        {
+            var store = new EntityStore(_dbConnection);
+            var customerId = 1;
+
+            var customer = store.GetSingle<Customer>(c => c.Id == customerId);
+
+            Xunit.Assert.NotNull(customer);
+            Xunit.Assert.IsType<Customer>(customer);
+            Xunit.Assert.True(customer.Id == customerId);
+        }
+
+        [Fact]
         public void SelectStatementWherePredicateIsFieldAccess()
         {
             var entityStore = new EntityStore(_dbConnection);
-            var lastname = "Diaz";
+            var lastname = "Rogers";
 
             var employees = entityStore.Get<Employee>(p => p.LastName == lastname);
 
@@ -180,9 +211,9 @@ namespace FluentSql.Tests.SelectStatement
         public void SelectWithJoinOnAndTResult()
         {
             var entityStore = new EntityStore(_dbConnection);
-            var gary = new Employee { Id = 1, FirstName = "Gary" };
+            var steve = new Employee { Id = 1, FirstName = "Steve" };
             var tResult = entityStore.GetWithJoin<Employee, Order, Order>((e, o) => e.Id == o.EmployeeId,
-                                                            (e, o) => e.FirstName == gary.FirstName);
+                                                            (e, o) => e.FirstName == steve.FirstName);
 
             Xunit.Assert.NotNull(tResult);
 
@@ -238,6 +269,83 @@ namespace FluentSql.Tests.SelectStatement
             Xunit.Assert.IsType<Order>(order);
 
             Xunit.Assert.True(order.EmployeeId == 1);
+        }
+        #endregion
+
+        [Fact]
+        public void GetSelectQuery()
+        {
+            var store = new EntityStore(_dbConnection);
+
+            var selectQuery = store.GetSelectQuery<Employee>();
+
+            selectQuery.Where(e => ( e.Id >= 1 && e.LastName.StartsWith("s") ) ||
+                                    (e.LastName.StartsWith("rog")) )
+                        .OrderBy(e => e.LastName)
+                        .OrderByDescending(e => e.FirstName);
+                       
+
+            var employeeSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+            Xunit.Assert.True(employeeSet.Count() >= 2);
+            Xunit.Assert.IsType<Employee>(employeeSet.FirstOrDefault());
+
+            var employeeLastNameWithSp = employeeSet.FirstOrDefault(e => e.LastName.ToLower().StartsWith("s"));
+
+            Xunit.Assert.NotNull(employeeLastNameWithSp);
+        }
+
+        [Fact]
+        public void GetSelectQueryWithJoin1()
+        {
+            var store = new EntityStore(_dbConnection);
+            var startingOrderDate = new DateTime(2015, 12, 1);
+            var selectQuery = store.GetSelectQuery<Employee>()
+                                    .JoinOn<Order>((e, o) => e.Id == o.EmployeeId)
+                                    .Where<Employee, Order>((e, o) => o.Id >= 1 && o.OrderDate > startingOrderDate)
+                                    .OrderBy(e => e.Username);
+
+            var employeeSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+            Xunit.Assert.True(employeeSet.Count() >= 2);
+            Xunit.Assert.IsType<Employee>(employeeSet.FirstOrDefault());
+        }
+
+        [Fact]
+        public void GetSelectQueryWithJoin2()
+        {
+            var store = new EntityStore(_dbConnection);
+            var startingOrderDate = new DateTime(2015, 12, 1);
+            var selectQuery = store.GetSelectQuery<Employee>()
+                        .JoinOn<Order>((e, o) => e.Id == o.EmployeeId && o.Id >= 1)
+                        .JoinOn<Order, Customer>((o, c) => o.CustomerId == c.Id)
+                        .Where<Order, Customer>((o, c) => o.OrderDate > startingOrderDate && c.City == "Gainesville")
+                        .OrderBy(e => e.Username);
+
+            var employeeSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+            Xunit.Assert.True(employeeSet.Count() >= 2);
+            Xunit.Assert.IsType<Employee>(employeeSet.FirstOrDefault());
+        }
+
+        [Fact]
+        public void GetSelectQueryWithJoin3()
+        {
+            var store = new EntityStore(_dbConnection);
+            var startingOrderDate = new DateTime(2015, 12, 1);
+            var selectQuery = store.GetSelectQuery<Employee, Order>((e, o) => e.Id == o.EmployeeId && e.Id >= 1);
+
+            selectQuery.Where<Order>((e, o) => o.Id >= 1 && o.OrderDate > startingOrderDate);
+
+            var employeeSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+            Xunit.Assert.True(employeeSet.Count() >= 2);
+            Xunit.Assert.IsType<Employee>(employeeSet.FirstOrDefault());
+
         }
 
         public void Dispose()
