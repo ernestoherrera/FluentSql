@@ -10,14 +10,14 @@ namespace FluentSql.SqlGenerators
     {
         public SortOrder SortOrderDirection { get; set; }
         public string FieldName { get; set; }
-        public string TableAlias { get; set; }
+        internal string TableAlias { get; set; }
 
-        public Query<T> ParentQuery { get; private set; }
+        internal Query<T> ParentQuery { get; private set; }
 
         public SortOrderField()
         { }
 
-        public SortOrderField(Query<T> parentQuery)
+        internal SortOrderField(Query<T> parentQuery)
         {
             ParentQuery = parentQuery;
         }

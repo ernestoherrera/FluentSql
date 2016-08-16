@@ -80,6 +80,7 @@
     <Compile Include="Support\LoginRequest.cs" />
     <Compile Include="Support\SqlScripst.cs" />
     <Compile Include="Support\TestConstants.cs" />
+    <Compile Include="UpdateStatement\UpdateTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Models\ModelBuilder.csx" />
