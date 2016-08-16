@@ -108,6 +108,23 @@ namespace FluentSql.SqlGenerators
             return this;
         }
 
+        public IQuery<TEntity> Where<T1, T2, T3>(Expression<Func<T1, T2, T3, bool>> expression)
+            where T1 : new()
+            where T2 : new()
+            where T3 : new()
+        {
+            if (expression == null) return this;
+
+            Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
+
+            if (Parameters.ParameterNames.Any())
+                Parameters.AddDynamicParams(Predicate.QueryParameters);
+            else
+                Parameters = Predicate.QueryParameters;
+
+            return this;
+        }
+
         internal IQuery<TEntity> Where(string leftOperand, ExpressionType predicateOperator, string rightOperand, bool isParametized = false, ExpressionType? linkingOperator = null)
         {
             if (this.PredicateParts == null)

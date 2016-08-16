@@ -127,12 +127,14 @@ namespace FluentSql.Contracts
         /// <param name="joinExpression"></param>
         /// <param name="filterExpression"></param>
         /// <returns></returns>
-        Task<IEnumerable<TResult>> GetWithJoinAsync<T, R, TResult>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) where R : new() where T : new();
+        Task<IEnumerable<TResult>> GetWithJoinAsync<T, R, TResult>(Expression<Func<T, R, bool>> joinExpression, Expression<Func<T, R, bool>> filterExpression) 
+            where R : new() 
+            where T : new();
 
 
         #endregion
 
-            #region Insert
+        #region Insert
 
         /// <summary>
         /// Inserts an entity into the database
@@ -183,7 +185,7 @@ namespace FluentSql.Contracts
         #endregion
 
         #region Stored Procedure T-Sql script support
-        int Execute(string sql, object parameters = null, bool executeInTransaction = false, CommandType? commandType = null, int? commandTimeout = 0);
+        int ExecuteScript(string sql, object parameters = null, bool executeInTransaction = false, CommandType? commandType = null, int? commandTimeout = 0);
 
         IEnumerable<SqlDbParameter> ExecuteProcedure(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null);
 

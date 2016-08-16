@@ -110,13 +110,32 @@ VALUES
 ('Nathan','Spencer','nspencer1@msn.com','4 Waubesa Pass','Sarasota','FL','100-96-5760'),
 ('Margaret','Carter','mcarter2@marvel.com','93290 Blue Bill Park Park','Jacksonville','FL','511-45-0763'),
 ('Joan','Daniels','jdaniels3@moonfruit.com','92 Paget Trail','Kansas City','MN','657-24-5146'),
-('Brenda','Stone','bstone4@oakley.com','05 Pennsylvania Pass','Humble','TX','945-17-1532');
-
-
+('Brenda','Stone','bstone4@oakley.com','05 Pennsylvania Pass','Humble','TX','945-17-1532'),
+('Terry','Mcdonald','tmcdonald17@jalbum.net','9 Anderson Street','Salt Lake City','UT','976-98-7782'),
+('Mary','Gomez','mgomez18@dell.com','303 Lotheville Parkway','WA','DC','131-44-2595'),
+('Nicholas','Freeman','nfreeman19@hatena.ne.jp','79604 Oriole Court','Portland','OR','310-12-8117'),
+('Andrew','Scott','ascott1a@businessweek.com','677 Buhler Hill','Montgomery','AL','553-46-4720'),
+('Matthew','Hawkins','mhawkins1b@prweb.com','74 Sutherland Road','Houston','TX','427-33-6377'),
+('Angela','Simpson','asimpson1c@seattletimes.com','87 Pleasure Park','London','KY','138-89-8270'),
+('Jacqueline','West','jwest1d@disqus.com','34 Thackeray Point','Mobile','AL','853-32-2479'),
+('John','Barnes','jbarnes1e@loc.gov','49754 Ilene Road','Saint Paul','MN','744-85-1423'),
+('David','Simpson','dsimpson1f@moonfruit.com','51542 Kenwood Junction','WA','DC','606-81-7094'),
+('Timothy','Mcdonald','tmcdonald1g@over-blog.com','2 Grim Court','Knoxville','TN','670-71-1926'),
+('Evelyn','Hunter','ehunter1h@cornell.edu','74190 Sycamore Circle','Rochester','NY','908-73-5738'),
+('Bobby','Peterson','bpeterson1i@ustream.tv','73224 Jenna Terrace','South Bend','IN','912-85-4444'),
+('Daniel','Ross','dross1j@answers.com','32 Autumn Leaf Street','Richmond','VA','139-75-6918'),
+('Shirley','Barnes','sbarnes1k@businesswire.com','1 Laurel Place','Anchorage','AK','602-09-6724'),
+('Roger','Robertson','rrobertson1l@mashable.com','583 Caliangt Hill','Aurora','IL','596-22-3201'),
+('Janice','Rivera','jrivera1m@uol.com.br','8185 Fordem Park','Fort Lauderdale','FL','368-17-5248'),
+('Joseph','Peterson','jpeterson1n@usnews.com','47 Brickson Park Way','WA','DC','993-51-6711'),
+('Stephanie','Cole','scole1o@washingtonpost.com','235 Almo Junction','Fort Worth','TX','268-77-7654'),
+('John','Cruz','jcruz1p@ehow.com','79 Victoria Hill','WA','DC','857-12-0241'),
+('Kelly','Vasquez','kvasquez1q@senate.gov','66 Lakeland Terrace','El Paso','TX','643-41-9926'),
+('Keith','Alexander','kalexander1r@google.nl','3037 La Follette Circle','Santa Monica','CA','809-99-0328'),
+('Dorothy','Sanchez','dsanchez1s@go.com','2387 John Wall Way','Spokane','WA','787-28-7723');
 
 INSERT [Customers] VALUES('Romano''s Macaroni Grill','Joseph Smith','Sales Representative','6419 W Newberry Rd','Gainesville',NULL,'32606','USA','(352) 331-0637','');
 INSERT [Customers] VALUES('Leonardo''s Pizza','Leonardo Daglio','Owner','1245 W University Ave','Gainesville',NULL,'32601','USA','(352) 375-2008','');
-
 
 INSERT INTO [Orders] (CustomerId,EmployeeId,OrderDate,RequiredDate,
 	ShippedDate,ShipVia,Freight,ShipName,ShipAddress,

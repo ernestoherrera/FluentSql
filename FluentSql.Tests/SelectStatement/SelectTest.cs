@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using FluentSql.DatabaseMappers.Common;
 using FluentSql.Mappers;
+using FluentSql.SqlGenerators;
 using FluentSql.Tests.Models;
 using FluentSql.Tests.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -42,8 +43,8 @@ namespace FluentSql.Tests.SelectStatement
                     NameSpace = "FluentSql.Tests.Models"
                 };
 
-                store.Execute(SqlScripts.CREATE_DATABASE, null, false, CommandType.Text);
-                store.Execute(SqlScripts.CREATE_TABLES, null, false, CommandType.Text);
+                store.ExecuteScript(SqlScripts.CREATE_DATABASE, null, false, CommandType.Text);
+                store.ExecuteScript(SqlScripts.CREATE_TABLES, null, false, CommandType.Text);
 
                 //new EntityMapper(_dbConnection, assemblies);
                 new EntityMapper(_dbConnection, new List<Database> { database }, null);
@@ -321,7 +322,8 @@ namespace FluentSql.Tests.SelectStatement
             var selectQuery = store.GetSelectQuery<Employee>()
                         .JoinOn<Order>((e, o) => e.Id == o.EmployeeId && o.Id >= 1)
                         .JoinOn<Order, Customer>((o, c) => o.CustomerId == c.Id)
-                        .Where<Order, Customer>((o, c) => o.OrderDate > startingOrderDate && c.City == "Gainesville")
+                        .Where<Order, Customer, Employee>((o, c, e) => o.OrderDate > startingOrderDate 
+                                                && c.City == "Gainesville" && e.Id >= 1)
                         .OrderBy(e => e.Username);
 
             var employeeSet = store.ExecuteQuery(selectQuery);
@@ -345,7 +347,71 @@ namespace FluentSql.Tests.SelectStatement
             Xunit.Assert.NotNull(employeeSet);
             Xunit.Assert.True(employeeSet.Count() >= 2);
             Xunit.Assert.IsType<Employee>(employeeSet.FirstOrDefault());
+        }
 
+        [Fact]
+        public async void GetSelectQueryWithJoin2Async()
+        {
+            var store = new EntityStore(_dbConnection);
+            var startingOrderDate = new DateTime(2015, 12, 1);
+            var selectQuery = store.GetSelectQuery<Employee>()
+                        .JoinOn<Order>((e, o) => e.Id == o.EmployeeId && o.Id >= 1)
+                        .JoinOn<Order, Customer>((o, c) => o.CustomerId == c.Id)
+                        .Where<Order, Customer, Employee>((o, c, e) => o.OrderDate > startingOrderDate
+                                                && c.City == "Gainesville" && e.Id >= 1)
+                        .OrderBy(e => e.Username);
+
+            var employeeSet = await store.ExecuteQueryAsync(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+            Xunit.Assert.True(employeeSet.Count() >= 2);
+            Xunit.Assert.IsType<Employee>(employeeSet.FirstOrDefault());
+        }
+
+        [Fact]
+        public void SeletTop()
+        {
+            var store = new EntityStore(_dbConnection);
+            int skip = 10, take = 10;
+
+            var selectQuery = store.GetSelectQuery<Employee>()
+                                    .GetTopRows(skip + take)
+                                    .Where(e => e.Id > 1)
+                                    .OrderBy(e => e.LastName);
+
+
+            var employeeSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+
+            var returnSet = employeeSet.Skip(skip).Take(take);
+
+            Xunit.Assert.NotNull(returnSet);
+            Xunit.Assert.True(returnSet.Count() == take);
+        }
+
+        [Fact]
+        public void SeletTop1()
+        {
+            var store = new EntityStore(_dbConnection);
+            int skip = 10, take = 10;
+            var sortOrder = new List<SortOrderField<Employee>>();
+
+            var selectQuery = store.GetSelectQuery<Employee>()
+                                    .GetTopRows(skip + take)
+                                    .Where(e => e.Id > 1)
+                                    .OrderBy(e => e.LastName)
+                                    .OrderBy(e => e.FirstName)
+                                    .OrderByDescending(e => e.City);
+
+            var employeeSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+
+            var returnSet = employeeSet.Skip(skip).Take(take);
+
+            Xunit.Assert.NotNull(returnSet);
+            Xunit.Assert.True(returnSet.Count() == take);
         }
 
         public void Dispose()

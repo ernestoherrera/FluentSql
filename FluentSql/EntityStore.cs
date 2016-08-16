@@ -327,7 +327,7 @@ namespace FluentSql
         #endregion
 
         #region Stored Procedures - SQL script Execution
-        public int Execute(string sql, object parameters = null, bool executeInTransaction = false, CommandType? commandType = null, int? commandTimeout = 0)
+        public int ExecuteScript(string sql, object parameters = null, bool executeInTransaction = false, CommandType? commandType = null, int? commandTimeout = 0)
         {
             try
             {
@@ -357,7 +357,7 @@ namespace FluentSql
         {
             var dynamicParams = ConvertToDynamc(parameters);
 
-            Execute(sql, dynamicParams, executeInTransaction, CommandType.StoredProcedure, commandTimeout);
+            ExecuteScript(sql, dynamicParams, executeInTransaction, CommandType.StoredProcedure, commandTimeout);
 
             var returnParams = ConvertToSqlDbParameter(parameters, dynamicParams);
 
