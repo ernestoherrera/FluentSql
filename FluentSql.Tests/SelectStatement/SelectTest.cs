@@ -2,6 +2,7 @@
 using FluentSql.DatabaseMappers.Common;
 using FluentSql.Mappers;
 using FluentSql.SqlGenerators;
+using FluentSql.Support;
 using FluentSql.Tests.Models;
 using FluentSql.Tests.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -46,8 +47,7 @@ namespace FluentSql.Tests.SelectStatement
                 store.ExecuteScript(SqlScripts.CREATE_DATABASE, null, false, CommandType.Text);
                 store.ExecuteScript(SqlScripts.CREATE_TABLES, null, false, CommandType.Text);
 
-                //new EntityMapper(_dbConnection, assemblies);
-                new EntityMapper(_dbConnection, new List<Database> { database }, null);
+                new EntityMapper(_dbConnection, new List<Database> { database }, assemblies);
             }
         }
 
@@ -367,6 +367,41 @@ namespace FluentSql.Tests.SelectStatement
             Xunit.Assert.True(employeeSet.Count() >= 2);
             Xunit.Assert.IsType<Employee>(employeeSet.FirstOrDefault());
         }
+
+        [Fact]
+        public void GetSelectQueryWithLeftJoin()
+        {
+            var store = new EntityStore(_dbConnection);
+            var startingOrderDate = new DateTime(2015, 12, 1);
+            var selectQuery = store.GetSelectQuery<Order>()
+                                    .JoinOn<Employee>((o, e) => e.Id == o.EmployeeId && e.Id == 1, 
+                                                        JoinType.Left)
+                                    .Where((o) => o.Id >= 1 && o.OrderDate > startingOrderDate);
+
+            var orderSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(orderSet);
+            Xunit.Assert.True(orderSet.Count() >= 2);
+            Xunit.Assert.IsType<Order>(orderSet.FirstOrDefault());
+        }
+
+        [Fact]
+        public void GetSelectQueryWithRightJoin()
+        {
+            var store = new EntityStore(_dbConnection);
+            var startingOrderDate = new DateTime(2015, 12, 1);
+            var selectQuery = store.GetSelectQuery<Order>()
+                                    .JoinOn<Employee>((o, e) => e.Id == o.EmployeeId && e.Id == 1, 
+                                                        JoinType.Right)
+                                    .Where((o) => o.Id >= 1 && o.OrderDate > startingOrderDate);
+
+            var orderSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(orderSet);
+            Xunit.Assert.True(orderSet.Count() == 2);
+            Xunit.Assert.IsType<Order>(orderSet.FirstOrDefault());
+        }
+
 
         [Fact]
         public void SeletTop()
