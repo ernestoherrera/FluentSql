@@ -8,16 +8,24 @@ namespace FluentSql.SqlGenerators
 {
     public class SortOrderField
     {
-        public SortOrder SortOrderDirection { get; set; }
-        public string FieldName { get; set; }
+        public SortOrder SortOrderDirection { get; internal set; }
+        public string FieldName { get; internal set; }
         internal string TableAlias { get; set; }
 
-        public SortOrderField()
+        internal SortOrderField()
         { }
 
-        public SortOrderField(Type entityType)
+        public SortOrderField(Type entityType, string fieldName, SortOrder sortDirection = SortOrder.Ascending)
         {
+            if (string.IsNullOrEmpty(fieldName))
+                throw new Exception("Order by clause requires a field name. FieldName can not be null.");
+
+            if (entityType == null)
+                throw new Exception("Order by clause requires an entity type. Type can not be null.");
+
             TableAlias = EntityMapper.EntityMap[entityType].TableAlias;
+            FieldName = fieldName;
+            SortOrderDirection = sortDirection;
         }
 
         public string SortOrderSql()

@@ -491,19 +491,39 @@ namespace FluentSql.Tests.SelectStatement
             int skip = 10, take = 10;
             var sortOrder = new List<SortOrderField>
             {
-                new SortOrderField (typeof(Employee))
-                {
-                    FieldName = "LastName",
-                    SortOrderDirection = SortOrder.Ascending,
-                }
+                new SortOrderField (typeof(Employee), "LastName"),
+                new SortOrderField (typeof(Employee), "FirstName"),
+                new SortOrderField (typeof(Employee), "City", SortOrder.Descending)
             };
 
             var selectQuery = store.GetSelectQuery<Employee>()
                                     .GetTopRows(skip + take)
                                     .Where(e => e.Id > 1)
-                                    .OrderBy(e => e.LastName)
-                                    .OrderBy(e => e.FirstName)
-                                    .OrderByDescending(e => e.City);
+                                    .OrderBy(sortOrder);
+
+            var employeeSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+
+            var returnSet = employeeSet.Skip(skip).Take(take);
+
+            Xunit.Assert.NotNull(returnSet);
+            Xunit.Assert.True(returnSet.Count() == take);
+        }
+
+        [Fact]
+        public void SeletTop3()
+        {
+            var store = new EntityStore(_dbConnection);
+            int skip = 10, take = 10;
+
+            var lastNameSort = new SortOrderField(typeof(Employee), "LastName");
+            var cityNameSort = new SortOrderField(typeof(Employee), "City", SortOrder.Descending);
+
+            var selectQuery = store.GetSelectQuery<Employee>()
+                                    .GetTopRows(skip + take)
+                                    .Where(e => e.Id > 1)
+                                    .OrderBy(lastNameSort, cityNameSort);
 
             var employeeSet = store.ExecuteQuery(selectQuery);
 
