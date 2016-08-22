@@ -44,11 +44,15 @@ namespace FluentSql.SqlGenerators.Contracts
 
         IQuery<L> OrderBy(Expression<Func<L, object>> expression);
 
+        IQuery<L> OrderBy<T>(Expression<Func<T, object>> expression) where T : new();
+
+        IQuery<L> OrderByDescending<T>(Expression<Func<T, object>> expression) where T : new();
+
         IQuery<L> OrderByDescending(Expression<Func<L, object>> expression);
 
-        IQuery<L> OrderBy(List<SortOrderField<L>> sortOrderFields);
+        IQuery<L> OrderBy(List<SortOrderField> sortOrderFields);
 
-        IQuery<L> OrderBy(params SortOrderField<L>[] sortOrderArray);
+        IQuery<L> OrderBy(params SortOrderField[] sortOrderArray);
 
         string ResolveTableAlias(Type type);
     }

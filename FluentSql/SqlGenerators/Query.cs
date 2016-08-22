@@ -17,7 +17,7 @@ namespace FluentSql.SqlGenerators
         #region Protected Properties
         protected ExpressionHelper Predicate;
         protected Queue<dynamic> Joins = new Queue<dynamic>();
-        protected List<SortOrderField<TEntity>> OrderByFields;
+        protected List<SortOrderField> OrderByFields;
         protected int TopRows = 0;
         #endregion
 
@@ -152,11 +152,11 @@ namespace FluentSql.SqlGenerators
         #region Join
         public virtual IQuery<TEntity> JoinOn<TRightEntity>(Expression<Func<TEntity, TRightEntity, bool>> expression, JoinType joinType = JoinType.Inner)
         {
-            if (expression == null)
+            if (expression == null && joinType != JoinType.Cross)
                 throw new Exception("Join expression cannot be null.");
 
             var rightQuery = new Query<TRightEntity>();
-            var queryJoin = new Join<TEntity, TRightEntity>(this, rightQuery, joinType);
+            var queryJoin = EntityMapper.SqlGenerator.JoinOn<TEntity, TRightEntity>(this, rightQuery, joinType);
 
             queryJoin.On(expression);
             Joins.Enqueue(queryJoin);
@@ -170,14 +170,13 @@ namespace FluentSql.SqlGenerators
                 throw new Exception("Join expression cannot be null. Join expression can only be null if the JoinType is a Cross join.");
 
             var leftQuery = new Query<T1>();
-
             var rightQuery = new Query<T2>();
 
-            var queryJoin = new Join<T1, T2>(leftQuery, rightQuery, joinType);
+            var queryJoin = EntityMapper.SqlGenerator.JoinOn<T1, T2>(leftQuery, rightQuery, joinType);
 
             queryJoin.On(expression);
             Joins.Enqueue(queryJoin);
-            
+
             return Joins.Peek().LeftQuery;
         }
 
@@ -189,46 +188,62 @@ namespace FluentSql.SqlGenerators
             return SetOrderByClause(expression, SortOrder.Ascending);
         }
 
+        public virtual IQuery<TEntity> OrderBy<T>(Expression<Func<T, object>> expression) where T : new()
+        {
+            return SetOrderByClause(expression, SortOrder.Ascending);
+        }
+
         public virtual IQuery<TEntity> OrderByDescending(Expression<Func<TEntity, object>> expression)
         {
             return SetOrderByClause(expression, SortOrder.Descending);
         }
 
-        protected IQuery<TEntity> SetOrderByClause(Expression<Func<TEntity, object>> expression, SortOrder sortOrderDirection)
+        public virtual IQuery<TEntity> OrderByDescending<T>(Expression<Func<T, object>> expression) where T : new()
         {
-            if (OrderByFields == null) OrderByFields = new List<SortOrderField<TEntity>>();
+            return SetOrderByClause(expression, SortOrder.Descending);
+        }
 
-            if (expression == null || expression.Body.NodeType != ExpressionType.MemberAccess)
+        protected IQuery<TEntity> SetOrderByClause<T>(Expression<Func<T, object>> expression, SortOrder sortOrderDirection)
+        {
+            if (OrderByFields == null) OrderByFields = new List<SortOrderField>();
+
+            if (expression == null || (expression.Body.NodeType != ExpressionType.MemberAccess &&
+                expression.Body.NodeType != ExpressionType.Convert))
                 throw new Exception("Incorrect sort order expression");
 
-            var orderByFieldName = ExpressionHelper.GetPropertyName(expression.Body.ToString());
+            string orderByFieldName = "";
 
-            OrderByFields.Add(new SortOrderField<TEntity>
+            if (expression.Body.NodeType == ExpressionType.Convert)
+                orderByFieldName = ExpressionHelper.GetPropertyName((UnaryExpression) expression.Body);
+            else
+                orderByFieldName = ExpressionHelper.GetPropertyName(expression.Body.ToString());
+
+            OrderByFields.Add(new SortOrderField
             {
                 FieldName = orderByFieldName,
                 SortOrderDirection = sortOrderDirection,
-                TableAlias = ResolveTableAlias(typeof(TEntity))
+                TableAlias = ResolveTableAlias(typeof(T))
             });
 
             return this;
         }
 
-        public virtual IQuery<TEntity> OrderBy(params SortOrderField<TEntity>[] sortOrderArray)
+        public virtual IQuery<TEntity> OrderBy(params SortOrderField[] sortOrderArray)
         {
             if (sortOrderArray == null) return this;
 
-            if (OrderByFields == null) OrderByFields = new List<SortOrderField<TEntity>>();
+            if (OrderByFields == null) OrderByFields = new List<SortOrderField>();
 
             OrderByFields.AddRange(sortOrderArray);
 
             return this;
         }
 
-        public virtual IQuery<TEntity> OrderBy(List<SortOrderField<TEntity>> sortOrderFields)
+        public virtual IQuery<TEntity> OrderBy(List<SortOrderField> sortOrderFields)
         {
             if (sortOrderFields == null) return this;
 
-            if (OrderByFields == null) OrderByFields = new List<SortOrderField<TEntity>>();
+            if (OrderByFields == null) OrderByFields = new List<SortOrderField>();
 
             OrderByFields.AddRange(sortOrderFields);
 

@@ -22,7 +22,7 @@ namespace FluentSql.SqlGenerators
         {
             Verb = SELECT;
         }
-        #endregion       
+        #endregion
 
         #region ToString methods
         public override string ToSql()

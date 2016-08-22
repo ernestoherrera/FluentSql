@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FluentSql.SqlGenerators.SqlServer
 {
-    public class SqlServerSortOrderField<T> : SortOrderField<T>
+    public class SqlServerSortOrderField : SortOrderField
     {
         public override string ToSql()
         {

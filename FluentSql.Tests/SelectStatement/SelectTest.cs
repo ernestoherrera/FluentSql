@@ -1,5 +1,4 @@
-﻿using Dapper;
-using FluentSql.DatabaseMappers.Common;
+﻿using FluentSql.DatabaseMappers.Common;
 using FluentSql.Mappers;
 using FluentSql.SqlGenerators;
 using FluentSql.Support;
@@ -9,10 +8,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace FluentSql.Tests.SelectStatement
@@ -28,27 +27,7 @@ namespace FluentSql.Tests.SelectStatement
                                 TestConstants.UsernamePair + TestConstants.PasswordPair;
 
             _dbConnection = new DbConnectionTest(connString);
-
-            if (!EntityMapper.EntityMap.Keys.Any())
-            {
-                var assemblies = new[]
-               {
-                    Assembly.Load("FluentSql.Tests")
-               };
-
-                var store = new EntityStore(_dbConnection);
-                var database = new Database
-                {
-                    Name = TestConstants.TestDatabaseName,
-                    TableNamesInPlural = true,
-                    NameSpace = "FluentSql.Tests.Models"
-                };
-
-                store.ExecuteScript(SqlScripts.CREATE_DATABASE, null, false, CommandType.Text);
-                store.ExecuteScript(SqlScripts.CREATE_TABLES, null, false, CommandType.Text);
-
-                new EntityMapper(_dbConnection, new List<Database> { database }, assemblies);
-            }
+            new Bootstrap(_dbConnection);
         }
 
         #region Asynchronous Gets
@@ -315,6 +294,32 @@ namespace FluentSql.Tests.SelectStatement
         }
 
         [Fact]
+        public void GetSelectQueryJoin()
+        {
+            var store = new EntityStore(_dbConnection);
+
+            var selectQuery = store.GetSelectQuery<Order>()
+                                    .JoinOn<Employee>((o, e) => e.Id == o.EmployeeId)
+                                    .OrderBy(o => o.OrderDate)
+                                    .OrderBy<Employee>(e => e.LastName);
+                                    
+
+            var orderEmployeeSet = store.ExecuteQuery<Order, Employee>(selectQuery);
+
+            Xunit.Assert.NotNull(orderEmployeeSet);
+            Xunit.Assert.True(orderEmployeeSet.Count() >= 2);
+
+            var orderEmployeeTuple = orderEmployeeSet.FirstOrDefault();
+
+            Xunit.Assert.NotNull(orderEmployeeTuple);
+
+            var order = orderEmployeeTuple.Item1;
+
+            Xunit.Assert.IsType<Order>(order);
+            Xunit.Assert.IsType<Employee>(orderEmployeeTuple.Item2);
+        }
+
+        [Fact]
         public void GetSelectQueryWithJoin2()
         {
             var store = new EntityStore(_dbConnection);
@@ -402,18 +407,49 @@ namespace FluentSql.Tests.SelectStatement
             Xunit.Assert.IsType<Order>(orderSet.FirstOrDefault());
         }
 
+        [Fact]
+        public void GetSelectQueryWithCrossJoin()
+        {
+            var store = new EntityStore(_dbConnection);
+
+            var selectQuery = store.GetSelectQuery<Order>()
+                                    .JoinOn<Employee>(null, JoinType.Cross)
+                                    .Where<Order, Employee>((o, e) => e.Id == o.EmployeeId);
+
+            var orderSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(orderSet);
+            Xunit.Assert.True(orderSet.Count() >= 2);
+            Xunit.Assert.IsType<Order>(orderSet.FirstOrDefault());
+        }
+
+        [Fact]
+        public void GetSelectQueryWithFullJoin()
+        {
+            var store = new EntityStore(_dbConnection);
+
+            var selectQuery = store.GetSelectQuery<Order>()
+                                    .JoinOn<Employee>((o, e) => e.Id == o.EmployeeId,
+                                                        JoinType.FullOuter);
+
+            var orderSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(orderSet);
+            Xunit.Assert.True(orderSet.Count() >= 2);
+            Xunit.Assert.IsType<Order>(orderSet.FirstOrDefault());
+        }
 
         [Fact]
         public void SeletTop()
         {
             var store = new EntityStore(_dbConnection);
             int skip = 10, take = 10;
+            Expression<Func<Employee, object>> orderByExpression = (e => e.LastName);
 
             var selectQuery = store.GetSelectQuery<Employee>()
                                     .GetTopRows(skip + take)
                                     .Where(e => e.Id > 1)
-                                    .OrderBy(e => e.LastName);
-
+                                    .OrderBy(orderByExpression);
 
             var employeeSet = store.ExecuteQuery(selectQuery);
 
@@ -430,7 +466,37 @@ namespace FluentSql.Tests.SelectStatement
         {
             var store = new EntityStore(_dbConnection);
             int skip = 10, take = 10;
-            var sortOrder = new List<SortOrderField<Employee>>();
+
+            var selectQuery = store.GetSelectQuery<Employee>()
+                                    .GetTopRows(skip + take)
+                                    .Where(e => e.Id > 1)
+                                    .OrderBy(e => e.LastName)
+                                    .OrderBy(e => e.FirstName)
+                                    .OrderByDescending(e => e.City);
+
+            var employeeSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+
+            var returnSet = employeeSet.Skip(skip).Take(take);
+
+            Xunit.Assert.NotNull(returnSet);
+            Xunit.Assert.True(returnSet.Count() == take);
+        }
+
+        [Fact]
+        public void SeletTop2()
+        {
+            var store = new EntityStore(_dbConnection);
+            int skip = 10, take = 10;
+            var sortOrder = new List<SortOrderField>
+            {
+                new SortOrderField (typeof(Employee))
+                {
+                    FieldName = "LastName",
+                    SortOrderDirection = SortOrder.Ascending,
+                }
+            };
 
             var selectQuery = store.GetSelectQuery<Employee>()
                                     .GetTopRows(skip + take)

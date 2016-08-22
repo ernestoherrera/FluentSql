@@ -13,41 +13,17 @@ namespace FluentSql.SqlGenerators.SqlServer
 {
     public class SqlServerSelectQuery<T> : SelectQuery<T>, IQuery<T>
     {
-        #region Properties
-
-        #endregion        
 
         #region Constructor
         public SqlServerSelectQuery() : base()
-        {
-
-        }
+        { }
         #endregion
 
-        #region Overrides        
+        #region Overrides
 
         public override IQuery<T> GetTopRows(int topNumberRows)
         {
             TopRows = topNumberRows;
-
-            return this;
-        }
-
-        public override IQuery<T> OrderBy(Expression<Func<T, object>> expression)
-        {
-            if (OrderByFields == null) OrderByFields = new List<SortOrderField<T>>();
-
-            if (expression == null || expression.Body.NodeType != ExpressionType.MemberAccess)
-                throw new Exception("Incorrect sort order expression");
-
-            var orderByFieldName = ExpressionHelper.GetPropertyName(expression.Body.ToString());
-
-            OrderByFields.Add(new SqlServerSortOrderField<T>
-            {
-                FieldName = orderByFieldName,
-                SortOrderDirection = SortOrder.Ascending,
-                TableAlias = TableAlias
-            });
 
             return this;
         }

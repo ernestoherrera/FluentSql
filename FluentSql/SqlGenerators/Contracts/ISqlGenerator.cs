@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentSql.Support;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
@@ -51,7 +52,7 @@ namespace FluentSql.SqlGenerators.Contracts
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
         /// <returns>A set of entities of type T filtered by the expression</returns>
-        SelectQuery<T> Select<T>(Expression<Func<T, bool>> expression);
+        SelectQuery<T> Select<T>(Expression<Func<T, bool>> filterExpression);
 
         /// <summary>
         /// Generates an Insert query object
@@ -88,11 +89,29 @@ namespace FluentSql.SqlGenerators.Contracts
         DeleteQuery<T> Delete<T>(T entity);
 
         /// <summary>
+        /// Generates a Join object that represents the join of two queries.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TRightEntity"></typeparam>
+        /// <param name="leftQuery"></param>
+        /// <param name="rightQuery"></param>
+        /// <param name="joinType"></param>
+        /// <returns></returns>
+        Join<T, TRightEntity> JoinOn<T, TRightEntity>(IQuery<T> leftQuery, IQuery<TRightEntity> rightQuery, JoinType joinType);
+
+        /// <summary>
         /// Sql specific operators
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        string GetOperator(ExpressionType type);
+        string GetOperator(ExpressionType exprssionType);
+
+        /// <summary>
+        /// Sql join specific key words
+        /// </summary>
+        /// <param name="joinType"></param>
+        /// <returns></returns>
+        string GetJoinOperator(JoinType joinType);
 
         /// <summary>
         /// Return the sort order direction for the specific SQL dialect.

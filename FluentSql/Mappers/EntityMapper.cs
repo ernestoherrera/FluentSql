@@ -40,10 +40,15 @@ namespace FluentSql.Mappers
 
         #region Constructors
         public EntityMapper(IDbConnection dbConnection, IEnumerable<Database> targetDatabases, Assembly[] assembliesOfModelTypes = null, 
-                            IDatabaseMapper defaultDatabaseMapper = null, Action onPostEntityMapping = null)
+                            IDatabaseMapper defaultDatabaseMapper = null, Action onPostEntityMapping = null, ISqlGenerator sqlGenerator = null)
         {
             if (dbConnection == null || targetDatabases == null)
                 throw new ArgumentNullException("Database connection, or Database names can not be null.");
+
+            if (sqlGenerator != null)
+                SqlGenerator = sqlGenerator;
+            else
+                SetDefaultSqlGenerator();
 
             DefaultDatabaseMapper = defaultDatabaseMapper ?? new SqlServerDatabaseMapper();
             TargetDatabases = targetDatabases;
@@ -51,7 +56,6 @@ namespace FluentSql.Mappers
             if (dbConnection.State == ConnectionState.Closed)
                 dbConnection.Open();
 
-            SetDefaultSqlGenerator();
             MapTablesToEntities(dbConnection, assembliesOfModelTypes);
             
             onPostEntityMapping?.Invoke();
@@ -77,7 +81,10 @@ namespace FluentSql.Mappers
            this(dbConnection, new List<Database> { new Database { Name = dbConnection.Database, TableNamesInPlural = tableNamesInPlural } },
                assembliesOfModelTypes)
         { }
-        
+
+        public EntityMapper(IDbConnection dbConnection, ISqlGenerator sqlGenerator , Assembly[] assembliesOfModelTypes = null, IDatabaseMapper databaseMapper = null, bool tableNamesInPlural = true) :
+           this(dbConnection, new List<Database> { new Database { Name = dbConnection.Database, TableNamesInPlural = tableNamesInPlural } }, assembliesOfModelTypes, databaseMapper)
+        { }
 
         #endregion
 

@@ -69,9 +69,21 @@ namespace FluentSql.SqlGenerators
             var sqlBuilder = new StringBuilder();
             var selectedJoin = Enum.GetName(typeof(JoinType), JoinType);
 
-            sqlBuilder.Append(string.Format("{0} JOIN {1} {2} ON ", selectedJoin, RightQuery.TableName, RightQuery.TableAlias));
-            sqlBuilder.Append(Predicate.ToSql());
-            
+            if (JoinType == JoinType.Cross)
+            {
+                sqlBuilder.AppendFormat("{0} JOIN {1} {2} ", selectedJoin,
+                                                RightQuery.TableName,
+                                                RightQuery.TableAlias);
+            }
+            else
+            {
+                sqlBuilder.AppendFormat("{0} JOIN {1} {2} ON ", selectedJoin,
+                                                RightQuery.TableName,
+                                                RightQuery.TableAlias);
+
+                sqlBuilder.Append(Predicate.ToSql());
+            }
+
             return sqlBuilder.ToString();
         }
 

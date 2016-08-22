@@ -33,6 +33,7 @@ namespace FluentSql.Support.Helpers
         private IComparer<ExpressionType> comparer = new OperatorPrecedenceComparer();
         private Queue<dynamic> predicateString = new Queue<dynamic>();
         private SqlGeneratorHelper paramNameGenerator;
+        private readonly string SEPARATOR = " ";
         #endregion
 
         #region Public Properties
@@ -44,12 +45,14 @@ namespace FluentSql.Support.Helpers
         {
             if (predicateString.Count == 0) return string.Empty;
 
-            var sqlBuilder = new StringBuilder();            
+            var sqlBuilder = new StringBuilder();
 
             foreach (var token in predicateString)
             {
-                sqlBuilder.Append(" " + token.ToString());
+                sqlBuilder.Append(SEPARATOR + token.ToString());
             }
+
+            sqlBuilder.Append(SEPARATOR);
 
             return sqlBuilder.ToString();
         }

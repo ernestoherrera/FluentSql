@@ -6,35 +6,18 @@ using System.Linq.Expressions;
 
 namespace FluentSql.SqlGenerators
 {
-    public class SortOrderField<T>
+    public class SortOrderField
     {
         public SortOrder SortOrderDirection { get; set; }
         public string FieldName { get; set; }
         internal string TableAlias { get; set; }
 
-        internal Query<T> ParentQuery { get; private set; }
-
         public SortOrderField()
         { }
 
-        internal SortOrderField(Query<T> parentQuery)
+        public SortOrderField(Type entityType)
         {
-            ParentQuery = parentQuery;
-        }
-
-        public SortOrderField(Expression<Func<T, object>> expression)
-        {
-            if (expression == null) return;
-
-            FieldName = ExpressionHelper.GetPropertyName((UnaryExpression)expression.Body);
-        }
-
-        public SortOrderField(Expression<Func<T, object>> expression, SortOrder sortOrderDirection)
-        {
-            if (expression == null) return;
-
-            FieldName = ExpressionHelper.GetPropertyName((UnaryExpression)expression.Body);
-            SortOrderDirection = sortOrderDirection;
+            TableAlias = EntityMapper.EntityMap[entityType].TableAlias;
         }
 
         public string SortOrderSql()
@@ -44,13 +27,10 @@ namespace FluentSql.SqlGenerators
 
         public virtual string ToSql()
         {
-            if (ParentQuery != null)
-                return string.Format("{0}.{1} {2}",
-                                        ParentQuery.ResolveTableAlias(typeof(T)),
-                                        FieldName,
-                                        SortOrderSql());
-            else
-                return string.Format("{0} {1}", FieldName, SortOrderSql());
+            return string.Format("{0}.{1} {2}",
+                                    TableAlias,
+                                    FieldName,
+                                    SortOrderSql());
         }
 
         public override string ToString()

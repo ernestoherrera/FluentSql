@@ -8,6 +8,7 @@ using FluentSql.SqlGenerators.Contracts;
 using System.Data.SqlClient;
 using System.Linq.Expressions;
 using FluentSql.Mappers;
+using FluentSql.Support;
 
 namespace FluentSql.SqlGenerators.SqlServer
 {
@@ -25,7 +26,7 @@ namespace FluentSql.SqlGenerators.SqlServer
 
         public string Null { get { return "NULL"; } }
 
-        public string Top { get { return "TOP"; } }                
+        public string Top { get { return "TOP"; } }
 
         #region Constructor
         public SqlServerSqlGenerator(bool includeDbNameInQuery = true)
@@ -73,7 +74,12 @@ namespace FluentSql.SqlGenerators.SqlServer
 
         public DeleteQuery<T> Delete<T>(T entity)
         {
-            throw new NotImplementedException();
+            return new SqlServerDeleteQuery<T>();
+        }
+
+        public Join<T, TRightEntity> JoinOn<T, TRightEntity>(IQuery<T> leftQuery, IQuery<TRightEntity> rightQuery, JoinType joinType)
+        {
+            return new SqlServerJoin<T, TRightEntity>(leftQuery, rightQuery, joinType);
         }
 
         /// <summary>
@@ -118,6 +124,25 @@ namespace FluentSql.SqlGenerators.SqlServer
                     return string.Empty;
                 case ExpressionType.Not:
                     return "NOT";
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        public string GetJoinOperator(JoinType joinType)
+        {
+            switch (joinType)
+            {
+                case JoinType.Inner:
+                    return "INNER JOIN";
+                case JoinType.Right:
+                    return "RIGHT JOIN";
+                case JoinType.Left:
+                    return "LEFT JOIN";
+                case JoinType.Cross:
+                    return "CROSS JOIN";
+                case JoinType.FullOuter:
+                    return "FULL JOIN";
                 default:
                     throw new NotImplementedException();
             }
