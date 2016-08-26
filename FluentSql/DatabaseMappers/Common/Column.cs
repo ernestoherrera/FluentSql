@@ -44,7 +44,17 @@ namespace FluentSql.DatabaseMappers.Common
         /// <summary>
         /// Return Database Column size
         /// </summary>
-        public int Size;
+        public int? Size;
+        /// <summary>
+        /// For numeric types returns
+        /// the numeric precision.
+        /// </summary>
+        public int? NumericPrecision;
+        /// <summary>
+        /// For numeric types returns
+        /// the numeric scale.
+        /// </summary>
+        public int? NumericScale;
         /// <summary>
         /// User specific field used to ignore the column
         /// </summary>

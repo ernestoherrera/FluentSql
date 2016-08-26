@@ -10,7 +10,9 @@ namespace FluentSql.Mappers
         public string Name { get; internal set; }
        
         public string ColumnName { get; internal set; }
-       
+
+        public string ColumnDataType { get; internal set; }
+
         public bool IsPrimaryKey { get; internal set; }
 
         public bool IsAutoIncrement { get; internal set; }
@@ -19,9 +21,15 @@ namespace FluentSql.Mappers
 
         public PropertyInfo PropertyInfo { get; internal set; }
        
-        public int Size { get; internal set; }
+        public int? Size { get; internal set; }
+
+        public int? NumericPrecision { get; internal set; }
+
+        public int? NumericScale { get; internal set; }
 
         public bool Ignored { get; internal set; }
+
+        public bool IsComputed { get; internal set; }
 
         public bool IsReadOnly { get; internal set; }
 

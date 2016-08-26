@@ -189,7 +189,6 @@ namespace FluentSql.Contracts
 
         IEnumerable<SqlDbParameter> ExecuteProcedure(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null);
 
-        object ExecuteScalar(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null, CommandType? commandType = null);
         #endregion
 
         #region Execute Query
@@ -200,6 +199,8 @@ namespace FluentSql.Contracts
         IEnumerable<TResult> ExecuteQuery<T, R, TResult>(IQuery<T> query);
 
         IEnumerable<Tuple<T, R>> ExecuteQuery<T, R>(IQuery<T> query);
+
+        object ExecuteScalar<T>(IQuery<T> query);
         #endregion
     }
 }

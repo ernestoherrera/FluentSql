@@ -535,6 +535,37 @@ namespace FluentSql.Tests.SelectStatement
             Xunit.Assert.True(returnSet.Count() == take);
         }
 
+        [Fact]
+        public void SelectContains()
+        {
+            var store = new EntityStore(_dbConnection);
+            var employeeIds = new List<int> { 1, 2, 3, 4, 5, 6, 7 };
+            var selectQuery = store.GetSelectQuery<Employee>()
+                                    .Where(e => employeeIds.Contains(e.Id));
+                                    
+
+            var employeeSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+
+            Xunit.Assert.True(employeeSet.Count() == 7);
+        }
+
+        [Fact]
+        public void SelectContainsStrings()
+        {
+            var store = new EntityStore(_dbConnection);
+            var employeeLastNames = new List<string> { "Rogers", "Carter", "Daniels" };
+            var selectQuery = store.GetSelectQuery<Employee>()
+                                    .Where(e => employeeLastNames.Contains(e.LastName));
+
+            var employeeSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+
+            Xunit.Assert.True(employeeSet.Count() == 3);
+        }
+
         public void Dispose()
         {
             _dbConnection.Close();

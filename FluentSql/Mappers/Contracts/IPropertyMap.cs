@@ -13,6 +13,8 @@ namespace FluentSql.Mappers.Contracts
 
         string ColumnName { get;  }
 
+        string ColumnDataType { get; }
+
         bool IsPrimaryKey { get;  }
 
         bool IsAutoIncrement { get;  }
@@ -21,9 +23,15 @@ namespace FluentSql.Mappers.Contracts
 
         PropertyInfo PropertyInfo { get;  }
 
-        int Size { get;  }
+        int? Size { get;  }
+
+        int? NumericPrecision { get; }
+
+        int? NumericScale { get; }
 
         bool Ignored { get;  }
+
+        bool IsComputed { get; }
 
         bool IsReadOnly { get;  }
 

@@ -168,23 +168,13 @@ namespace FluentSql
         }
         #endregion
 
-            #region Entity inserts
+        #region Entity inserts
         public T Insert<T>(T entity) where T : new()
         {
             var insertQuery = SqlGenerator.Insert<T>(entity);
-            var id = DapperHelper.ExecuteScalar(DbConnection, insertQuery.ToSql(), insertQuery.Parameters);
+            IEnumerable<T> entityIn = DapperHelper.Query<T>(DbConnection, insertQuery.ToSql(), insertQuery.Parameters);
 
-            T result = new T();
-
-            result = entity;
-
-            if (id != null)
-            {
-                var field = EntityMapper.EntityMap[typeof(T)].Properties.FirstOrDefault(p => p.IsAutoIncrement);
-
-                if (field != null)
-                    field.PropertyInfo.SetValue(result, id);
-            }
+            T result = entityIn.FirstOrDefault();
 
             return result;
         }
@@ -324,6 +314,11 @@ namespace FluentSql
             return entities;
         }
 
+        public object ExecuteScalar<T>(IQuery<T> query)
+        {
+            return DapperHelper.ExecuteScalar(DbConnection, query.ToSql(), query.Parameters, null, null, CommandType.Text);
+        }
+
         #endregion
 
         #region Stored Procedures - SQL script Execution
@@ -364,7 +359,7 @@ namespace FluentSql
             return returnParams;
         }
 
-        public object ExecuteScalar(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null, CommandType? commandType = null)
+        public object ExecuteScalar(string sql, IEnumerable<SqlDbParameter> parameters = null, bool executeInTransaction = false, int? commandTimeout = null, CommandType? commandType = null)
         {
             if (executeInTransaction)
             {
@@ -373,6 +368,7 @@ namespace FluentSql
                     var dynamicParams = ConvertToDynamc(parameters);
                     var result = DapperHelper.ExecuteScalar(DbConnection, sql, dynamicParams, dbTransaction, commandTimeout, commandType);
 
+                    dbTransaction.Commit();
                     parameters = ConvertToSqlDbParameter(parameters, dynamicParams);
 
                     return result;
@@ -398,8 +394,6 @@ namespace FluentSql
             if (parameters == null) return null;
 
             var dynamicParams = new DynamicParameters();
-
-            if (parameters == null) return dynamicParams;
 
             foreach (var param in parameters)
             {

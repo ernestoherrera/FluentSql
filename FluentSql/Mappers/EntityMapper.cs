@@ -121,6 +121,8 @@ namespace FluentSql.Mappers
                 prop.Ignored = col.Ignore;
                 prop.Size = col.Size;
                 prop.OrdinalPosition = col.OrdinalPosition;
+                prop.ColumnDataType = col.DataType;
+                prop.IsComputed = col.IsComputed;
             }
 
             table.IsMapped = true;

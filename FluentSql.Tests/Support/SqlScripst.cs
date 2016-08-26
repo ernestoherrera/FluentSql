@@ -90,6 +90,7 @@ CREATE TABLE [dbo].[Orders](
 	[ShippedDate] [datetime] NULL,
 	[ShipVia] [int] NULL,
 	[Freight] [money] NULL,
+	[DaysSinceOrdered]  AS (DATEDIFF(day,case when [OrderDate] IS NULL then getdate() else [OrderDate]  end,case when [REQUIREDDATE] IS NULL then getdate() else [REQUIREDDATE] end)),
 	[ShipName] [nvarchar](40) NULL,
 	[ShipAddress] [nvarchar](60) NULL,
 	[ShipCity] [nvarchar](15) NULL,

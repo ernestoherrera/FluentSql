@@ -33,5 +33,7 @@ namespace FluentSql.Tests.Models
         public string ShipPostalCode { get; set; } 
 
         public string ShipCountry { get; set; } 
+
+        public int DaysSinceOrdered { get; set; }
     }
 }

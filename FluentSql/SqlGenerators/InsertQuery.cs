@@ -20,6 +20,7 @@ namespace FluentSql.SqlGenerators
 
             Fields = Fields.Where(p => p.IsTableField &&
                                         !p.IsAutoIncrement &&
+                                        !p.IsComputed &&
                                         !p.Ignored &&
                                         !p.IsReadOnly)
                             .OrderBy(p => p.OrdinalPosition)
@@ -58,13 +59,38 @@ namespace FluentSql.SqlGenerators
 
         protected virtual void AddToQueryParameter()
         {
-            foreach (var field in Fields)
+            var insertFields = GetInsertableFields();
+
+            foreach (var field in insertFields)
             {
                 var fieldValue = field.PropertyInfo.GetValue(Entity);
                 var parameterName = EntityMapper.SqlGenerator.DriverParameterIndicator + field.ColumnName;
 
                 Parameters.Add(parameterName, fieldValue);
             }
+        }
+
+        /// <summary>
+        /// It removes any fields that have a value of null in the entity AND
+        /// it has a default function in the database.
+        /// This allows for the field to be properly initialized by the database.
+        /// </summary>
+        /// <returns></returns>
+        protected virtual IEnumerable<PropertyMap> GetInsertableFields()
+        {
+            var fieldsWithDefault = Fields.Where(f => f.HasDefault).ToList();
+
+            if (fieldsWithDefault == null) return Fields;
+
+            var fieldsCount = fieldsWithDefault.Count();
+
+            for (var i = fieldsCount - 1; i >= 0; i--)
+            {
+                if (fieldsWithDefault[i].PropertyInfo.GetValue(Entity) == null)
+                    Fields.RemoveAt(Fields.IndexOf(fieldsWithDefault[i]));
+            }
+
+            return Fields;
         }
     }
 }

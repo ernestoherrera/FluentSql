@@ -14,7 +14,7 @@ namespace FluentSql.Mappers
         public string TableAlias { get; internal set; }
         public List<PropertyMap> Properties { get; internal set; }
         public Type EntityType { get; private set; }
-        public string Name { get; private set; }      
+        public string Name { get; private set; }
 
         public EntityMap(Type entityType)
         {
