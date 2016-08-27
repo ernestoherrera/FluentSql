@@ -32,6 +32,11 @@ DROP TABLE [dbo].[Customers]
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Orders]') AND type in (N'U'))
 DROP TABLE [dbo].[Orders]
 
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[OrderDetails]') AND type in (N'U'))
+DROP TABLE [dbo].[OrderDetails]
+
+IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Products]') AND type in (N'U'))
+DROP TABLE [dbo].[Products]
 
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Employees]') AND type in (N'U'))
 BEGIN
@@ -83,7 +88,7 @@ IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Or
 BEGIN
 CREATE TABLE [dbo].[Orders](
 	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[CustomerId] [nchar](5) NULL,
+	[CustomerId] int NULL,
 	[EmployeeId] [int] NULL,
 	[OrderDate] [datetime] NULL,
 	[RequiredDate] [datetime] NULL,
@@ -103,6 +108,43 @@ CREATE TABLE [dbo].[Orders](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 END
+
+CREATE TABLE [dbo].[Products](
+	[ProductId] [int] IDENTITY(1,1) NOT NULL,
+	[ProductName] [nvarchar](40) NOT NULL,
+	[QuantityPerUnit] [nvarchar](20) NULL,
+	[UnitPrice] [money] NULL,
+	[UnitsInStock] [smallint] NULL,
+	[UnitsOnOrder] [smallint] NULL,
+	[ReorderLevel] [smallint] NULL,
+	[Discontinued] [bit] NOT NULL,
+ CONSTRAINT [PK_Products] PRIMARY KEY CLUSTERED 
+(
+	[ProductId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+CREATE TABLE [dbo].[OrderDetails](
+	[OrderId] [int] NOT NULL,
+	[ProductId] [int] NOT NULL,
+	[UnitPrice] [money] NOT NULL,
+	[Quantity] [smallint] NOT NULL,
+	[Discount] [real] NOT NULL,
+ CONSTRAINT [PK_Order_Details] PRIMARY KEY CLUSTERED 
+(
+	[OrderId] ASC,
+	[ProductId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+
+SET IDENTITY_iNSERT PRODUCTS ON
+
+INSERT Products(ProductId,ProductName,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(1,'Chai','10 boxes x 20 bags',18,39,0,10,0);
+INSERT Products(ProductId,ProductName,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(2,'Chang','24 - 12 oz bottles',19,17,40,25,0);
+INSERT Products(ProductId,ProductName,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(3,'Aniseed Syrup','12 - 550 ml bottles',10,13,70,25,0);
+INSERT Products(ProductId,ProductName,QuantityPerUnit,UnitPrice,UnitsInStock,UnitsOnOrder,ReorderLevel,Discontinued) VALUES(4,'Chef Anton''s Cajun Seasoning','48 - 6 oz jars',22,53,0,0,0);
+
 
 INSERT INTO Employees (FirstName,LastName,Email,[Address],City,[State],[SSN])
 VALUES
@@ -157,6 +199,16 @@ INSERT INTO [Orders] (CustomerId,EmployeeID,OrderDate,RequiredDate,
 VALUES (2,1,'1/19/2016','2/16/2016','2/29/2016',1,55.09,
 	N'Prince of York',N'Henry VIII drive',N'London',
 	NULL,N'50739',N'England');
+
+  INSERT OrderDetails VALUES (1, 1, 3.33, 7, 0.0);
+  INSERT OrderDetails VALUES (1, 2, 17.33, 20, 0.0);
+
+  INSERT OrderDetails VALUES (2, 3, 45.81, 8, 0.0);
+  INSERT OrderDetails VALUES (2, 4, 9.99, 100, 0.0);
+
+  INSERT OrderDetails VALUES (3, 1, 3.33, 100, 0.0);
+  INSERT OrderDetails VALUES (3, 2, 17.99, 50, 0.0);
+  INSERT OrderDetails VALUES (3, 3, 45.99, 2, 0.0);
 ", TestConstants.TestDatabaseName);
             }
         }

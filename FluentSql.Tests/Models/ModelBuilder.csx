@@ -36,7 +36,7 @@ var classNamespace = "FluentSql.Tests.Models";
 var destinationFolder = @"C:\Source\FluentSql\FluentSql\FluentSql.Tests\Models\";
 var fileExtension = ".cs";
 // Name of the one model to be refreshed. If empty string it will refresh all models
-var mapSingleTable = "";
+var mapSingleTable = "Orders";
 
 var sqlServerConnection = new SqlConnection($"Server={serverName};Database={sqlDatabaseName};User ID={sqlLogin};Password={sqlPassword};");
 

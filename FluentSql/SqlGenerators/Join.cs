@@ -104,6 +104,6 @@ namespace FluentSql.SqlGenerators
             }
         }
 
-        #endregion        
+        #endregion
     }
 }

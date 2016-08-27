@@ -1,4 +1,5 @@
 ﻿using FluentSql.Mappers;
+using FluentSql.SqlGenerators.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,10 +29,11 @@ namespace FluentSql.SqlGenerators.SqlServer
 
             insertableFields = insertableFields.Where(fld => !_unsupportedTypes.Contains(fld.ColumnDataType));
 
+            var parameterSign = EntityMapper.SqlGenerator.DriverParameterIndicator;
             var insertableFieldNames = insertableFields.Select(fld => fld.ColumnName);
+            var valuesParameters = string.Format("{0}", string.Join(",", insertableFields.Select(i => parameterSign + i.ColumnName)));
             var formattedFields = SqlServerHelper.BraketFieldNames(insertableFieldNames);
             var autoIncrementField = EntityMapper.EntityMap[typeof(T)].Properties.Where(p => p.IsAutoIncrement).FirstOrDefault();
-            var parameterSign = EntityMapper.SqlGenerator.DriverParameterIndicator;
 
             if (autoIncrementField != null)
             {
@@ -45,7 +47,7 @@ namespace FluentSql.SqlGenerators.SqlServer
                                         string.Format("OUTPUT {0} INTO {1}", GetAllFields(useInsertedPrefix: true), _tempTableName));
 
                 var valuesClause = "VALUES ({0}); {1};";
-                var valuesParameters = string.Format("{0}", string.Join(",", insertableFields.Select(i => parameterSign + i.ColumnName)));
+
                 var returnEntity = string.Format("SELECT TOP 1 {0} FROM {1}", GetAllFields(), _tempTableName);
 
                 sqlBuilder.AppendFormat(valuesClause, valuesParameters, returnEntity);
@@ -58,7 +60,14 @@ namespace FluentSql.SqlGenerators.SqlServer
                                         SchemaName,
                                         TableName,
                                         string.Format("{0}", string.Join(",", formattedFields)),
-                                        string.Format("{0}", string.Join(",", Fields.Select(i => parameterSign + i.ColumnName))));
+                                        string.Format("{0}", string.Join(",", valuesParameters)));
+
+                var query = new SqlServerSelectQuery<T>();
+                query = EntityStore.GetQueryByKey<T>(this.Entity, query) as SqlServerSelectQuery<T>;
+                query.GetTopRows(1);
+
+                Parameters.AddDynamicParams(query.Parameters);
+                sqlBuilder.Append(query.ToSql());
             }
 
             return sqlBuilder.ToString();

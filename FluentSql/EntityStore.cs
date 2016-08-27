@@ -184,24 +184,16 @@ namespace FluentSql
             var resultSet = new List<T>();
 
             if (entityList == null) return resultSet;
-            
+
             var iter = entityList.GetEnumerator();
-            var field = EntityMapper.EntityMap[typeof(T)].Properties.FirstOrDefault(p => p.IsAutoIncrement);
 
             while (iter.MoveNext())
             {
                 T entity = iter.Current;
-                var insertQuery = SqlGenerator.Insert<T>(entity);
-                var id = DapperHelper.ExecuteScalar(DbConnection, insertQuery.ToSql(), insertQuery.Parameters);
+                var insertedEntity = Insert<T>(entity);
 
-                if (field != null)
-                {
-                    var resultEntity = new T();
-
-                    resultEntity = entity;
-                    field.PropertyInfo.SetValue(resultEntity, id);
-                    resultSet.Add(resultEntity);
-                }
+                if (insertedEntity != null)
+                    resultSet.Add(insertedEntity);
             }
 
             return resultSet;
@@ -422,7 +414,7 @@ namespace FluentSql
             return dbParameters;
         }
 
-        private Query<T> GetQueryByKey<T>(dynamic key, Query<T> query)
+        internal static Query<T> GetQueryByKey<T>(dynamic key, Query<T> query)
         {
             var keyColumns = EntityMapper.EntityMap[typeof(T)].Properties.Where(p => p.IsPrimaryKey).ToList();
             ExpressionType? linkingField = null;
@@ -436,17 +428,17 @@ namespace FluentSql
             {
                 var leftOperand = EntityMapper.SqlGenerator.FormatFieldforSql(column.Name, query.TableAlias);
                 var value = string.Empty;
-                 
+
                 if (keyType.Namespace == null || !SystemTypes.All.Contains(keyType))
                 {
                     var keyPropInfo = keyType.GetProperty(column.Name);
                     var keyPropValue = keyPropInfo.GetValue(key);
-                    
+
                     value = string.Format("{0}", keyPropValue);
                 }
                 else if (SystemTypes.All.Contains(keyType))
-                {                                        
-                    value = string.Format("{0}", key);                    
+                {
+                    value = string.Format("{0}", key);
                 }
 
                 query.Where(leftOperand, ExpressionType.Equal, value, true, linkingField);

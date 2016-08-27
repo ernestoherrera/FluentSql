@@ -34,7 +34,12 @@ namespace FluentSql.Tests.InsertStatement
             Xunit.Assert.NotNull(employee);
             Xunit.Assert.True(employee.Id > 0);
 
-            var customer = new Customer { CompanyName = "US Army", ContactName = "Nick Fury", Country = "USA" };
+            var customer = new Customer
+            {
+                CompanyName = "US Army",
+                ContactName = "Nick Fury",
+                Country = "USA"
+            };
 
             customer = store.Insert(customer);
             Xunit.Assert.NotNull(customer);
@@ -64,11 +69,77 @@ namespace FluentSql.Tests.InsertStatement
             var emp = new Employee { FirstName = "Red", LastName = "Skull", Enabled = false };
             var insertQuery = store.GetInsertQuery<Employee>(emp);
 
-            var id = store.ExecuteScalar(insertQuery);
+            var resultSet = store.ExecuteQuery(insertQuery);
 
-            emp.Id = (int)id;
+            Xunit.Assert.NotNull(resultSet);
 
-            Xunit.Assert.True(emp.Id > 0);
+            var insertedEmployee = resultSet.FirstOrDefault();
+
+            Xunit.Assert.IsType<Employee>(insertedEmployee);
+
+            Xunit.Assert.True(insertedEmployee.Id > 0);
+        }
+
+        [Fact]
+        public void InsertManyTest()
+        {
+            var store = new EntityStore(_dbConnection);
+            var customers = new List<Customer>
+            {
+                new Customer
+                {
+                    CompanyName = "SHIELD",
+                    ContactName = "James Buchanan",
+                    Address = "3037 La Follette Circle",
+                    City = "Santa Clara",
+                    Region = "CA"
+                },
+                new Customer
+                {
+                    CompanyName = "Stark Enterprises",
+                    ContactName = "Colonel Chester Phillips",
+                    Address = "905 Sunnyside Terrace",
+                    City = "Spokane",
+                    Region = "WA"
+                },
+                new Customer
+                {
+                    CompanyName = "Marvel",
+                    ContactName = "Private Lorraine",
+                    Address = "69232 Ramsey Park",
+                    City = "Sacramento",
+                    Region = "CA"
+                }
+            };
+
+            var newCustomers = store.InsertMany(customers);
+
+            Xunit.Assert.NotNull(newCustomers);
+            Xunit.Assert.NotEmpty(newCustomers);
+
+            foreach (var cust in newCustomers)
+            {
+                Xunit.Assert.True(cust.Id > 0);
+            }
+        }
+
+        [Fact]
+        void InsertNonAutoIncrement()
+        {
+            var store = new EntityStore(_dbConnection);
+            var orderDetail = new OrderDetail
+            {
+                OrderId = 3,
+                ProductId = 4,
+                UnitPrice = 10.99M,
+                Quantity = 100,
+                Discount = 0.05F
+            };
+
+            orderDetail = store.Insert(orderDetail);
+
+            Xunit.Assert.NotNull(orderDetail);
+            Xunit.Assert.True(orderDetail.OrderId == 3);
         }
     }
 }

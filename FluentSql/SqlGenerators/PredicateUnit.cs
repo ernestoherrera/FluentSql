@@ -13,7 +13,7 @@ namespace FluentSql.SqlGenerators
         /// <summary>
         /// Predicate's left side name
         /// </summary>
-        public string LeftOperand { get; set; }        
+        public string LeftOperand { get; set; }
 
         /// <summary>
         /// Predicate operator: equality, greater than, less than...

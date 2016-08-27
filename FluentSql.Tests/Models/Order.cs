@@ -8,7 +8,7 @@ namespace FluentSql.Tests.Models
     {
         public int Id { get; set; } 
 
-        public int CustomerId { get; set; } 
+        public int? CustomerId { get; set; } 
 
         public int? EmployeeId { get; set; } 
 
@@ -22,6 +22,8 @@ namespace FluentSql.Tests.Models
 
         public decimal? Freight { get; set; } 
 
+        public int? DaysSinceOrdered { get; set; } 
+
         public string ShipName { get; set; } 
 
         public string ShipAddress { get; set; } 
@@ -33,7 +35,5 @@ namespace FluentSql.Tests.Models
         public string ShipPostalCode { get; set; } 
 
         public string ShipCountry { get; set; } 
-
-        public int DaysSinceOrdered { get; set; }
     }
 }
