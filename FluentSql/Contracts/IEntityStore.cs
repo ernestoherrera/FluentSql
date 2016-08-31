@@ -161,17 +161,8 @@ namespace FluentSql.Contracts
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
         /// <returns></returns>
-        int UpdateByKey<T>(T entity);       
+        int UpdateByKey<T>(T entity);
 
-        /// <summary>
-        /// Updates the resulting Entity set produced by applying the filter
-        /// with the non-null template field values
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="template"></param>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        int UpdateWithFilter<T>(Expression<Func<T, bool>> filterExpression, params Expression<Func<T, bool>>[] setExpression);
         #endregion
 
         #region Delete

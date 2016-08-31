@@ -211,13 +211,6 @@ namespace FluentSql
             return recordsAffected;
         }
 
-        public int UpdateWithFilter<T>(Expression<Func<T, bool>> filterExpression, params Expression<Func<T, bool>>[] setExpression)
-        {
-            var updateQuery = SqlGenerator.Update<T>().Set(setExpression).Where(filterExpression);
-            var recordsAffected = DapperHelper.Execute(DbConnection, updateQuery.ToSql(), updateQuery.Parameters);
-
-            return recordsAffected;
-        }
         #endregion
 
         #region Delete

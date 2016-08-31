@@ -148,8 +148,12 @@ namespace FluentSql.Support.Helpers
                 }
 
                 return methodCall;
+            }            
+            else if (methodObject.ToString().StartsWith("DateTime.Now"))
+            {
+                this.VisitMember((MemberExpression)methodObject);
+                return methodCall;
             }
-
             return base.VisitMethodCall(methodCall);
         }
 
@@ -201,7 +205,7 @@ namespace FluentSql.Support.Helpers
                     var inClause = string.Format("IN ( {0} )", String.Join(",", parameterNames));
 
                     predicateString.Enqueue(inClause);
-                }                
+                }
                 else
                 {
                     var paramName = paramNameGenerator.GetNextParameterName(nameof(member.Name));
@@ -215,6 +219,15 @@ namespace FluentSql.Support.Helpers
             else if (member.MemberType == MemberTypes.Property && propertyType == typeof(System.Boolean))
             {
                 predicateString.Enqueue(memberExpression.ToString() + " = 1");
+            }
+            else if (member.MemberType == MemberTypes.Property && propertyType == typeof(System.DateTime))
+            {
+                var paramName = paramNameGenerator.GetNextParameterName(nameof(member.Name));
+                var propertyValue = GetValue(memberExpression);
+
+                QueryParameters.Add(paramName, propertyValue);
+                predicateString.Enqueue(paramName);
+
             }
             else if (memberExpression.Expression.NodeType == ExpressionType.MemberAccess
                      && ((MemberExpression)memberExpression.Expression).Member.MemberType == MemberTypes.Field)

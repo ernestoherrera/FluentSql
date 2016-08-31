@@ -24,24 +24,18 @@ namespace FluentSql.SqlGenerators
 
             Fields = Fields.Where(p => p.IsTableField &&
                                     !p.IsAutoIncrement &&
+                                    !p.IsComputed &&
                                     !p.Ignored &&
                                     !p.IsReadOnly).ToList();
         }
 
-        public UpdateQuery(T entity) : base()
+        public UpdateQuery(T entity) : this()
         {
-            Verb = UPDATE;
+
             Entity = entity;
 
-            if (Fields == null) return;
-            
-            Fields = Fields.Where(p => p.IsTableField &&
-                                    !p.IsAutoIncrement &&
-                                    !p.Ignored &&
-                                    !p.IsReadOnly).ToList();
-
             SetClause = new SetClause<T>(this);
-            
+
         }
 
         public virtual UpdateQuery<T> Set(dynamic setFields)

@@ -12,10 +12,14 @@ namespace FluentSql.SqlGenerators.SqlServer
 {
     public class SqlServerUpdateQuery<T> : UpdateQuery<T>
     {
+        private List<string> _unsupportedTypes = new List<string> { "text", "image" };
         public SqlServerUpdateQuery() : base()
-        {  }
+        {
+            Fields = Fields.Where(fld => !_unsupportedTypes.Contains(fld.ColumnDataType))
+                            .ToList();
+        }
 
-        public SqlServerUpdateQuery(T entity) : base()
+        public SqlServerUpdateQuery(T entity) : this()
         {
             Entity = entity;
 
@@ -28,52 +32,36 @@ namespace FluentSql.SqlGenerators.SqlServer
             return this;
         }
 
-        public override IQuery<T> JoinOn<TRightEntity>(System.Linq.Expressions.Expression<Func<T, TRightEntity, bool>> joinExpression, JoinType joinType = JoinType.Inner)
-        {
-            if (joinExpression == null)
-                throw new ArgumentNullException("Join expression can't be null.");
-
-            var sqlServerJoin = new SqlServerJoin<T, TRightEntity>(this, new SqlServerSelectQuery<TRightEntity>());
-
-            Joins.Enqueue(sqlServerJoin);
-
-            return sqlServerJoin.On(joinExpression);
-        }
-
         public override string ToSql()
         {
             if (Fields == null || !Fields.Any()) return string.Empty;
 
+            var sqlJoinBuilder = new StringBuilder();
             var sqlBuilder = new StringBuilder();
             var predicateSql = string.Empty;
+            var includeDbName = EntityMapper.SqlGenerator.IncludeDbNameInQuery;
+            var dbNameFormatted = string.Format("[{0}].", DatabaseName);
 
             if (PredicateParts != null)
                 predicateSql = PredicateParts.ToSql();
             else
                 predicateSql = Predicate == null ? "" : Predicate.ToSql();
 
-            if (EntityMapper.SqlGenerator.IncludeDbNameInQuery)
-            {                
-                sqlBuilder.AppendFormat("{0} [{1}] SET {2} FROM [{3}].[{4}].[{5}] [{1}]  WHERE {6};",
-                                    Verb,
-                                    TableAlias,
-                                    SetClause.ToSql(),
-                                    DatabaseName,
-                                    SchemaName,
-                                    TableName,
-                                    predicateSql);
-            }
-            else
+            foreach (var join in Joins)
             {
-                sqlBuilder.AppendFormat("{0} [{1}] SET {2} FROM [{3}].[{4}] [{1}]  WHERE {5};",
-                                    Verb,
-                                    TableAlias,
-                                    SetClause.ToSql(),
-                                    SchemaName,
-                                    TableName,
-                                    predicateSql);
+                sqlJoinBuilder.Append(join.ToSql());
             }
 
+            sqlBuilder.AppendFormat("{0} [{1}] SET {2} FROM {3}[{4}].[{5}] [{1}] {6} WHERE {7}; ",
+                                Verb,
+                                TableAlias,
+                                SetClause.ToSql(),
+                                includeDbName ? dbNameFormatted : "",
+                                SchemaName,
+                                TableName,
+                                sqlJoinBuilder.ToString(),
+                                predicateSql);
+            
             sqlBuilder.Append("SELECT @@ROWCOUNT;");
 
             return sqlBuilder.ToString();

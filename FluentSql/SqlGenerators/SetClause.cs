@@ -17,7 +17,7 @@ namespace FluentSql.SqlGenerators
         protected IEnumerable<PropertyMap> FieldsToUpate;
 
         protected List<KeyValuePair<string, PropertyMap>> FieldParameterPairs;
-               
+
         public SetClause(UpdateQuery<T> parentQuery)
         {
             this.ParentQuery = parentQuery;
@@ -25,6 +25,7 @@ namespace FluentSql.SqlGenerators
             FieldsToUpate = ParentQuery.Fields.Where(f => !f.IsAutoIncrement &&
                                                     !f.IsReadOnly &&
                                                     !f.Ignored &&
+                                                    !f.IsComputed &&
                                                     f.IsTableField)
                                         .OrderBy(f => f.OrdinalPosition);
 
@@ -34,7 +35,7 @@ namespace FluentSql.SqlGenerators
                 AddToQueryParameters();
             }
         }
-        
+
         public SetClause(UpdateQuery<T> parentQuery, object setFields) : 
             this(parentQuery)
         {
@@ -84,7 +85,7 @@ namespace FluentSql.SqlGenerators
         }
 
         protected virtual void AddToQueryParameters()
-        {            
+        {
             foreach (var pair in this.FieldParameterPairs)
             {
                 var fieldValue = pair.Value.PropertyInfo.GetValue(ParentQuery.Entity);
