@@ -77,6 +77,11 @@ namespace FluentSql.SqlGenerators.SqlServer
             return new SqlServerDeleteQuery<T>();
         }
 
+        public DeleteQuery<T> Delete<T>()
+        {
+            return new SqlServerDeleteQuery<T>();
+        }
+
         public Join<T, TRightEntity> JoinOn<T, TRightEntity>(IQuery<T> leftQuery, IQuery<TRightEntity> rightQuery, JoinType joinType)
         {
             return new SqlServerJoin<T, TRightEntity>(leftQuery, rightQuery, joinType);

@@ -166,13 +166,23 @@ namespace FluentSql.Contracts
         #endregion
 
         #region Delete
-        int Delete<T>(T entity);
+        int DeleteByKey<T>(T entity);
         #endregion
 
         #region Get query objects
 
         SelectQuery<T> GetSelectQuery<T>();
         SelectQuery<T> GetSelectQuery<T, R>(Expression<Func<T, R, bool>> joinExpression) where R : new();
+
+        InsertQuery<T> GetInsertQuery<T>(T entity);
+
+        UpdateQuery<T> GetUpdateQuery<T>(T entity);
+
+        UpdateQuery<T> GetUpdateQuery<T>();
+
+        DeleteQuery<T> GetDeleteQuery<T>(T entity);
+
+        DeleteQuery<T> GetDeleteQuery<T>();
         #endregion
 
         #region Stored Procedure T-Sql script support

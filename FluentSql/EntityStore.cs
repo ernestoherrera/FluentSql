@@ -83,7 +83,6 @@ namespace FluentSql
             var resultSet = DapperHelper.Query<T>(DbConnection, selectQuery.ToSql());
 
             return resultSet;
-
         }
 
         public IEnumerable<Tuple<T, R>> GetAllWithJoin<T, R>(Expression<Func<T, R, bool>> joinExpression) where R : new()
@@ -214,7 +213,7 @@ namespace FluentSql
         #endregion
 
         #region Delete
-        public int Delete<T>(T entity)
+        public int DeleteByKey<T>(T entity)
         {
             var deleteQuery = SqlGenerator.Delete<T>(entity);
             var query = GetQueryByKey<T>(entity, deleteQuery);
@@ -264,6 +263,13 @@ namespace FluentSql
         public DeleteQuery<T> GetDeleteQuery<T>(T entity)
         {
             var deleteQuery = SqlGenerator.Delete<T>(entity);
+
+            return deleteQuery;
+        }
+
+        public DeleteQuery<T> GetDeleteQuery<T>()
+        {
+            var deleteQuery = SqlGenerator.Delete<T>();
 
             return deleteQuery;
         }

@@ -29,12 +29,16 @@ namespace FluentSql.SqlGenerators.SqlServer
 
         public override string ToSql()
         {
-            var sqlBuilder = new StringBuilder(this.Verb);
+            var sqlBuilder = new StringBuilder();
+            var dbNameFormatted = string.Format("[{0}].", DatabaseName);
+            var includeDbName = EntityMapper.SqlGenerator.IncludeDbNameInQuery;
 
-            if (EntityMapper.SqlGenerator.IncludeDbNameInQuery)
-                sqlBuilder.Append(string.Format("FROM [{0}].[{1}].[{2}] {3} ", DatabaseName, SchemaName, TableName, TableAlias));
-            else
-                sqlBuilder.Append(string.Format("FROM [{0}].[{1}] {2} ", SchemaName, TableName, TableAlias));
+            sqlBuilder.AppendFormat("{0} {4} FROM {1}[{2}].[{3}] {4} ", 
+                                    Verb,
+                                    includeDbName ? dbNameFormatted : "",
+                                    SchemaName, 
+                                    TableName, 
+                                    TableAlias);
 
             foreach (var join in Joins)
             {
@@ -42,10 +46,9 @@ namespace FluentSql.SqlGenerators.SqlServer
             }
 
             if (PredicateParts != null && PredicateParts.Any())
-                sqlBuilder.Append(string.Format("WHERE {0} ", PredicateParts.ToSql()));
+                sqlBuilder.AppendFormat("WHERE {0} ", PredicateParts.ToSql());
             else if (Predicate != null)
-                sqlBuilder.Append(string.Format("WHERE {0} ", Predicate.ToSql()));
-
+                sqlBuilder.AppendFormat("WHERE {0} ", Predicate.ToSql());
 
             return sqlBuilder.ToString(); 
         }

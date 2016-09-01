@@ -15,12 +15,12 @@ using Xunit;
 namespace FluentSql.Tests.UpdateStatement
 {
     [TestClass]
-    public class UpdateTest
+    public class UpdateStatementTest
     {
         private DbConnectionTest _dbConnection;
         private EntityStore _store;
 
-        public UpdateTest()
+        public UpdateStatementTest()
         {
             string connString = TestConstants.ServerPair + TestConstants.DatabasePair +
                                 TestConstants.UsernamePair + TestConstants.PasswordPair;

@@ -18,11 +18,11 @@ using Xunit;
 namespace FluentSql.Tests.SelectStatement
 {
     [TestClass]
-    public class SelectTest
+    public class SelectStatementTest
     {
         private DbConnectionTest _dbConnection;
 
-        public SelectTest()
+        public SelectStatementTest()
         {
             string connString = TestConstants.ServerPair + TestConstants.DatabasePair + 
                                 TestConstants.UsernamePair + TestConstants.PasswordPair;

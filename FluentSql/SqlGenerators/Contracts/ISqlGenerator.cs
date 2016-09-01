@@ -89,6 +89,13 @@ namespace FluentSql.SqlGenerators.Contracts
         DeleteQuery<T> Delete<T>(T entity);
 
         /// <summary>
+        /// Generates a Delete query object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        DeleteQuery<T> Delete<T>();
+
+        /// <summary>
         /// Generates a Join object that represents the join of two queries.
         /// </summary>
         /// <typeparam name="T"></typeparam>
