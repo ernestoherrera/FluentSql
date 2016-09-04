@@ -131,7 +131,6 @@ namespace FluentSql.Contracts
             where R : new() 
             where T : new();
 
-
         #endregion
 
         #region Insert
@@ -166,7 +165,7 @@ namespace FluentSql.Contracts
         #endregion
 
         #region Delete
-        int DeleteByKey<T>(T entity);
+        int DeleteByKey<T>(dynamic entity);
         #endregion
 
         #region Get query objects
@@ -190,12 +189,18 @@ namespace FluentSql.Contracts
 
         IEnumerable<SqlDbParameter> ExecuteProcedure(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null);
 
+        object ExecuteScript(string sql, object parameters = null, IDbTransaction dbTransaction = null, CommandType? commandType = null, int? commandTimeout = 0);
+
         #endregion
 
         #region Execute Query
         Task<IEnumerable<T>> ExecuteQueryAsync<T>(IQuery<T> query);
 
+        Task<IEnumerable<T>> ExecuteQueryAsync<T>(IQuery<T> query, IDbTransaction dbTransaction, int? commandTimeout = null);
+
         IEnumerable<T> ExecuteQuery<T>(IQuery<T> query);
+
+        IEnumerable<T> ExecuteQuery<T>(IQuery<T> query, IDbTransaction dbTransaction, int? commandTimeout);
 
         IEnumerable<TResult> ExecuteQuery<T, R, TResult>(IQuery<T> query);
 

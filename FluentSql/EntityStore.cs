@@ -80,7 +80,7 @@ namespace FluentSql
         public IEnumerable<T> GetAll<T>()
         {
             var selectQuery = SqlGenerator.Select<T>();
-            var resultSet = DapperHelper.Query<T>(DbConnection, selectQuery.ToSql());
+            var resultSet = DapperHelper.Query<T>(DbConnection, selectQuery.ToSql(), null);
 
             return resultSet;
         }
@@ -165,6 +165,7 @@ namespace FluentSql
 
             return resultSet;
         }
+
         #endregion
 
         #region Entity inserts
@@ -202,6 +203,8 @@ namespace FluentSql
         #region Entity Updates
         public int UpdateByKey<T>(T entity)
         {
+            if (entity == null) return 0;
+
             var updateQuery = SqlGenerator.Update<T>(entity);
             var query = GetQueryByKey<T>(entity, updateQuery);
 
@@ -213,9 +216,11 @@ namespace FluentSql
         #endregion
 
         #region Delete
-        public int DeleteByKey<T>(T entity)
+        public int DeleteByKey<T>(dynamic entity)
         {
-            var deleteQuery = SqlGenerator.Delete<T>(entity);
+            if (entity == null) return 0;
+
+            var deleteQuery = SqlGenerator.Delete<T>();
             var query = GetQueryByKey<T>(entity, deleteQuery);
 
             var recordsAffected = DapperHelper.Execute(DbConnection, deleteQuery.ToSql(), deleteQuery.Parameters);
@@ -284,9 +289,22 @@ namespace FluentSql
             return entities;
         }
 
+        public async Task<IEnumerable<T>> ExecuteQueryAsync<T>(IQuery<T> query, IDbTransaction dbTransaction, int? commandTimeout = null)
+        {
+            var entities = await DapperHelper.QueryAsync<T>(DbConnection, query.ToSql(), query.Parameters, dbTransaction, commandTimeout, CommandType.Text);
+            return entities;
+        }
+
         public IEnumerable<T> ExecuteQuery<T>(IQuery<T> query)
         {
             var entities = DapperHelper.Query<T>(DbConnection, query.ToSql(), query.Parameters);
+
+            return entities;
+        }
+
+        public IEnumerable<T> ExecuteQuery<T>(IQuery<T> query, IDbTransaction dbTransaction, int? commandTimeout = null)
+        {
+            var entities = DapperHelper.Query<T>(DbConnection, query.ToSql(), query.Parameters, dbTransaction, CommandType.Text, commandTimeout);
 
             return entities;
         }
@@ -337,6 +355,13 @@ namespace FluentSql
             finally
             {
             }
+        }
+
+        public object ExecuteScript(string sql, object parameters = null, IDbTransaction dbTransaction = null, CommandType? commandType = null, int? commandTimeout = 0)
+        {
+            var result = DapperHelper.Execute(DbConnection, sql, parameters, dbTransaction, commandTimeout, commandType);
+
+            return result;
         }
 
         public IEnumerable<SqlDbParameter> ExecuteProcedure(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null)

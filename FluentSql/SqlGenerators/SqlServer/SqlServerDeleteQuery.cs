@@ -46,9 +46,11 @@ namespace FluentSql.SqlGenerators.SqlServer
             }
 
             if (PredicateParts != null && PredicateParts.Any())
-                sqlBuilder.AppendFormat("WHERE {0} ", PredicateParts.ToSql());
+                sqlBuilder.AppendFormat("WHERE {0}; ", PredicateParts.ToSql());
             else if (Predicate != null)
-                sqlBuilder.AppendFormat("WHERE {0} ", Predicate.ToSql());
+                sqlBuilder.AppendFormat("WHERE {0}; ", Predicate.ToSql());
+
+            sqlBuilder.Append("SELECT @@ROWCOUNT;");
 
             return sqlBuilder.ToString(); 
         }

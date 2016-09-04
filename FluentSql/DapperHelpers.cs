@@ -38,6 +38,20 @@ namespace FluentSql
             { }
         }
 
+        internal static IEnumerable<T> Query<T>(IDbConnection connection, string sql, object parameters = null, IDbTransaction dbTransaction = null, CommandType? commandType = null, int? commandTimeout = null)
+        {
+            try
+            {
+                var results = connection.Query<T>(sql, parameters, transaction: dbTransaction, buffered: true,
+                                                        commandTimeout: commandTimeout,
+                                                        commandType: commandType);
+
+                return results;
+            }
+            finally
+            { }
+        }
+
         internal static async Task<IEnumerable<TReturn>> QueryAsync<TFirst, TSecond, TReturn>(IDbConnection connection, string sql, Func<TFirst, TSecond, TReturn> map, 
                                                             dynamic param = null, IDbTransaction transaction = null, 
                                                             bool buffered = true, string splitOn = "Id", 
