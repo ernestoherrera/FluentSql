@@ -1,8 +1,6 @@
 ﻿using FluentSql.Mappers;
-using FluentSql.Support.Helpers;
 using System;
 using System.Data.SqlClient;
-using System.Linq.Expressions;
 
 namespace FluentSql.SqlGenerators
 {
@@ -23,7 +21,7 @@ namespace FluentSql.SqlGenerators
             if (entityType == null)
                 throw new Exception("Order by clause requires an entity type. Type can not be null.");
 
-            TableAlias = EntityMapper.EntityMap[entityType].TableAlias;
+            TableAlias = EntityMapper.Entities[entityType].TableAlias;
             FieldName = fieldName;
             SortOrderDirection = sortDirection;
         }

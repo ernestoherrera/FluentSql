@@ -160,7 +160,7 @@ namespace FluentSql.SqlGenerators.SqlServer
 
         public string FormatFieldforSql(Type type, string fieldName)
         {
-            var tableAlias = EntityMapper.EntityMap[type].TableAlias;
+            var tableAlias = EntityMapper.Entities[type].TableAlias;
             var token = string.Format("[{0}].[{1}]", tableAlias, fieldName);
 
             return token;

@@ -33,7 +33,7 @@ namespace FluentSql.Mappers
 
         internal IEnumerable<Database> TargetDatabases { get; private set; }
 
-        public static ConcurrentDictionary<Type, EntityMap> EntityMap = new ConcurrentDictionary<Type, EntityMap>();
+        public static ConcurrentDictionary<Type, EntityMap> Entities = new ConcurrentDictionary<Type, EntityMap>();
         
         public static ISqlGenerator SqlGenerator { get; private set; }
         #endregion
@@ -128,7 +128,7 @@ namespace FluentSql.Mappers
             table.IsMapped = true;
             map.Properties.Sort();
 
-            if (!EntityMap.TryAdd(entityType, map))
+            if (!Entities.TryAdd(entityType, map))
             {
                 throw new ArgumentNullException("Can not add a key with null value.");
             }

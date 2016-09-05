@@ -3,9 +3,7 @@ using FluentSql.SqlGenerators.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FluentSql.Contracts
@@ -165,22 +163,69 @@ namespace FluentSql.Contracts
         #endregion
 
         #region Delete
+        /// <summary>
+        /// Deletes the typed entity by using the passed entity, Id, or anonymous type
+        /// to identify the key value field.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         int DeleteByKey<T>(dynamic entity);
         #endregion
 
         #region Get query objects
-
+        /// <summary>
+        /// Returns a select query object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         SelectQuery<T> GetSelectQuery<T>();
+
+        /// <summary>
+        /// Returns a select query object with the specifed join
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="R"></typeparam>
+        /// <param name="joinExpression"></param>
+        /// <returns></returns>
         SelectQuery<T> GetSelectQuery<T, R>(Expression<Func<T, R, bool>> joinExpression) where R : new();
 
+        /// <summary>
+        /// Returns an Insert query object for the specified type parameter
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         InsertQuery<T> GetInsertQuery<T>(T entity);
 
+        /// <summary>
+        /// Returns an Update query for the specified type parameter
+        /// </summary>
+        /// <typeparam name="T">Entity to be updated</typeparam>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         UpdateQuery<T> GetUpdateQuery<T>(T entity);
 
+        /// <summary>
+        /// Returns an Update query object for the specified type parameter
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         UpdateQuery<T> GetUpdateQuery<T>();
 
+        /// <summary>
+        /// Returns a Delete query object for the specified type parameter
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         DeleteQuery<T> GetDeleteQuery<T>(T entity);
 
+        /// <summary>
+        /// Returns a Delete query object for the specified type parameter
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         DeleteQuery<T> GetDeleteQuery<T>();
         #endregion
 

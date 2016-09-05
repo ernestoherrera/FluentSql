@@ -18,7 +18,7 @@ namespace FluentSql.Tests.Support
         {
             lock (_lockObject)
             {
-                if (!EntityMapper.EntityMap.Keys.Any())
+                if (!EntityMapper.Entities.Keys.Any())
                 {
                     var assemblies = new[]
                     {

@@ -1,28 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FluentSql.Support.Helpers
 {
     class SystemTypes
     {
-        private static List<Type> numericTypes = new List<Type> { typeof(int), typeof(long), typeof(double), typeof(decimal), typeof(float) };
-        private static List<Type> allTypes;
+        private static List<Type> _numericTypes = new List<Type> { typeof(int), typeof(long), typeof(double), typeof(decimal), typeof(float) };
+        private static List<Type> _allTypes;
 
-        public static List<Type> Numeric { get { return numericTypes; } }
+        public static List<Type> Numeric { get { return _numericTypes; } }
 
         public static List<Type> All
         {
             get
             {
-                if (allTypes == null)
+                if (_allTypes == null)
                 {
-                    allTypes = new List<Type> { typeof(DateTime), typeof(string), typeof(Boolean), typeof(Char) };
-                    allTypes.AddRange(numericTypes);                    
+                    _allTypes = new List<Type> { typeof(DateTime), typeof(string), typeof(Boolean), typeof(Char) };
+                    _allTypes.AddRange(_numericTypes);                    
                 }
-                return allTypes;
+                return _allTypes;
             }
         }
 

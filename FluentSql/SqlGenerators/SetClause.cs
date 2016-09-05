@@ -1,10 +1,8 @@
 ﻿using FluentSql.Mappers;
 using FluentSql.Support.Extensions;
-using FluentSql.Support.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 
 namespace FluentSql.SqlGenerators
 {
@@ -44,7 +42,7 @@ namespace FluentSql.SqlGenerators
             if (!string.IsNullOrEmpty(setFieldsType.Namespace) || setFieldsType.IsIEnumerable())
                 throw new Exception("Set clause only supports anonymous parameters.");
 
-            var entityMap = EntityMapper.EntityMap[typeof(T)];
+            var entityMap = EntityMapper.Entities[typeof(T)];
             var setFieldsProps = setFieldsType.GetProperties();
             var propMapDefault = default(PropertyMap);
             var paramGen = ParentQuery.ParameterNameGenerator;

@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace FluentSql.SqlGenerators
 {
@@ -41,9 +40,9 @@ namespace FluentSql.SqlGenerators
             Fields = new List<PropertyMap>();
             ParameterNameGenerator = new SqlGeneratorHelper();
 
-            if (EntityMapper.EntityMap.ContainsKey(typeof(TEntity)))
+            if (EntityMapper.Entities.ContainsKey(typeof(TEntity)))
             {
-                var entityMap = EntityMapper.EntityMap[typeof(TEntity)];
+                var entityMap = EntityMapper.Entities[typeof(TEntity)];
 
                 Fields = entityMap.Properties.Where(p => p.IsTableField).ToList();
                 TableName = entityMap.TableName;

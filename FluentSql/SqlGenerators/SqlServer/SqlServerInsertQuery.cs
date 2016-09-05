@@ -33,7 +33,7 @@ namespace FluentSql.SqlGenerators.SqlServer
             var insertableFieldNames = insertableFields.Select(fld => fld.ColumnName);
             var valuesParameters = string.Format("{0}", string.Join(",", insertableFields.Select(i => parameterSign + i.ColumnName)));
             var formattedFields = SqlServerHelper.BraketFieldNames(insertableFieldNames);
-            var autoIncrementField = EntityMapper.EntityMap[typeof(T)].Properties.Where(p => p.IsAutoIncrement).FirstOrDefault();
+            var autoIncrementField = EntityMapper.Entities[typeof(T)].Properties.Where(p => p.IsAutoIncrement).FirstOrDefault();
 
             if (autoIncrementField != null)
             {
@@ -76,7 +76,7 @@ namespace FluentSql.SqlGenerators.SqlServer
         private string GenerateTempTableSql()
         {
             var sqlBuilder = new StringBuilder();
-            var fieldsToInsert = EntityMapper.EntityMap[typeof(T)].Properties
+            var fieldsToInsert = EntityMapper.Entities[typeof(T)].Properties
                                         .Where(p => !_unsupportedTypes.Contains(p.ColumnDataType))
                                         .ToList();
             var fieldCount = fieldsToInsert.Count();
@@ -134,7 +134,7 @@ namespace FluentSql.SqlGenerators.SqlServer
         private string GetAllFields(bool useInsertedPrefix = false)
         {
 
-            var allColumns = EntityMapper.EntityMap[typeof(T)].Properties
+            var allColumns = EntityMapper.Entities[typeof(T)].Properties
                                         .Where(p => ! _unsupportedTypes.Contains(p.ColumnDataType))
                                         .Select(p => string.Format("{0}[{1}]",
                                          (useInsertedPrefix ? "inserted." : "") , p.ColumnName));

@@ -4,7 +4,6 @@ using System.Text;
 
 using FluentSql.SqlGenerators.Contracts;
 using FluentSql.Support;
-using FluentSql.Mappers;
 using System.Linq.Expressions;
 using FluentSql.Support.Helpers;
 using Dapper;

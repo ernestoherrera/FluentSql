@@ -1,10 +1,5 @@
 ﻿using FluentSql.SqlGenerators.Contracts;
 using FluentSql.SqlGenerators.SqlServer;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FluentSql.SqlGenerators
 {

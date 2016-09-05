@@ -440,7 +440,7 @@ namespace FluentSql
 
         internal static Query<T> GetQueryByKey<T>(dynamic key, Query<T> query)
         {
-            var keyColumns = EntityMapper.EntityMap[typeof(T)].Properties.Where(p => p.IsPrimaryKey).ToList();
+            var keyColumns = EntityMapper.Entities[typeof(T)].Properties.Where(p => p.IsPrimaryKey).ToList();
             ExpressionType? linkingField = null;
 
             if (!keyColumns.Any())
