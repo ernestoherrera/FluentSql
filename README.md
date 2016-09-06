@@ -22,6 +22,13 @@ It supports more complex scenarios where one can supply: database(s) names, asse
 
 Please take a look at the Wiki
 
+## Known Issues
+
+- Does not support self join queries.
+- Does not issue a 'IS NULL' sql when looking for NULL values
+- Does not support any of the SqlServer Date functions
+- Does not support Group By Clause.
+
 ## Help out
 
 As an open source code project, contributing to enhance FluentSql is a key part to make great software:
