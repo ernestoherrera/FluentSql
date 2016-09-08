@@ -20,7 +20,7 @@ It supports more complex scenarios where one can supply: database(s) names, asse
 
 ## Get Started
 
-Please take a look at the Wiki
+Please take a look at the [Wiki] (https://github.com/ernestoherrera/FluentSql/wiki)
 
 ## Known Issues
 
