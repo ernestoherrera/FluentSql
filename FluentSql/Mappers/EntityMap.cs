@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentSql.DatabaseMappers.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,15 +18,16 @@ namespace FluentSql.Mappers
         public EntityMap(Type entityType)
         {
             if (entityType == null)
-            {
-                Properties = new List<PropertyMap>();
-                Name = string.Empty;
-
-                return;
-            }
+                throw new ArgumentNullException("Entity type can not be null");
 
             Properties = entityType.GetProperties().Select(p => new PropertyMap(p)).ToList();
             Name = entityType.Name;
+        }
+
+        public EntityMap(Type entityType, Table table)
+        {
+
+
         }
     }
 }
