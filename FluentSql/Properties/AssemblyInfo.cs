@@ -6,13 +6,13 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("FluentSql")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyDescription("FluentSql for Dapper is a Micro ORM that uses Sql like syntax in C#")]
+[assembly: AssemblyConfiguration("Production")]
 [assembly: AssemblyCompany("Spartan Systems Inc.")]
 [assembly: AssemblyProduct("FluentSql")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+[assembly: AssemblyCopyright("Copyright © Ernesto Herrera 2016")]
+[assembly: AssemblyTrademark("Spartan Systems Inc.")]
+[assembly: AssemblyCulture("En")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
