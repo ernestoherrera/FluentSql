@@ -12,12 +12,17 @@ It supports more complex scenarios where one can supply: database(s) names, asse
 
 ## Features
 
-1. Models do not need any attributes.
-2. Use C# code to create your Sql statements.
-3. It saves coding time by using one API for all queries.
-4. Support for Multi-Database queries for the same server.
-5. Currently, it only supports Sql Server syntax.
-6. Runtime readonly dictionary with all database tables and columns information keyed by type.
+ 1. Select, Update, Delete, and Insert queries.
+ 2. Use of Multiple Join method on Select, Update, and Delete queries.
+ 3. Use of Transactions
+ 4. Use of most common Functions for the where clause: Contains, StartsWith, EndsWith, DateTime.Now, Parenthesis Hierarchic.
+ 5. Use of OrdeBy methods that allow for grid queries.
+ 6. Models do not need any attributes.
+ 7. Use C# code to create your Sql statements.
+ 8. It saves coding time by using one API for all queries.
+ 9. Support for Multi-Database queries for the same server.
+ 10. Currently, it only supports Sql Server syntax.
+ 11. Runtime readonly dictionary with all database tables and columns information keyed by type.
 
 ## Get Started
 
