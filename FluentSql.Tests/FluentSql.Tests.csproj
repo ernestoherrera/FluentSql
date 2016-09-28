@@ -77,6 +77,7 @@
     <Compile Include="DeleteStatement\DeleteStatementTest.cs" />
     <Compile Include="InsertStatement\InsertStatementTest.cs" />
     <Compile Include="Models\Customer.cs" />
+    <Compile Include="Models\CustomerOrder.cs" />
     <Compile Include="Models\Employee.cs" />
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\OrderDetail.cs" />
@@ -100,7 +101,6 @@
       <Name>FluentSql</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

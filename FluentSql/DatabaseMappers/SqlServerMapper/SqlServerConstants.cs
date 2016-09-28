@@ -31,7 +31,7 @@ namespace FluentSql.DatabaseMappers.SqlServerMapper
 		                COLUMNPROPERTY(object_id('[' + c.TABLE_SCHEMA + '].[' + c.TABLE_NAME + ']'), c.COLUMN_NAME, 'IsComputed') AS IsComputed
                 FROM	INFORMATION_SCHEMA.COLUMNS c JOIN INFORMATION_SCHEMA.TABLES t
 			                ON c.TABLE_NAME = t.TABLE_NAME
-                WHERE	t.TABLE_TYPE = 'BASE TABLE'
+                WHERE	t.TABLE_TYPE = 'BASE TABLE' OR t.TABLE_TYPE = 'VIEW'
                 ORDER BY	c.TABLE_CATALOG, c.TABLE_SCHEMA, c.TABLE_NAME, OrdinalPosition;";
 
         public static string USER_FOREIGN_KEYS_QUERY = @"SELECT OBJECT_NAME(pt.parent_object_id) TableName,

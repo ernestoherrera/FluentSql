@@ -570,6 +570,25 @@ namespace FluentSql.Tests.SelectStatement
             Xunit.Assert.True(count > 0);
         }
 
+        [Fact]
+        public void SelectIntoView()
+        {
+            var store = new EntityStore(_dbConnection);
+            var selectQuery = store.GetSelectQuery<Order>()
+                                    .JoinOn<Customer>((o, c) => o.CustomerId == c.Id)
+                                    .Where<Order, Customer>((o, c) => c.City == "Gainesville");
+
+            var customerOrders = store.ExecuteQuery<Order, Customer, CustomerOrder>(selectQuery);
+
+            Xunit.Assert.NotNull(customerOrders);
+
+            var custOrder = customerOrders.FirstOrDefault();
+
+            Xunit.Assert.NotNull(custOrder);
+            Xunit.Assert.IsType<CustomerOrder>(custOrder);
+
+        }
+
         public void Dispose()
         {
             _dbConnection.Close();

@@ -21,11 +21,10 @@ namespace FluentSql.Mappers
 {
     public class EntityMapper
     {
-        #region
-        private static IEnumerable<Table> Tables { get; set; }
-        #endregion
-
         #region Public Properties
+
+        public static IEnumerable<Table> Tables { get; internal set; }
+
         /// <summary>
         /// Default Database mapper
         /// </summary>
@@ -97,7 +96,10 @@ namespace FluentSql.Mappers
                t => string.Compare(t.Name, tableName, StringComparison.CurrentCultureIgnoreCase) == 0);
 
             if (table == null)
-                throw new Exception(string.Format("Table {0} not found", tableName));
+                throw new Exception(string.Format("Table {0} not found.", tableName));
+
+            if (!table.Columns.Any())
+                throw new Exception(string.Format("Columns not found for table {0}.", tableName));
 
             var map = new EntityMap(entityType);
 

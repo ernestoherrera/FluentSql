@@ -38,6 +38,9 @@ DROP TABLE [dbo].[OrderDetails]
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Products]') AND type in (N'U'))
 DROP TABLE [dbo].[Products]
 
+IF  EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[vwCustomerOrders]'))
+DROP VIEW [dbo].[vwCustomerOrders]
+
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Employees]') AND type in (N'U'))
 BEGIN
 CREATE TABLE [dbo].Employees (
@@ -137,6 +140,16 @@ CREATE TABLE [dbo].[OrderDetails](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 
+
+IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[vwCustomerOrders]'))
+EXEC dbo.sp_executesql @statement = N'
+CREATE VIEW [dbo].[vwCustomerOrders] AS
+SELECT o.Id, o.CustomerId, o.EmployeeId, o.OrderDate, o.RequiredDate, 
+	o.ShippedDate, o.ShipVia, o.Freight, o.ShipName, o.ShipAddress, o.ShipCity, 
+	o.ShipRegion, o.ShipPostalCode, o.ShipCountry, 
+	c.CompanyName, c.Address, c.City, c.Region, c.PostalCode, c.Country
+FROM Customers c JOIN Orders o ON c.Id = o.CustomerId
+' 
 
 SET IDENTITY_iNSERT PRODUCTS ON
 

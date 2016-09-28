@@ -24,18 +24,5 @@ namespace FluentSql.Mappers
             Properties = entityType.GetProperties().Select(p => new PropertyMap(p)).ToList();
             Name = entityType.Name;
         }
-
-        public EntityMap(Type entityType, Table table)
-        {
-            var sqlHelper = new SqlGeneratorHelper();
-
-            Properties = entityType.GetProperties().Select(p => new PropertyMap(p)).ToList();
-            Name = entityType.Name;
-
-            Database = table.Database;
-            SchemaName = table.Schema;
-            TableName = table.Name;
-            TableAlias = sqlHelper.GetTableAlias(entityType);
-        }
     }
 }
