@@ -221,26 +221,32 @@ namespace FluentSql.Support.Helpers
             }
             else if (member.MemberType == MemberTypes.Property && propertyType == typeof(System.DateTime))
             {
-                var paramName = _paramNameGenerator.GetNextParameterName(nameof(member.Name));
-                var propertyValue = GetValue(memberExpression);
-
-                QueryParameters.Add(paramName, propertyValue);
-                _predicateString.Enqueue(paramName);
-
+                AddToPredicate(memberExpression);
             }
-            else if (memberExpression.Expression.NodeType == ExpressionType.MemberAccess
-                     && ((MemberExpression)memberExpression.Expression).Member.MemberType == MemberTypes.Field)
+            else if (memberExpression.Expression != null &&
+                     memberExpression.Expression.NodeType == ExpressionType.MemberAccess &&
+                     ((MemberExpression)memberExpression.Expression).Member.MemberType == MemberTypes.Field)
             {
-                var paramValue = GetValue(memberExpression);
-                var paramName = _paramNameGenerator.GetNextParameterName(nameof(memberExpression));
-
-                QueryParameters.Add(paramName, paramValue);
-                _predicateString.Enqueue(paramName);
-
+                AddToPredicate(memberExpression);
                 return memberExpression;
 
             }
-            else if (memberExpression.NodeType == ExpressionType.MemberAccess)
+            else if (memberExpression.NodeType == ExpressionType.MemberAccess &&
+                     memberExpression.Expression == null)
+            {
+                AddToPredicate(memberExpression);
+                return memberExpression;
+            }
+            else if (memberExpression.NodeType == ExpressionType.MemberAccess &&
+                        memberExpression.Expression != null &&
+                        memberExpression.Expression.NodeType == ExpressionType.Constant)
+            {
+                AddToPredicate(memberExpression);
+                return memberExpression;
+            }
+            else if (memberExpression.NodeType == ExpressionType.MemberAccess &&
+                        memberExpression.Expression != null &&
+                        memberExpression.Expression.NodeType == ExpressionType.Parameter)
             {
                 var propertyName = GetPropertyName(memberExpression.ToString());
                 var token = GetFormattedField(memberExpression.Expression.Type, propertyName);
@@ -341,5 +347,16 @@ namespace FluentSql.Support.Helpers
         }
         #endregion
 
+        #region Private Methods
+        private void AddToPredicate(MemberExpression memberExpression)
+        {
+            var paramValue = GetValue(memberExpression);
+            var paramName = _paramNameGenerator.GetNextParameterName(nameof(memberExpression));
+
+            QueryParameters.Add(paramName, paramValue);
+            _predicateString.Enqueue(paramName);
+
+        }
+        #endregion
     }
 }

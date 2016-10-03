@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace FluentSql.Tests.Models
 {
@@ -34,6 +35,8 @@ namespace FluentSql.Tests.Models
 
         public string ShipPostalCode { get; set; } 
 
-        public string ShipCountry { get; set; } 
+        public string ShipCountry { get; set; }
+
+        public List<OrderDetail> OrderDetails { get; set; }
     }
 }

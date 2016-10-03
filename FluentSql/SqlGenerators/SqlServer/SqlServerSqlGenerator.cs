@@ -12,6 +12,9 @@ using FluentSql.Support;
 
 namespace FluentSql.SqlGenerators.SqlServer
 {
+    /// <summary>
+    /// Sql Server implementation of Sqlgenerator
+    /// </summary>
     public class SqlServerSqlGenerator : ISqlGenerator
     {
         public string DriverParameterIndicator { get { return "@"; } }

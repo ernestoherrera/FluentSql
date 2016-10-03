@@ -589,6 +589,27 @@ namespace FluentSql.Tests.SelectStatement
 
         }
 
+        [Fact]
+        public void SelectWithClassProperties()
+        {
+            var store = new EntityStore(_dbConnection);
+            var loginReq = new LoginRequest();
+
+            loginReq.Username = "srogers";
+
+            var steveRogers = store.GetSingle<Employee>(e => e.Username == loginReq.Username);
+
+            Xunit.Assert.NotNull(steveRogers);
+
+            var margaretCarter = store.GetSingle<Employee>(e => e.Username == TestConstants.USERNAME);
+
+            Xunit.Assert.NotNull(margaretCarter);
+
+            Xunit.Assert.True(margaretCarter.Username.ToLower() == TestConstants.USERNAME.ToLower());
+            Xunit.Assert.True(steveRogers.Username.ToLower() == loginReq.Username.ToLower());
+
+        }
+
         public void Dispose()
         {
             _dbConnection.Close();

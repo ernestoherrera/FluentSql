@@ -22,6 +22,10 @@ namespace FluentSql.Tests.Support
         public static string PasswordPair { get { return string.Format("Password={0};", _password); } }
         #endregion
 
+        #region Where clause test constants
+        public static string USERNAME = "MCarter";
+        #endregion
+
         public TestConstants() { }
     }
 }

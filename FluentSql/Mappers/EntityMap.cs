@@ -1,12 +1,9 @@
-﻿using FluentSql.DatabaseMappers.Common;
-using FluentSql.SqlGenerators;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace FluentSql.Mappers
 {
-    public class EntityMap 
+    public class EntityMap
     {
         public string Database { get; internal set; }
         public string SchemaName { get; internal set; }
@@ -21,8 +18,9 @@ namespace FluentSql.Mappers
             if (entityType == null)
                 throw new ArgumentNullException("Entity type can not be null");
 
-            Properties = entityType.GetProperties().Select(p => new PropertyMap(p)).ToList();
+            Properties = new List<PropertyMap>();
             Name = entityType.Name;
+            EntityType = entityType;
         }
     }
 }

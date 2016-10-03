@@ -102,6 +102,7 @@ namespace FluentSql.Mappers
                 throw new Exception(string.Format("Columns not found for table {0}.", tableName));
 
             var map = new EntityMap(entityType);
+            var entityProperties = entityType.GetProperties();
 
             map.TableAlias = tableAlias;
             map.TableName = table.Name;
@@ -110,30 +111,32 @@ namespace FluentSql.Mappers
 
             foreach (var col in table.Columns)
             {
-                var prop = map.Properties.FirstOrDefault(p => p.Name.Equals(col.ColumnName));
+                var prop = entityProperties.FirstOrDefault(p => p.Name.Equals(col.ColumnName));
 
                 if (prop == null) continue;
 
-                prop.IsTableField = true;
-                prop.ColumnName = col.ColumnName;
-                prop.HasDefault = col.HasDefault;
-                prop.IsPrimaryKey = col.IsPrimaryKey;
-                prop.IsAutoIncrement = col.IsAutoIncrement;
-                prop.IsReadOnly = col.IsReadOnly;
-                prop.Ignored = col.Ignore;
-                prop.Size = col.Size;
-                prop.OrdinalPosition = col.OrdinalPosition;
-                prop.ColumnDataType = col.DataType;
-                prop.IsComputed = col.IsComputed;
+                var propMap = new PropertyMap(prop);
+
+                propMap.IsTableField = true;
+                propMap.ColumnName = col.ColumnName;
+                propMap.HasDefault = col.HasDefault;
+                propMap.IsPrimaryKey = col.IsPrimaryKey;
+                propMap.IsAutoIncrement = col.IsAutoIncrement;
+                propMap.IsReadOnly = col.IsReadOnly;
+                propMap.Ignored = col.Ignore;
+                propMap.Size = col.Size;
+                propMap.OrdinalPosition = col.OrdinalPosition;
+                propMap.ColumnDataType = col.DataType;
+                propMap.IsComputed = col.IsComputed;
+
+                map.Properties.Add(propMap);
             }
 
             table.IsMapped = true;
             map.Properties.Sort();
 
             if (!Entities.TryAdd(entityType, map))
-            {
                 throw new ArgumentNullException("Can not add a key with null value.");
-            }
 
         }
         #endregion

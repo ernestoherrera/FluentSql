@@ -6,11 +6,26 @@ using System.Data;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace FluentSql.Contracts
+namespace FluentSql
 {
     public interface IEntityStore
     {
+        /// <summary>
+        /// Creates the Sql statements based on the provider.
+        /// </summary>
         ISqlGenerator SqlGenerator { get; }
+
+        /// <summary>
+        /// Database connection
+        /// </summary>
+        IDbConnection DbConnection { get; }
+
+        /// <summary>
+        /// Changes the database for the current connection
+        /// </summary>
+        /// <param name="databaseName"></param>
+        /// <returns></returns>
+        EntityStore WithDatabase(string databaseName);
 
         #region Synchronous Get
         /// <summary>
@@ -235,6 +250,8 @@ namespace FluentSql.Contracts
         IEnumerable<SqlDbParameter> ExecuteProcedure(string sql, IEnumerable<SqlDbParameter> parameters, bool executeInTransaction = false, int? commandTimeout = null);
 
         object ExecuteScript(string sql, object parameters = null, IDbTransaction dbTransaction = null, CommandType? commandType = null, int? commandTimeout = 0);
+
+        object ExecuteScalar(string sql, IEnumerable<SqlDbParameter> parameters = null, bool executeInTransaction = false, int? commandTimeout = null, CommandType? commandType = null);
 
         #endregion
 
