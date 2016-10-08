@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DatabaseMappers\PostgresMapper\PostgresConstants.cs" />
     <Compile Include="IEntityStore.cs" />
     <Compile Include="DapperHelpers.cs" />
     <Compile Include="DatabaseMappers\Common\Database.cs" />
