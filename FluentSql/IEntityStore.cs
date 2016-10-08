@@ -266,6 +266,8 @@ namespace FluentSql
 
         IEnumerable<TResult> ExecuteQuery<T, R, TResult>(IQuery<T> query);
 
+        Task<IEnumerable<TResult>> ExecuteQueryAsyc<T, R, TResult>(IQuery<T> query, IDbTransaction dbTransaction, int? commandTimeout = null);
+
         IEnumerable<Tuple<T, R>> ExecuteQuery<T, R>(IQuery<T> query);
 
         object ExecuteScalar<T>(IQuery<T> query);

@@ -491,6 +491,13 @@ namespace FluentSql
             return entities;
         }
 
+        public async Task<IEnumerable<TResult>> ExecuteQueryAsyc<T, R, TResult>(IQuery<T> query, IDbTransaction dbTransaction, int? commandTimeout = null)
+        {
+            var entities = await DapperHelper.QueryAsync<TResult>(DbConnection, query.ToSql(), query.Parameters, dbTransaction, commandTimeout, CommandType.Text);
+
+            return entities;
+        }
+
         public IEnumerable<Tuple<T, R>> ExecuteQuery<T, R>(IQuery<T> query)
         {
             var entities = DapperHelper.QueryMultiSet<T, R>(DbConnection, query.ToSql(), query.Parameters);
