@@ -23,6 +23,9 @@
                 return string.Format(
     @"USE {0};
 
+IF  EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[vwCustomerOrders]'))
+DROP VIEW [dbo].[vwCustomerOrders]
+
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Employees]') AND type in (N'U'))
 DROP TABLE [dbo].[Employees]
 
@@ -37,9 +40,6 @@ DROP TABLE [dbo].[OrderDetails]
 
 IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Products]') AND type in (N'U'))
 DROP TABLE [dbo].[Products]
-
-IF  EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[vwCustomerOrders]'))
-DROP VIEW [dbo].[vwCustomerOrders]
 
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Employees]') AND type in (N'U'))
 BEGIN
