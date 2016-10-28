@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>FluentSql</id>
-    <version>1.0.7</version>
+    <version>1.0.7.1</version>
     <authors>Ernesto.Herrera</authors>
     <owners>Ernesto.Herrera</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
@@ -12,9 +12,6 @@
     <description>FluentSql library creates Sql statements in C# using a Sql like syntax. It uses Dapper to execute its statements.</description>
     <releaseNotes>Write Sql like statements using C#</releaseNotes>
     <copyright>Copyright 2016 © Ernesto Herrera and contributors</copyright>
-    <tags>Dapper Sql FluentSql MicroOrm Orm</tags>
-    <dependencies>
-      <dependency id="Dapper.dll" version="1.40" />
-    </dependencies>
+    <tags>Dapper Sql FluentSql MicroOrm Orm</tags>    
   </metadata>
 </package>
