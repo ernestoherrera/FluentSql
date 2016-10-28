@@ -30,8 +30,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Dapper, Version=1.50.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Dapper.1.50.2\lib\net451\Dapper.dll</HintPath>
+    <Reference Include="Dapper, Version=1.40.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Dapper.1.42\lib\net45\Dapper.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -55,7 +55,7 @@
     <Compile Include="Mappers\IEntityMap.cs" />
     <Compile Include="Mappers\IPropertyMap.cs" />
     <Compile Include="Mappers\EntityMap.cs" />
-    <Compile Include="Mappers\EntityMapper.cs" />
+    <Compile Include="EntityMapper.cs" />
     <Compile Include="Mappers\PropertyMap.cs" />
     <Compile Include="EntityReaders\IEntityReader.cs" />
     <Compile Include="EntityReaders\DefaultEntityReader.cs" />

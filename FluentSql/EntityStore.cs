@@ -290,6 +290,20 @@ namespace FluentSql
             var insertQuery = SqlGenerator.Insert<T>(entity);
             IEnumerable<T> entityIn = DapperHelper.Query<T>(DbConnection, insertQuery.ToSql(), insertQuery.Parameters);
 
+            if (entityIn == null) return default(T);
+
+            T result = entityIn.FirstOrDefault();
+
+            return result;
+        }
+
+        public async Task<T> InsertAsync<T>(T entity) where T : new()
+        {
+            var insertQuery = SqlGenerator.Insert<T>(entity);
+            IEnumerable<T> entityIn = await DapperHelper.QueryAsync<T>(DbConnection, insertQuery.ToSql(), insertQuery.Parameters);
+
+            if (entityIn == null) return default(T);
+
             T result = entityIn.FirstOrDefault();
 
             return result;
@@ -342,6 +356,18 @@ namespace FluentSql
             return recordsAffected;
         }
 
+        public async Task<int> UpdateByKeyAsync<T>(T entity)
+        {
+            if (entity == null) return 0 ;
+
+            var updateQuery = SqlGenerator.Update<T>(entity);
+            var query = GetQueryByKey<T>(entity, updateQuery);
+
+            var recordsAffected = await DapperHelper.ExecuteScalarAsync(DbConnection, updateQuery.ToSql(), updateQuery.Parameters);
+
+            return (int)recordsAffected;
+        }
+
         #endregion
 
         #region Delete
@@ -362,6 +388,18 @@ namespace FluentSql
             var recordsAffected = DapperHelper.Execute(DbConnection, deleteQuery.ToSql(), deleteQuery.Parameters);
 
             return recordsAffected;
+        }
+
+        public async Task<int> DeleteByKeyAsync<T>(dynamic entity)
+        {
+            if (entity == null) return 0;
+
+            var deleteQuery = SqlGenerator.Delete<T>();
+            var query = GetQueryByKey<T>(entity, deleteQuery);
+
+            var recordsAffected = await DapperHelper.ExecuteScalarAsync(DbConnection, deleteQuery.ToSql(), deleteQuery.Parameters);
+
+            return (int)recordsAffected;
         }
         #endregion
 
@@ -491,7 +529,7 @@ namespace FluentSql
             return entities;
         }
 
-        public async Task<IEnumerable<TResult>> ExecuteQueryAsyc<T, R, TResult>(IQuery<T> query, IDbTransaction dbTransaction, int? commandTimeout = null)
+        public async Task<IEnumerable<TResult>> ExecuteQueryAsyc<T, R, TResult>(IQuery<T> query, IDbTransaction dbTransaction = null, int? commandTimeout = null)
         {
             var entities = await DapperHelper.QueryAsync<TResult>(DbConnection, query.ToSql(), query.Parameters, dbTransaction, commandTimeout, CommandType.Text);
 
@@ -508,6 +546,21 @@ namespace FluentSql
         public object ExecuteScalar<T>(IQuery<T> query)
         {
             return DapperHelper.ExecuteScalar(DbConnection, query.ToSql(), query.Parameters, null, null, CommandType.Text);
+        }
+
+        public object ExecuteScalar<T>(IQuery<T> query, IDbTransaction dbTransaction, int? commandTimeout = null)
+        {
+            return DapperHelper.ExecuteScalar(DbConnection, query.ToSql(), query.Parameters, dbTransaction, commandTimeout, CommandType.Text);
+        }
+
+        public async Task<T> ExecuteScalarAsync<T>(IQuery<T> query, IDbTransaction dbTransaction, int? commandTimeout = null)
+        {
+            return await DapperHelper.ExecuteScalarAsync<T>(DbConnection, query.ToSql(), query.Parameters, dbTransaction, commandTimeout, CommandType.Text);
+        }
+
+        public async Task<T> ExecuteScalarAsync<T>(IQuery<T> query)
+        {
+            return await DapperHelper.ExecuteScalarAsync<T>(DbConnection, query.ToSql(), query.Parameters, null, null, CommandType.Text);
         }
 
         #endregion

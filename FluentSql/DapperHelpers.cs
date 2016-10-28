@@ -105,5 +105,33 @@ namespace FluentSql
             finally
             { }
         }
+
+        internal static async Task<object> ExecuteScalarAsync(IDbConnection connection, string sql, object parameters = null, IDbTransaction transaction = null,
+                                        int? commandTimeout = null, CommandType? commandType = null)
+        {
+            try
+            {
+                var result = await connection.ExecuteScalarAsync(sql, parameters, transaction, commandTimeout, commandType);
+
+                return result;
+
+            }
+            finally
+            { }
+        }
+
+        internal static async Task<T> ExecuteScalarAsync<T>(IDbConnection connection, string sql, object parameters = null, IDbTransaction transaction = null,
+                                        int? commandTimeout = null, CommandType? commandType = null)
+        {
+            try
+            {
+                var result = await connection.ExecuteScalarAsync<T>(sql, parameters, transaction, commandTimeout, commandType);
+
+                return result;
+
+            }
+            finally
+            { }
+        }
     }
 }

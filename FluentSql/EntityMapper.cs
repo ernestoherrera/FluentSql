@@ -41,8 +41,8 @@ namespace FluentSql.Mappers
         public EntityMapper(IDbConnection dbConnection, IEnumerable<Database> targetDatabases, Assembly[] assembliesOfModelTypes = null, 
                             IDatabaseMapper defaultDatabaseMapper = null, Action onPostEntityMapping = null, ISqlGenerator sqlGenerator = null)
         {
-            if (dbConnection == null || targetDatabases == null)
-                throw new ArgumentNullException("Database connection, or Database names can not be null.");
+            if (dbConnection == null )
+                throw new ArgumentNullException("Database connection can not be null.");
 
             if (sqlGenerator != null)
                 SqlGenerator = sqlGenerator;
@@ -62,6 +62,10 @@ namespace FluentSql.Mappers
 
         public EntityMapper(IDbConnection dbConnection, IEnumerable<Database> allDatabases, Action onPostEntityMapping) :
             this(dbConnection, allDatabases, null, null, onPostEntityMapping)
+        { }
+
+        public EntityMapper(IDbConnection dbConnection) :
+           this(dbConnection, new List<Database> { new Database { Name = dbConnection.Database, TableNamesInPlural = true } }, null, null, null)
         { }
 
         public EntityMapper(IDbConnection dbConnection, bool tableNamesInPlural = true) :

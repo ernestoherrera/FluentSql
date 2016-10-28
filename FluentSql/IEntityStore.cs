@@ -156,6 +156,8 @@ namespace FluentSql
         /// <returns>The new entity which autoincremented field represents the new number</returns>
         T Insert<T>(T entity) where T : new();
 
+        Task<T> InsertAsync<T>(T entity) where T : new();
+
         /// <summary>
         /// Inserts multiple entities into the database. One entity at a time.
         /// </summary>
@@ -175,6 +177,8 @@ namespace FluentSql
         /// <returns></returns>
         int UpdateByKey<T>(T entity);
 
+        Task<int> UpdateByKeyAsync<T>(T entity);
+
         #endregion
 
         #region Delete
@@ -186,6 +190,8 @@ namespace FluentSql
         /// <param name="entity"></param>
         /// <returns></returns>
         int DeleteByKey<T>(dynamic entity);
+
+        Task<int> DeleteByKeyAsync<T>(dynamic entity);
         #endregion
 
         #region Get query objects
@@ -271,6 +277,12 @@ namespace FluentSql
         IEnumerable<Tuple<T, R>> ExecuteQuery<T, R>(IQuery<T> query);
 
         object ExecuteScalar<T>(IQuery<T> query);
+
+        object ExecuteScalar<T>(IQuery<T> query, IDbTransaction dbTransaction, int? commandTimeout = null);
+
+        Task<T> ExecuteScalarAsync<T>(IQuery<T> query);
+
+        Task<T> ExecuteScalarAsync<T>(IQuery<T> query, IDbTransaction dbTransaction, int? commandTimeout = null);
         #endregion
     }
 }
