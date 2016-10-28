@@ -11,7 +11,7 @@ namespace FluentSql.Tests.Support
         private static readonly string _serverName = "localhost";
         private static readonly string _testDatabaseName = "FluentSqlTestDb";
         private static readonly string _username = "appUser";
-        private static readonly string _password = "3044171035Fluent";
+        private static readonly string _password = "3044071035Fluent";
 
         public static string TestDatabaseName { get { return _testDatabaseName; } }
 

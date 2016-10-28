@@ -15,9 +15,10 @@ using FluentSql.Support.Extensions;
 using FluentSql.SqlGenerators.SqlServer;
 using System.Reflection;
 using FluentSql.EntityReaders;
+using FluentSql.Mappers;
 using System.Diagnostics;
 
-namespace FluentSql.Mappers
+namespace FluentSql
 {
     public class EntityMapper
     {
