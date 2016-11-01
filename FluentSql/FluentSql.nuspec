@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>FluentSql</id>
-    <version>1.0.7.3</version>
+    <version>$version$</version>
     <authors>Ernesto.Herrera</authors>
     <owners>Ernesto.Herrera</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
