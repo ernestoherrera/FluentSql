@@ -219,7 +219,9 @@ namespace FluentSql.Support.Helpers
             {
                 _predicateString.Enqueue(memberExpression.ToString() + " = 1");
             }
-            else if (member.MemberType == MemberTypes.Property && propertyType == typeof(System.DateTime))
+            else if (member.MemberType == MemberTypes.Property && 
+                propertyType == typeof(System.DateTime) &&
+                    memberExpression.Expression == null)
             {
                 AddToPredicate(memberExpression);
             }
