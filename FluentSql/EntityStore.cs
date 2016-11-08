@@ -351,7 +351,7 @@ namespace FluentSql
             var updateQuery = SqlGenerator.Update<T>(entity);
             var query = GetQueryByKey<T>(entity, updateQuery);
 
-            var recordsAffected = DapperHelper.Execute(DbConnection, updateQuery.ToSql(), updateQuery.Parameters);
+            var recordsAffected = DapperHelper.Execute(DbConnection, updateQuery.ToSql(), updateQuery.Parameters, null, null, CommandType.Text);
 
             return recordsAffected;
         }
@@ -364,6 +364,31 @@ namespace FluentSql
             var query = GetQueryByKey<T>(entity, updateQuery);
 
             var recordsAffected = await DapperHelper.ExecuteScalarAsync(DbConnection, updateQuery.ToSql(), updateQuery.Parameters);
+
+            return (int)recordsAffected;
+        }
+
+        public int Update<T>(object fieldsToUpdate, Expression<Func<T, bool>> filterExpression)
+        {
+            if (filterExpression == null || fieldsToUpdate == null)
+                throw new ArgumentNullException("filterExpression, fieldsToUpdate");
+
+            var updateQuery = SqlGenerator.Update<T>().Set(fieldsToUpdate)
+                                            .Where(filterExpression);
+
+            var recordsAffected = DapperHelper.Execute(DbConnection, updateQuery.ToSql(), updateQuery.Parameters, null, null, CommandType.Text);
+
+            return recordsAffected;
+        }
+
+        public async Task<int> UpdateAsync<T>(object fieldsToUpdate, Expression<Func<T, bool>> filterExpression)
+        {
+            if (filterExpression == null || fieldsToUpdate == null)
+                throw new ArgumentNullException("filterExpression, fieldsToUpdate");
+
+            var updateQuery = SqlGenerator.Update<T>().Set(fieldsToUpdate).Where(filterExpression);
+
+            var recordsAffected = await DapperHelper.ExecuteScalarAsync(DbConnection, updateQuery.ToSql(), updateQuery.Parameters, null, null, CommandType.Text);
 
             return (int)recordsAffected;
         }
@@ -397,6 +422,29 @@ namespace FluentSql
             var deleteQuery = SqlGenerator.Delete<T>();
             var query = GetQueryByKey<T>(entity, deleteQuery);
 
+            var recordsAffected = await DapperHelper.ExecuteScalarAsync(DbConnection, deleteQuery.ToSql(), deleteQuery.Parameters);
+
+            return (int)recordsAffected;
+        }
+
+        public int Delete<T>(Expression<Func<T, bool>> filterExpression)
+        {
+            if (filterExpression == null)
+                throw new ArgumentNullException("filterExpression");
+
+            var deleteQuery = SqlGenerator.Delete<T>().Where(filterExpression);
+            var recordsAffected = DapperHelper.Execute(DbConnection, deleteQuery.ToSql(), deleteQuery.Parameters);
+
+            return recordsAffected;
+
+        }
+
+        public async Task<int> DeleteAsync<T>(Expression<Func<T, bool>> filterExpression)
+        {
+            if (filterExpression == null)
+                throw new ArgumentNullException("filterExpression");
+
+            var deleteQuery = SqlGenerator.Delete<T>().Where(filterExpression);
             var recordsAffected = await DapperHelper.ExecuteScalarAsync(DbConnection, deleteQuery.ToSql(), deleteQuery.Parameters);
 
             return (int)recordsAffected;

@@ -32,17 +32,33 @@ namespace FluentSql.Tests.DeleteStatement
         [Fact]
         public void BasicDelete()
         {
-            var employee7 = _store.GetSingle<Employee>(e => e.Id == 21);
+            var employee21 = _store.GetSingle<Employee>(e => e.Id == 21);
 
-            Xunit.Assert.NotNull(employee7);
+            Xunit.Assert.NotNull(employee21);
 
-            var iDeleted = _store.DeleteByKey<Employee>(employee7);
+            var iDeleted = _store.DeleteByKey<Employee>(employee21);
 
             Xunit.Assert.True(iDeleted == 1);
 
-            employee7 = _store.GetSingle<Employee>(e => e.Id == 21);
+            employee21 = _store.GetSingle<Employee>(e => e.Id == 21);
 
-            Xunit.Assert.Null(employee7);
+            Xunit.Assert.Null(employee21);
+        }
+
+        public async Task BasicDeleteAsync()
+        {
+            var employee26 = await _store.GetSingleAsync<Employee>(e => e.Id == 26);
+
+            Xunit.Assert.NotNull(employee26);
+            Xunit.Assert.IsType<Employee>(employee26);
+
+            var iDeleted = await _store.DeleteByKeyAsync<Employee>(employee26);
+
+            Xunit.Assert.True(iDeleted == 1);
+
+            employee26 = await _store.GetSingleAsync<Employee>(e => e.Id == 26);
+
+            Xunit.Assert.Null(employee26);
         }
 
         [Fact]

@@ -14,6 +14,7 @@ namespace FluentSql.Tests.InsertStatement
     public class InsertStatementTest
     {
         private DbConnectionTest _dbConnection;
+        private IEntityStore _store;
 
         public InsertStatementTest()
         {
@@ -22,15 +23,16 @@ namespace FluentSql.Tests.InsertStatement
 
             _dbConnection = new DbConnectionTest(connString);
             new Bootstrap(_dbConnection);
+
+            _store = new EntityStore(_dbConnection);
         }
 
         [Fact]
         public void InsertBasic()
         {
-            var store = new EntityStore(_dbConnection);
             var employee = new Employee { FirstName = "Grant", LastName = "Rogers" };
 
-            employee = store.Insert(employee);
+            employee = _store.Insert(employee);
             Xunit.Assert.NotNull(employee);
             Xunit.Assert.True(employee.Id > 0);
 
@@ -41,7 +43,7 @@ namespace FluentSql.Tests.InsertStatement
                 Country = "USA"
             };
 
-            customer = store.Insert(customer);
+            customer = _store.Insert(customer);
             Xunit.Assert.NotNull(customer);
             Xunit.Assert.True(customer.Id > 0);
 
@@ -57,7 +59,44 @@ namespace FluentSql.Tests.InsertStatement
                 ShipCountry = "USA"
             };
 
-            newOrder = store.Insert(newOrder);
+            newOrder = _store.Insert(newOrder);
+            Xunit.Assert.NotNull(newOrder);
+            Xunit.Assert.True(newOrder.Id > 0);
+        }
+
+        [Fact]
+        public async Task InsertBasicAsync()
+        {
+            var employee = new Employee { FirstName = "Sam", LastName = "Wilson" };
+
+            employee = await _store.InsertAsync(employee);
+            Xunit.Assert.NotNull(employee);
+            Xunit.Assert.True(employee.Id > 0);
+
+            var customer = new Customer
+            {
+                CompanyName = "US Army",
+                ContactName = "Lieutenant James Rhodes",
+                Country = "USA"
+            };
+
+            customer = _store.Insert(customer);
+            Xunit.Assert.NotNull(customer);
+            Xunit.Assert.True(customer.Id > 0);
+
+            var newOrder = new Order
+            {
+                CustomerId = customer.Id,
+                EmployeeId = employee.Id,
+                OrderDate = DateTime.Now,
+                RequiredDate = DateTime.Now.AddMonths(1),
+                ShipName = "Steve Rogers",
+                ShipAddress = "79 Victoria Hill",
+                ShipCity = "DC",
+                ShipCountry = "USA"
+            };
+
+            newOrder = _store.Insert(newOrder);
             Xunit.Assert.NotNull(newOrder);
             Xunit.Assert.True(newOrder.Id > 0);
         }
