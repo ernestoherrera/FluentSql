@@ -14,7 +14,6 @@
    limitations under the License.
 */
 
-using FluentSql;
 using System;
 using System.Collections.Generic;
 using FluentSql.SqlGenerators.Contracts;

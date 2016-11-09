@@ -187,6 +187,16 @@ namespace FluentSql.Support.Helpers
             if (member.MemberType == MemberTypes.Field)
             {
                 dynamic values = GetValue(memberExpression);
+
+                if (values == null)
+                {
+                    var nullEquality = EntityMapper.SqlGenerator.GetNullEquality();
+
+                    _predicateString.Enqueue(nullEquality);
+
+                    return memberExpression;
+                }
+
                 Type valuesType = values.GetType();
 
                 if (valuesType.GetIEnumerableImpl() != null && valuesType != typeof(string))
@@ -212,6 +222,7 @@ namespace FluentSql.Support.Helpers
                     QueryParameters.Add(paramName, values);
                     _predicateString.Enqueue(paramName);
                 }
+
                 return memberExpression;
 
             }

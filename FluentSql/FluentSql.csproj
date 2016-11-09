@@ -46,7 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IEntityStore.cs" />
-    <Compile Include="DapperHelpers.cs" />
+    <Compile Include="Support\Helpers\DapperHelpers.cs" />
     <Compile Include="DatabaseMappers\Common\Database.cs" />
     <Compile Include="DatabaseMappers\Contracts\IDatabaseMapper.cs" />
     <Compile Include="DatabaseMappers\DefaultDatabaseMapper.cs" />

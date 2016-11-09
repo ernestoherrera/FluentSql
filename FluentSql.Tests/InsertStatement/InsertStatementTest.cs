@@ -165,7 +165,6 @@ namespace FluentSql.Tests.InsertStatement
         [Fact]
         void InsertNonAutoIncrement()
         {
-            var store = new EntityStore(_dbConnection);
             var orderDetail = new OrderDetail
             {
                 OrderId = 3,
@@ -175,7 +174,7 @@ namespace FluentSql.Tests.InsertStatement
                 Discount = 0.05F
             };
 
-            orderDetail = store.Insert(orderDetail);
+            orderDetail = _store.Insert(orderDetail);
 
             Xunit.Assert.NotNull(orderDetail);
             Xunit.Assert.True(orderDetail.OrderId == 3);

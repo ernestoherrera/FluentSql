@@ -33,11 +33,15 @@ namespace FluentSql.Mappers
 
         public bool IsReadOnly { get; internal set; }
 
+        public bool IsNullable { get; internal set; }
+
         public bool IsTableField { get; set; }
 
         public string ColumnAlias { get; internal set; }
 
         public int OrdinalPosition { get; internal set; }
+
+        public string TableName { get; internal set; }
 
         public PropertyMap(PropertyInfo prop)
         {
