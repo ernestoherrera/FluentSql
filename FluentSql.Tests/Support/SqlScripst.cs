@@ -116,7 +116,7 @@ CREATE TABLE [dbo].[Products](
 	[ProductId] [int] IDENTITY(1,1) NOT NULL,
 	[ProductName] [nvarchar](40) NOT NULL,
 	[QuantityPerUnit] [nvarchar](20) NULL,
-	[UnitPrice] [money] NULL,
+	[UnitPrice] [decimal](10,2) NULL,
 	[UnitsInStock] [smallint] NULL,
 	[UnitsOnOrder] [smallint] NULL,
 	[ReorderLevel] [smallint] NULL,
@@ -130,7 +130,7 @@ CREATE TABLE [dbo].[Products](
 CREATE TABLE [dbo].[OrderDetails](
 	[OrderId] [int] NOT NULL,
 	[ProductId] [int] NOT NULL,
-	[UnitPrice] [money] NOT NULL,
+	[UnitPrice] [decimal](10,2) NOT NULL,
 	[Quantity] [smallint] NOT NULL,
 	[Discount] [real] NOT NULL,
  CONSTRAINT [PK_Order_Details] PRIMARY KEY CLUSTERED 
@@ -149,7 +149,19 @@ SELECT o.Id, o.CustomerId, o.EmployeeId, o.OrderDate, o.RequiredDate,
 	o.ShipRegion, o.ShipPostalCode, o.ShipCountry, 
 	c.CompanyName, c.Address, c.City, c.Region, c.PostalCode, c.Country
 FROM Customers c JOIN Orders o ON c.Id = o.CustomerId
+'
+
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[CustOrderHist]') AND type in (N'P', N'PC'))
+BEGIN
+EXEC dbo.sp_executesql @statement = N'CREATE PROCEDURE [dbo].[CustOrderHist] @CustomerID nchar(5)
+AS
+SELECT ProductName, Total=SUM(Quantity)
+FROM Products P, [OrderDetails] OD, Orders O, Customers C
+WHERE C.Id = @CustomerID
+AND C.Id = O.CustomerID AND O.Id = OD.OrderID AND OD.ProductID = P.ProductID
+GROUP BY ProductName
 ' 
+END
 
 SET IDENTITY_iNSERT PRODUCTS ON
 

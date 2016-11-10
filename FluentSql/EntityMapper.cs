@@ -128,11 +128,15 @@ namespace FluentSql
                 propMap.IsPrimaryKey = col.IsPrimaryKey;
                 propMap.IsAutoIncrement = col.IsAutoIncrement;
                 propMap.IsReadOnly = col.IsReadOnly;
+                propMap.IsNullable = col.IsNullable;
                 propMap.Ignored = col.Ignore;
                 propMap.Size = col.Size;
                 propMap.OrdinalPosition = col.OrdinalPosition;
                 propMap.ColumnDataType = col.DataType;
                 propMap.IsComputed = col.IsComputed;
+                propMap.NumericPrecision = col.NumericPrecision;
+                propMap.NumericScale = col.NumericScale;
+                propMap.TableName = col.TableName;
 
                 map.Properties.Add(propMap);
             }

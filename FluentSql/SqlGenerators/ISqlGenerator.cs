@@ -124,6 +124,12 @@ namespace FluentSql.SqlGenerators.Contracts
         string GetSortOrderToken(SortOrder sortDirection);
 
         /// <summary>
+        /// Returns the null equality
+        /// </summary>
+        /// <returns></returns>
+        string GetNullEquality();
+
+        /// <summary>
         /// Returns the required field formatting for the specific SQL dialect.
         /// </summary>
         /// <param name="type"></param>

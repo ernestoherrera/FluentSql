@@ -179,6 +179,24 @@ namespace FluentSql
 
         Task<int> UpdateByKeyAsync<T>(T entity);
 
+        /// <summary>
+        /// Updates fields in Set of type T given a filter criteria
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fielsToUpdate">Anonymous type describing the fields to update</param>
+        /// <param name="filterExpression"></param>
+        /// <returns></returns>
+        int Update<T>(object fieldsToUpdate, Expression<Func<T, bool>> filterExpression);
+
+        /// <summary>
+        /// Updates fields in Set of type T given a filter criteria
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fielsToUpdate">Anonymous type describing the fields to update</param>
+        /// <param name="filterExpression"></param>
+        /// <returns></returns>
+        Task<int> UpdateAsync<T>(object fieldsToUpdate, Expression<Func<T, bool>> filterExpression);
+
         #endregion
 
         #region Delete
@@ -192,6 +210,11 @@ namespace FluentSql
         int DeleteByKey<T>(dynamic entity);
 
         Task<int> DeleteByKeyAsync<T>(dynamic entity);
+
+        int Delete<T>(Expression<Func<T, bool>> filterExpression);
+
+        Task<int> DeleteAsync<T>(Expression<Func<T, bool>> filterExpression);
+
         #endregion
 
         #region Get query objects

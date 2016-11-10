@@ -161,6 +161,11 @@ namespace FluentSql.SqlGenerators.SqlServer
             return sortDirection == SortOrder.Ascending ? "ASC" : "DESC";
         }
 
+        public string GetNullEquality()
+        {
+            return "IS NULL";
+        }
+
         public string FormatFieldforSql(Type type, string fieldName)
         {
             var tableAlias = EntityMapper.Entities[type].TableAlias;

@@ -4,7 +4,7 @@ using System.Data;
 using System.Threading.Tasks;
 using Dapper;
 
-namespace FluentSql
+namespace FluentSql.Support.Helpers
 {
     public static class DapperHelper
     {

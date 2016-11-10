@@ -57,6 +57,30 @@ namespace FluentSql.Tests.UpdateStatement
             Xunit.Assert.True(employee7.City == employee7Copy.City);
         }
 
+       [Fact]
+        public async void BasicUpdateAsync()
+        {
+            var employee20 = await _store.GetSingleAsync<Employee>(e => e.Id == 20);
+
+            Xunit.Assert.NotNull(employee20);
+            Xunit.Assert.IsType<Employee>(employee20);
+
+            employee20.FirstName = "Bucky";
+            employee20.LastName = "Barnes";
+            employee20.Address = "2020 University Ave";
+            employee20.City = "Gainesville";
+
+            var i = await _store.UpdateByKeyAsync<Employee>(employee20);
+
+            var employee20Copy = await _store.GetSingleAsync<Employee>(e => e.Id == 20);
+
+            Xunit.Assert.True(employee20.Id == employee20Copy.Id);
+            Xunit.Assert.True(employee20.FirstName == employee20Copy.FirstName);
+            Xunit.Assert.True(employee20.LastName == employee20Copy.LastName);
+            Xunit.Assert.True(employee20.Address == employee20Copy.Address);
+            Xunit.Assert.True(employee20.City == employee20Copy.City);
+        }
+
         [Fact]
         public void UpdateGetQuery()
         {
@@ -75,6 +99,24 @@ namespace FluentSql.Tests.UpdateStatement
             var iCount = texasEmployees.Count();
 
             Xunit.Assert.True((int)iModifiedRecords == iCount);
+        }
+
+        [Fact]
+        public void UpdateQuery()
+        {
+            var recordsAffected = _store.Update<Employee>(new { Birthdate = DateTime.Now.AddYears(-20) },
+                                                            e => e.State == "WA");
+            Xunit.Assert.True(recordsAffected > 0);
+        }
+
+        [Fact]
+        public async Task<int> UpdateQueryAsync()
+        {
+            var recordsAffected = await _store.UpdateAsync<Employee>(new { Birthdate = DateTime.Now.AddYears(-30) },
+                                                        e => e.City == "Richmond");
+            Xunit.Assert.True(recordsAffected > 0);
+
+            return recordsAffected;
         }
 
         [Fact]
@@ -101,6 +143,21 @@ namespace FluentSql.Tests.UpdateStatement
             orderDetail.Discount = 0.03f;
 
             var iModifiedRecords = _store.UpdateByKey(orderDetail);
+
+            Xunit.Assert.True((int)iModifiedRecords == 1);
+        }
+
+        [Fact]
+        public async Task UpdateByKeyAsync()
+        {
+            var orderDetail = await _store.GetSingleAsync<OrderDetail>(od => od.OrderId == 1 && od.ProductId == 2);
+
+            Xunit.Assert.NotNull(orderDetail);
+            Xunit.Assert.IsType<OrderDetail>(orderDetail);
+
+            orderDetail.Discount = 0.02f;
+
+            var iModifiedRecords = await _store.UpdateByKeyAsync(orderDetail);
 
             Xunit.Assert.True((int)iModifiedRecords == 1);
         }
