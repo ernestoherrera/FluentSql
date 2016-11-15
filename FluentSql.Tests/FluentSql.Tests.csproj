@@ -84,11 +84,11 @@
     <Compile Include="Models\Product.cs" />
     <Compile Include="SelectStatement\SelectStatementTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlScripts\Postgres\PostgresSqlScripts.cs" />
+    <Compile Include="SqlScripts\Postgres\PostgresSqlScript.cs" />
+    <Compile Include="SqlScripts\SqlServer\SqlServereSqlScript.cs" />
     <Compile Include="Support\Bootstrap.cs" />
     <Compile Include="Support\DbConnectionTest.cs" />
     <Compile Include="Support\LoginRequest.cs" />
-    <Compile Include="Support\SqlScripst.cs" />
     <Compile Include="Support\TestConstants.cs" />
     <Compile Include="UpdateStatement\UpdateStatementTest.cs" />
   </ItemGroup>
@@ -102,9 +102,7 @@
       <Name>FluentSql</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="SqlScripts\SqlServer\" />
-  </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

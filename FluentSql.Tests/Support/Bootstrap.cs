@@ -2,6 +2,7 @@
 using FluentSql.Mappers;
 using FluentSql.SqlGenerators.SqlServer;
 using FluentSql.Tests.Models;
+using FluentSql.Tests.SqlScripts.SqlServer;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -37,8 +38,8 @@ namespace FluentSql.Tests.Support
                     var sqlGenerator = new SqlServerSqlGenerator(includeDbNameInQuery: true);
                     var databases = new List<Database> { fluentTestDb };
 
-                    store.ExecuteScript(SqlScripts.CREATE_DATABASE, null, false, CommandType.Text);
-                    store.ExecuteScript(SqlScripts.CREATE_TABLES, null, false, CommandType.Text);
+                    store.ExecuteScript(SqlServereSqlScript.CREATE_DATABASE, null, false, CommandType.Text);
+                    store.ExecuteScript(SqlServereSqlScript.CREATE_TABLES, null, false, CommandType.Text);
 
                     new EntityMapper(dbConnection, databases, assembliesOfModelTypes, null, onPostEntityMapping, null);
                 }

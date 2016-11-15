@@ -1,12 +1,13 @@
-﻿using System;
- using System.Collections.Generic;
- using System.Linq;
- using System.Text;
- using System.Threading.Tasks;
- 
- namespace FluentSql.Tests.Support
- {
-     internal class SqlScripts
+﻿using FluentSql.Tests.Support;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FluentSql.Tests.SqlScripts.SqlServer
+{
+     internal class SqlServereSqlScript
      {
          public static string CREATE_DATABASE
         {

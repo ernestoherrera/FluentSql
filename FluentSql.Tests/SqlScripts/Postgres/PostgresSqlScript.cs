@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FluentSql.Tests.Support
+namespace FluentSql.Tests.SqlScripts.Postgres
 {
-    internal class PostgresTestScript
+    internal class PostgresSqlScript
     {
         public static string CREATE_DATABASE_OBJECTS
         {
