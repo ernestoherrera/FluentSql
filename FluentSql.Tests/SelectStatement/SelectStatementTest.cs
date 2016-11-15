@@ -610,6 +610,40 @@ namespace FluentSql.Tests.SelectStatement
 
         }
 
+        [Fact]
+        public void SelectWithNullClassProperty()
+        {
+            var store = new EntityStore(_dbConnection);
+            var loginReq = new LoginRequest();
+
+            loginReq.Username = null;
+
+            var steveRogers = store.GetSingle<Employee>(e => e.Username == loginReq.Username);
+
+            Xunit.Assert.Null(steveRogers);
+
+            var margaretCarter = store.GetSingle<Employee>(e => e.Username == null);
+
+            Xunit.Assert.Null(margaretCarter);
+        }
+
+        [Fact]
+        public void SelectWithUnsupportedMethodCalls()
+        {
+            var store = new EntityStore(_dbConnection);
+            var loginReq = new LoginRequest();
+
+            loginReq.Username = "srogers";
+
+            NotSupportedException ex = Xunit.Assert.Throws<NotSupportedException>(
+                    () => store.GetSingle<Employee>(e => e.Username.Equals(loginReq.Username)));
+
+            var steveRogers = store.GetSingle<Employee>(e => e.Username == loginReq.Username);
+
+            Xunit.Assert.NotNull(steveRogers);
+            Xunit.Assert.IsType<Employee>(steveRogers);
+        }
+
         public void Dispose()
         {
             _dbConnection.Close();

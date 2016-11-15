@@ -30,9 +30,10 @@ namespace FluentSql.Support.Helpers
         #region Private Properties
         private static readonly char[] _period = new char[] { '.' };
         private IComparer<ExpressionType> _comparer = new OperatorPrecedenceComparer();
-        private Queue<dynamic> _predicateString = new Queue<dynamic>();
+        private Stack<dynamic> _predicateString = new Stack<dynamic>();
         private SqlGeneratorHelper _paramNameGenerator;
         private readonly string _SEPARATOR = " ";
+        private readonly string _parameterName = "sql_param";
         #endregion
 
         #region Public Properties
@@ -45,10 +46,13 @@ namespace FluentSql.Support.Helpers
             if (_predicateString.Count == 0) return string.Empty;
 
             var sqlBuilder = new StringBuilder();
+            var predicate = _predicateString.ToArray();
 
-            foreach (var token in _predicateString)
+            for (int i = predicate.Length - 1; i >= 0  ; i--)
             {
-                sqlBuilder.Append(_SEPARATOR + token.ToString());
+                var token = predicate[i];
+
+                sqlBuilder.Append(_SEPARATOR + token);
             }
 
             sqlBuilder.Append(_SEPARATOR);
@@ -69,16 +73,16 @@ namespace FluentSql.Support.Helpers
         {
             if (_comparer.Compare(exp.Left.NodeType, exp.NodeType) < 0)
             {
-                _predicateString.Enqueue("(");
+                _predicateString.Push("(");
                 this.Visit(exp.Left);
-                _predicateString.Enqueue(GetOperator(exp.NodeType));
+                _predicateString.Push(GetOperator(exp.NodeType));
                 this.Visit(exp.Right);
-                _predicateString.Enqueue(")");
+                _predicateString.Push(")");
             }
             else
             {
                 this.Visit(exp.Left);
-                _predicateString.Enqueue(GetOperator(exp.NodeType));
+                _predicateString.Push(GetOperator(exp.NodeType));
                 this.Visit(exp.Right);
             }
 
@@ -94,12 +98,14 @@ namespace FluentSql.Support.Helpers
 
             if (methodCall.Method.DeclaringType == typeof(string) && allowedMethods.Contains(methodName))
             {
-                var like = "LIKE ";
-                var wildcard = @"%";
+                var like = EntityMapper.SqlGenerator.GetStringComparisonOperator();
+                var wildcard = EntityMapper.SqlGenerator.StringPatternMatchAny;
                 var comparingArgument = string.Empty;
 
+                like += _SEPARATOR;
+
                 this.VisitMember((MemberExpression)methodObject);
-                _predicateString.Enqueue(like);
+                _predicateString.Push(like);
 
                 if (methodCall.Arguments.Count > 0)
                 {
@@ -117,21 +123,27 @@ namespace FluentSql.Support.Helpers
                         comparingArgument = (string)GetValue((MemberExpression)compareTo);
                     }
 
+                    if (comparingArgument == null)
+                    {
+                        HandleNullParameterValue();
+                        return methodCall;
+                    }
+
                     if (methodName == "StartsWith")
                         comparingArgument += wildcard;
                     else
                         comparingArgument = wildcard + comparingArgument;
 
-                    var paramName = _paramNameGenerator.GetNextParameterName(nameof(comparingArgument));
+                    var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
 
                     QueryParameters.Add(paramName, comparingArgument);
-                    _predicateString.Enqueue(paramName);
+                    _predicateString.Push(paramName);
 
                     return methodCall;
                 }
                 else
                 {
-                    throw new Exception("Method call arguments not supported");
+                    throw new NotSupportedException(string.Format("{0} Method call supported", methodName));
                 }
             }
             else if (methodObject.NodeType == ExpressionType.MemberAccess && methodName == "Contains")
@@ -153,17 +165,20 @@ namespace FluentSql.Support.Helpers
                 this.VisitMember((MemberExpression)methodObject);
                 return methodCall;
             }
-            return base.VisitMethodCall(methodCall);
+            else
+            {
+                throw new NotSupportedException(string.Format("{0} Method call supported", methodName));
+            }
         }
 
         protected override Expression VisitParameter(ParameterExpression p)
         {
             if (SystemTypes.Numeric.Contains(p.Type))
             {
-                var paramName = _paramNameGenerator.GetNextParameterName(nameof(p));
+                var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
 
                 QueryParameters.Add(paramName, p.ToString());
-                _predicateString.Enqueue(paramName);
+                _predicateString.Push(paramName);
             }
 
             return p;
@@ -171,10 +186,10 @@ namespace FluentSql.Support.Helpers
 
         protected override Expression VisitConstant(ConstantExpression exp)
         {
-            var paramName = _paramNameGenerator.GetNextParameterName(nameof(exp));
+            var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
 
             QueryParameters.Add(paramName, exp.Value);
-            _predicateString.Enqueue(paramName);
+            _predicateString.Push(paramName);
 
             return base.VisitConstant(exp);
         }
@@ -190,9 +205,7 @@ namespace FluentSql.Support.Helpers
 
                 if (values == null)
                 {
-                    var nullEquality = EntityMapper.SqlGenerator.GetNullEquality();
-
-                    _predicateString.Enqueue(nullEquality);
+                    HandleNullParameterValue();
 
                     return memberExpression;
                 }
@@ -205,7 +218,7 @@ namespace FluentSql.Support.Helpers
 
                     foreach (var val in values)
                     {
-                        var paramName = _paramNameGenerator.GetNextParameterName(nameof(val));
+                        var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
 
                         parameterNames.Add(paramName);
                         QueryParameters.Add(paramName, val);
@@ -213,14 +226,14 @@ namespace FluentSql.Support.Helpers
 
                     var inClause = string.Format("IN ( {0} )", String.Join(",", parameterNames));
 
-                    _predicateString.Enqueue(inClause);
+                    _predicateString.Push(inClause);
                 }
                 else
                 {
-                    var paramName = _paramNameGenerator.GetNextParameterName(nameof(member.Name));
+                    var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
 
                     QueryParameters.Add(paramName, values);
-                    _predicateString.Enqueue(paramName);
+                    _predicateString.Push(paramName);
                 }
 
                 return memberExpression;
@@ -228,10 +241,10 @@ namespace FluentSql.Support.Helpers
             }
             else if (member.MemberType == MemberTypes.Property && propertyType == typeof(System.Boolean))
             {
-                _predicateString.Enqueue(memberExpression.ToString() + " = 1");
+                _predicateString.Push(memberExpression.ToString() + " = 1");
             }
             else if (member.MemberType == MemberTypes.Property && 
-                propertyType == typeof(System.DateTime) &&
+                    propertyType == typeof(System.DateTime) &&
                     memberExpression.Expression == null)
             {
                 AddToPredicate(memberExpression);
@@ -264,7 +277,7 @@ namespace FluentSql.Support.Helpers
                 var propertyName = GetPropertyName(memberExpression.ToString());
                 var token = GetFormattedField(memberExpression.Expression.Type, propertyName);
 
-                _predicateString.Enqueue(token);
+                _predicateString.Push(token);
             }
 
             return base.VisitMember(memberExpression);
@@ -278,12 +291,12 @@ namespace FluentSql.Support.Helpers
             {
                 if (u.NodeType == ExpressionType.Not || u.NodeType == ExpressionType.Negate)
                 {
-                    _predicateString.Enqueue(GetOperator(u.NodeType));
+                    _predicateString.Push(GetOperator(u.NodeType));
                 }
 
-                _predicateString.Enqueue("(");
+                _predicateString.Push("(");
                 operand = this.Visit(u.Operand);
-                _predicateString.Enqueue(")");
+                _predicateString.Push(")");
             }
             else
             {
@@ -361,13 +374,31 @@ namespace FluentSql.Support.Helpers
         #endregion
 
         #region Private Methods
+
+        private void HandleNullParameterValue()
+        {
+            var previousToken = _predicateString.Peek();
+
+            if (previousToken == "=")
+            {
+                var nullEquality = EntityMapper.SqlGenerator.GetNullEquality();
+
+                _predicateString.Pop();
+                _predicateString.Push(nullEquality);
+            }
+            else
+            {
+                _predicateString.Push(EntityMapper.SqlGenerator.Null);
+            }
+        }
+
         private void AddToPredicate(MemberExpression memberExpression)
         {
             var paramValue = GetValue(memberExpression);
-            var paramName = _paramNameGenerator.GetNextParameterName(nameof(memberExpression));
+            var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
 
             QueryParameters.Add(paramName, paramValue);
-            _predicateString.Enqueue(paramName);
+            _predicateString.Push(paramName);
 
         }
         #endregion

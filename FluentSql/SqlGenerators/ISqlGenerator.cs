@@ -11,6 +11,12 @@ namespace FluentSql.SqlGenerators.Contracts
         /// The parameter sign required by the specific SQL provider
         /// </summary>
         string DriverParameterIndicator { get; }
+
+        /// <summary>
+        /// Returns the character for pattern matching any sequence
+        /// </summary>
+        string StringPatternMatchAny { get; }
+
         /// <summary>
         /// Includes the database name in the query
         /// </summary>
@@ -128,6 +134,12 @@ namespace FluentSql.SqlGenerators.Contracts
         /// </summary>
         /// <returns></returns>
         string GetNullEquality();
+
+        /// <summary>
+        /// Returns the keyword for comparing strings with wildcards.
+        /// </summary>
+        /// <returns></returns>
+        string GetStringComparisonOperator();
 
         /// <summary>
         /// Returns the required field formatting for the specific SQL dialect.

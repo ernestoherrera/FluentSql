@@ -19,6 +19,8 @@ namespace FluentSql.SqlGenerators.SqlServer
     {
         public string DriverParameterIndicator { get { return "@"; } }
 
+        public string StringPatternMatchAny { get { return "%"; } }
+
         public bool IncludeDbNameInQuery { get; protected set; }
 
         public string And { get { return "AND"; } }
@@ -166,6 +168,11 @@ namespace FluentSql.SqlGenerators.SqlServer
             return "IS NULL";
         }
 
+        public string GetStringComparisonOperator()
+        {
+            return "LIKE";
+        }
+
         public string FormatFieldforSql(Type type, string fieldName)
         {
             var tableAlias = EntityMapper.Entities[type].TableAlias;
@@ -185,5 +192,6 @@ namespace FluentSql.SqlGenerators.SqlServer
 
             return token;
         }
+
     }
 }
