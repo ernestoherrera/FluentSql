@@ -33,7 +33,7 @@ namespace FluentSql.Support.Helpers
         private Stack<dynamic> _predicateString = new Stack<dynamic>();
         private SqlGeneratorHelper _paramNameGenerator;
         private readonly string _SEPARATOR = " ";
-        private readonly string _parameterName = "param_name";
+        private readonly string _parameterName = "sql_param";
         #endregion
 
         #region Public Properties
