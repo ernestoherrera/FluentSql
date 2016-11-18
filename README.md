@@ -23,6 +23,7 @@ It supports more complex scenarios where one can supply: database(s) names, asse
  9. Support for Multi-Database queries for the same server.
  10. Currently, it only supports Sql Server syntax.
  11. Runtime readonly dictionary with all database tables and columns information keyed by type.
+ 12. Clean and lean Sql statements.
 
 ## Get Started
 
