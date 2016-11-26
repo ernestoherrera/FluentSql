@@ -1,18 +1,13 @@
-﻿using FluentSql.DatabaseMappers.Common;
-using FluentSql.Mappers;
-using FluentSql.SqlGenerators;
+﻿using FluentSql.SqlGenerators;
 using FluentSql.Support;
 using FluentSql.Tests.Models;
 using FluentSql.Tests.Support;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using Xunit;
 
 namespace FluentSql.Tests.SelectStatement
@@ -257,14 +252,12 @@ namespace FluentSql.Tests.SelectStatement
         public void GetSelectQuery()
         {
             var store = new EntityStore(_dbConnection);
-
             var selectQuery = store.GetSelectQuery<Employee>();
 
             selectQuery.Where(e => ( e.Id >= 1 && e.LastName.StartsWith("s") ) ||
                                     (e.LastName.StartsWith("rog")) )
                         .OrderBy(e => e.LastName)
                         .OrderByDescending(e => e.FirstName);
-                       
 
             var employeeSet = store.ExecuteQuery(selectQuery);
 
@@ -275,6 +268,55 @@ namespace FluentSql.Tests.SelectStatement
             var employeeLastNameWithSp = employeeSet.FirstOrDefault(e => e.LastName.ToLower().StartsWith("s"));
 
             Xunit.Assert.NotNull(employeeLastNameWithSp);
+        }
+
+        [Fact]
+        public void WhereClauseWithStringComparison()
+        {
+            var store = new EntityStore(_dbConnection);
+
+            var emp = new Employee { Username = "srogers" };
+
+            var selectQuery = store.GetSelectQuery<Employee>();
+
+            //Equals Test
+            var getWithConstant = store.Get<Employee>(e => (e.Id >= 1 && e.Username.Equals("srogers")));
+
+            Xunit.Assert.NotNull(getWithConstant);
+
+            var getWithMemberAccess = store.Get<Employee>(e => (e.Id >= 1 && e.Username.Equals(emp.Username)));
+
+            Xunit.Assert.NotNull(getWithMemberAccess);
+
+            var getWithFieldConstant = store.Get<Employee>(e => (e.Id >= 1 && e.Username.Equals(TestConstants.USERNAME)));
+
+            Xunit.Assert.NotNull(getWithFieldConstant);
+
+            //StartsWith Test
+            getWithConstant = store.Get<Employee>(e => (e.Id >= 1 && e.Username.StartsWith("srog")));
+
+            Xunit.Assert.NotNull(getWithConstant);
+
+            getWithMemberAccess = store.Get<Employee>(e => (e.Id >= 1 && e.Username.StartsWith(emp.Username)));
+
+            Xunit.Assert.NotNull(getWithMemberAccess);
+
+            getWithFieldConstant = store.Get<Employee>(e => (e.Id >= 1 && e.Username.StartsWith(TestConstants.USERNAME)));
+
+            Xunit.Assert.NotNull(getWithFieldConstant);
+
+            //EndsWith Test
+            getWithConstant = store.Get<Employee>(e => (e.Id >= 1 && e.Username.EndsWith("ers")));
+
+            Xunit.Assert.NotNull(getWithConstant);
+
+            getWithMemberAccess = store.Get<Employee>(e => (e.Id >= 1 && e.Username.EndsWith(emp.Username)));
+
+            Xunit.Assert.NotNull(getWithMemberAccess);
+
+            getWithFieldConstant = store.Get<Employee>(e => (e.Id >= 1 && e.Username.EndsWith(TestConstants.USERNAME)));
+
+            Xunit.Assert.NotNull(getWithFieldConstant);
         }
 
         [Fact]
@@ -636,12 +678,21 @@ namespace FluentSql.Tests.SelectStatement
             loginReq.Username = "srogers";
 
             NotSupportedException ex = Xunit.Assert.Throws<NotSupportedException>(
-                    () => store.GetSingle<Employee>(e => e.Username.Equals(loginReq.Username)));
+                    () => store.GetSingle<Employee>(e => e.Username.Substring(0, 4) == TestConstants.USERNAME));
 
             var steveRogers = store.GetSingle<Employee>(e => e.Username == loginReq.Username);
 
             Xunit.Assert.NotNull(steveRogers);
             Xunit.Assert.IsType<Employee>(steveRogers);
+        }
+
+        [Fact]
+        public void WhereClauseWithDates()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.Get<Employee>(e => SqlFunctions.AddYears(e.Birthdate, 3) == DateTime.Now.AddYears(-33)); 
+
+            Xunit.Assert.NotNull(singleEmployee);
         }
 
         public void Dispose()

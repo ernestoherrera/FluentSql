@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Linq.Expressions;
 using FluentSql.Mappers;
 using FluentSql.Support;
+using FluentSql.Support.Helpers;
 
 namespace FluentSql.SqlGenerators.SqlServer
 {
@@ -17,6 +18,8 @@ namespace FluentSql.SqlGenerators.SqlServer
     /// </summary>
     public class SqlServerSqlGenerator : ISqlGenerator
     {
+        private static string[] DateParts = { "year", "quarter", "month", "dayofyear", "day", "week", "weekday", "hour", "minute", "second", "milliseconds", "microseconds", "nanosecods" };
+
         public string DriverParameterIndicator { get { return "@"; } }
 
         public string StringPatternMatchAny { get { return "%"; } }
@@ -32,6 +35,8 @@ namespace FluentSql.SqlGenerators.SqlServer
         public string Null { get { return "NULL"; } }
 
         public string Top { get { return "TOP"; } }
+
+        public string In { get { return "IN"; } }
 
         #region Constructor
         public SqlServerSqlGenerator(bool includeDbNameInQuery = true)
@@ -139,6 +144,66 @@ namespace FluentSql.SqlGenerators.SqlServer
             }
         }
 
+        public string GetDatePartFunc(string datePart, Type entityType, string fieldName)
+        {
+            if (string.IsNullOrEmpty(datePart) || entityType == null || string.IsNullOrEmpty(fieldName))
+                throw new ArgumentNullException("Arguements can not be null.");
+
+            var DateFunction = "DATEPART({0}, {1})";
+            var tableAlias = EntityMapper.Entities[entityType].TableAlias;
+            var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
+
+            if (verifiedField == null)
+                throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
+
+            var formattedField = string.Format("[{0}].[{1}]", tableAlias, fieldName);
+
+            if (datePart == Methods.ADDYEARS)
+                return string.Format(DateFunction, "year", formattedField);
+
+            else if (datePart == Methods.ADDMONTHS)
+                return string.Format(DateFunction, "month", formattedField);
+
+            else if (datePart == Methods.ADDDAYS)
+                return string.Format(DateFunction, "day", formattedField);
+
+            else if (datePart == Methods.ADDHOURS)
+                return string.Format(DateFunction, "hour", formattedField);
+
+            else if (datePart == Methods.ADDMINUTES)
+                return string.Format(DateFunction, "minute", formattedField);
+
+            else if (datePart == Methods.ADDSECONDS)
+                return string.Format(DateFunction, "second", formattedField);
+
+            else if (datePart == Methods.ADDMILLISECONDS)
+                return string.Format(DateFunction, "ms", formattedField);
+
+            else if (datePart == Methods.ADDHOURS)
+                return string.Format(DateFunction, "hour", formattedField);
+
+
+            else
+                throw new NotSupportedException(string.Format("DatePart not supported: {0}", datePart));
+        }
+
+        public string GetDateAddFunction(string datePart, Type entityType, string fieldName, int number)
+        {
+            if (string.IsNullOrEmpty(datePart) || entityType == null || string.IsNullOrEmpty(fieldName))
+                throw new ArgumentNullException("Arguements can not be null.");
+
+            var DateFunction = "DATEADD({0}, {1}, {2})";
+            var tableAlias = EntityMapper.Entities[entityType].TableAlias;
+            var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
+
+            if (verifiedField == null)
+                throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
+
+            var formattedField = string.Format("[{0}].[{1}]", tableAlias, fieldName);
+
+            return string.Format(DateFunction, datePart, number ,formattedField);
+        }
+
         public string GetJoinOperator(JoinType joinType)
         {
             switch (joinType)
@@ -171,6 +236,14 @@ namespace FluentSql.SqlGenerators.SqlServer
         public string GetStringComparisonOperator()
         {
             return "LIKE";
+        }
+
+        public string GetDatePartFunction(string datePart, Type type, string fieldName)
+        {
+            var tableAlias = EntityMapper.Entities[type].TableAlias;
+            var token = string.Format("DATEPART({0}, [{0}].[{1}])",datePart, tableAlias, fieldName);
+
+            return token;
         }
 
         public string FormatFieldforSql(Type type, string fieldName)

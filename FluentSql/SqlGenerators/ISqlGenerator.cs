@@ -38,9 +38,14 @@ namespace FluentSql.SqlGenerators.Contracts
         string Null { get; }
 
         /// <summary>
-        /// Return the keyword to refer to selecting a specific number of rows.
+        /// Returns the keyword to refer to selecting a specific number of rows.
         /// </summary>
         string Top { get; }
+
+        /// <summary>
+        /// Returns the keyword for comparing to a small set.
+        /// </summary>
+        string In { get;  }
 
         /// <summary>
         ///  Generates Select query object without where clause
