@@ -690,7 +690,7 @@ namespace FluentSql.Tests.SelectStatement
         public void WhereClauseWithDates()
         {
             var store = new EntityStore(_dbConnection);
-            var singleEmployee = store.Get<Employee>(e => SqlFunctions.AddYears(e.Birthdate, 3) == DateTime.Now.AddYears(-33)); 
+            var singleEmployee = store.Get<Employee>(e => SqlFunctions.AddYears(e.Birthdate, 3) >= DateTime.Now.AddYears(-43)); 
 
             Xunit.Assert.NotNull(singleEmployee);
         }

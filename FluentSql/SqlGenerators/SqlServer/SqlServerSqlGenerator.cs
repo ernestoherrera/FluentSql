@@ -187,23 +187,6 @@ namespace FluentSql.SqlGenerators.SqlServer
                 throw new NotSupportedException(string.Format("DatePart not supported: {0}", datePart));
         }
 
-        public string GetDateAddFunction(string datePart, Type entityType, string fieldName, int number)
-        {
-            if (string.IsNullOrEmpty(datePart) || entityType == null || string.IsNullOrEmpty(fieldName))
-                throw new ArgumentNullException("Arguements can not be null.");
-
-            var DateFunction = "DATEADD({0}, {1}, {2})";
-            var tableAlias = EntityMapper.Entities[entityType].TableAlias;
-            var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
-
-            if (verifiedField == null)
-                throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
-
-            var formattedField = string.Format("[{0}].[{1}]", tableAlias, fieldName);
-
-            return string.Format(DateFunction, datePart, number ,formattedField);
-        }
-
         public string GetJoinOperator(JoinType joinType)
         {
             switch (joinType)
@@ -244,6 +227,23 @@ namespace FluentSql.SqlGenerators.SqlServer
             var token = string.Format("DATEPART({0}, [{0}].[{1}])",datePart, tableAlias, fieldName);
 
             return token;
+        }
+
+        public string GetDateAddFunction(string datePart, Type entityType, string fieldName, int number)
+        {
+            if (string.IsNullOrEmpty(datePart) || entityType == null || string.IsNullOrEmpty(fieldName))
+                throw new ArgumentNullException("Arguements can not be null.");
+
+            var DateFunction = "DATEADD({0}, {1}, {2})";
+            var tableAlias = EntityMapper.Entities[entityType].TableAlias;
+            var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
+
+            if (verifiedField == null)
+                throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
+
+            var formattedField = FormatFieldforSql(entityType, fieldName);
+
+            return string.Format(DateFunction, datePart, number, formattedField);
         }
 
         public string FormatFieldforSql(Type type, string fieldName)

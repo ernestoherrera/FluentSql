@@ -455,14 +455,28 @@ namespace FluentSql.Support.Helpers
 
             var method = methodCall.Method;
             var methodName = method.Name;
+            var dateAddFunction = string.Empty;
 
             if (methodName == Methods.ADDYEARS)
             {
-                var fieldType = methodCall.Arguments[0];
-                var addInt = methodCall.Arguments[1];
+                var fieldTypeExpression = methodCall.Arguments[0];
+                var numberOfYears = methodCall.Arguments[1];
+                var memberExpression = (MemberExpression)fieldTypeExpression;
 
+                if (numberOfYears.Type != typeof(int))
+                    throw new ArgumentException("numberOfYear parameter is expected to be interger.");
+
+                if (fieldTypeExpression == null || memberExpression.Expression == null)
+                    throw new ArgumentException("AddYears function expects a field type as parameter.");
+
+                var entityType = memberExpression.Expression.Type;
+                var propertyName = GetPropertyName(fieldTypeExpression.ToString());
+                var value = int.Parse(numberOfYears.ToString());
+
+                dateAddFunction = EntityMapper.SqlGenerator.GetDateAddFunction("year", entityType, propertyName, value);
+
+                _predicateString.Push(dateAddFunction);
             }
-
 
             return methodCall;
         }
