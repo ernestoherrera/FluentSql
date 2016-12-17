@@ -93,7 +93,7 @@ namespace FluentSql.Support.Helpers
         {
             if (methodCall.Method == null) return methodCall;
 
-            if (methodCall.Method.DeclaringType != null && methodCall.Method.DeclaringType.FullName == "FluentSql.SqlFunctions")
+            if (methodCall.Method.DeclaringType != null && methodCall.Method.DeclaringType == typeof(SqlFunctions))
             {
                 ParseSqlFunctions(methodCall);
 
@@ -102,6 +102,7 @@ namespace FluentSql.Support.Helpers
 
             var methodName = methodCall.Method.Name;
             var methodObject = methodCall.Object;
+            var methodObjectExpression = (MemberExpression)methodObject;
 
             if (methodName == Methods.EQUALS || methodName == Methods.ENDSWITH || methodName == Methods.STARTSWITH)
             {
@@ -111,11 +112,15 @@ namespace FluentSql.Support.Helpers
             {
                 ParseInClause(methodCall);
             }
-            else if (methodName == Methods.ADDYEARS || methodName == Methods.ADDMONTHS || methodName == Methods.ADDDAYS ||
-                     methodName == Methods.ADDHOURS || methodName == Methods.ADDMINUTES || methodName == Methods.ADDMILLISECONDS ||
-                     methodName == Methods.ADDSECONDS || methodName == Methods.ADDTICKS || methodName == Methods.TOSHORTDATESTRING)
+            else if (methodObject.Type == typeof(DateTime) && (methodObjectExpression != null) &&
+                        methodObjectExpression.Member.Name == Methods.NOW)
             {
-                this.VisitMember((MemberExpression)methodObject);
+                var lambdaExp = Expression.Lambda(methodCall).Compile();
+                var parameterValue = (DateTime)lambdaExp.DynamicInvoke();
+                var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
+
+                QueryParameters.Add(paramName, parameterValue);
+                _predicateString.Push(paramName);
             }
             else
             { 
@@ -386,8 +391,9 @@ namespace FluentSql.Support.Helpers
                     comparingArgument = (string)lambdaExp.DynamicInvoke();
 
                 }
-                else if (((MemberExpression)compareTo).Member.MemberType == MemberTypes.Field ||
-                        compareTo.NodeType == ExpressionType.MemberAccess)
+                else if ( ((MemberExpression)compareTo).Member != null &&
+                         (((MemberExpression)compareTo).Member.MemberType == MemberTypes.Field ||
+                        compareTo.NodeType == ExpressionType.MemberAccess) )
                 {
                     comparingArgument = (string)GetValue((MemberExpression)compareTo);
                 }

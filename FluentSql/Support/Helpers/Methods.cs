@@ -37,6 +37,7 @@ namespace FluentSql.Support.Helpers
         public static string TIMEOFDAY = "TimeOfDay";
         public static string TOSHORTDATESTRING = "ToShortDateString";
         public static string YEAR = "Year";
+        public static string NOW = "Now";
         #endregion
     }
 }

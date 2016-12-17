@@ -687,10 +687,39 @@ namespace FluentSql.Tests.SelectStatement
         }
 
         [Fact]
-        public void WhereClauseWithDates()
+        public void WhereClauseWithDatesAddYears()
         {
             var store = new EntityStore(_dbConnection);
-            var singleEmployee = store.Get<Employee>(e => SqlFunctions.AddYears(e.Birthdate, 3) >= DateTime.Now.AddYears(-43)); 
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddYears(-90)); 
+
+            Xunit.Assert.NotNull(singleEmployee);
+
+            singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddMonths(-90 * 12));
+
+            Xunit.Assert.NotNull(singleEmployee);
+
+            singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddDays(-90 * 12 * 30));
+
+            Xunit.Assert.NotNull(singleEmployee);
+
+            singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddDays(-90 * 12 * 30));
+
+            Xunit.Assert.NotNull(singleEmployee);
+
+            singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddHours(-90 * 12 * 30 * 24));
+
+            Xunit.Assert.NotNull(singleEmployee);
+
+            singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddMinutes(-90 * 12 * 30 * 24 * 60));
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithDatesAddMonths()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddMonths(-90));
 
             Xunit.Assert.NotNull(singleEmployee);
         }
