@@ -56,4 +56,3 @@ Copyright © Ernesto Herrera and contributors
 ## License
 
 FluentSql is licensed under [Apache 2.0] (http://www.apache.org/licenses/LICENSE-2.0)
-<div style="display: none">google-site-verification: googlef1744ae24af6b236.html</div>
