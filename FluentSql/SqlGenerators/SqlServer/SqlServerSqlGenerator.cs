@@ -144,49 +144,6 @@ namespace FluentSql.SqlGenerators.SqlServer
             }
         }
 
-        public string GetDatePartFunc(string datePart, Type entityType, string fieldName)
-        {
-            if (string.IsNullOrEmpty(datePart) || entityType == null || string.IsNullOrEmpty(fieldName))
-                throw new ArgumentNullException("Arguements can not be null.");
-
-            var DateFunction = "DATEPART({0}, {1})";
-            var tableAlias = EntityMapper.Entities[entityType].TableAlias;
-            var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
-
-            if (verifiedField == null)
-                throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
-
-            var formattedField = string.Format("[{0}].[{1}]", tableAlias, fieldName);
-
-            if (datePart == Methods.ADDYEARS)
-                return string.Format(DateFunction, "year", formattedField);
-
-            else if (datePart == Methods.ADDMONTHS)
-                return string.Format(DateFunction, "month", formattedField);
-
-            else if (datePart == Methods.ADDDAYS)
-                return string.Format(DateFunction, "day", formattedField);
-
-            else if (datePart == Methods.ADDHOURS)
-                return string.Format(DateFunction, "hour", formattedField);
-
-            else if (datePart == Methods.ADDMINUTES)
-                return string.Format(DateFunction, "minute", formattedField);
-
-            else if (datePart == Methods.ADDSECONDS)
-                return string.Format(DateFunction, "second", formattedField);
-
-            else if (datePart == Methods.ADDMILLISECONDS)
-                return string.Format(DateFunction, "ms", formattedField);
-
-            else if (datePart == Methods.ADDHOURS)
-                return string.Format(DateFunction, "hour", formattedField);
-
-
-            else
-                throw new NotSupportedException(string.Format("DatePart not supported: {0}", datePart));
-        }
-
         public string GetJoinOperator(JoinType joinType)
         {
             switch (joinType)
@@ -221,27 +178,42 @@ namespace FluentSql.SqlGenerators.SqlServer
             return "LIKE";
         }
 
-        public string GetDatePartFunction(string datePart, Type type, string fieldName)
+        public string GetDatePartFunc(string methodName, Type entityType, string fieldName)
         {
-            var tableAlias = EntityMapper.Entities[type].TableAlias;
-            var token = string.Format("DATEPART({0}, [{0}].[{1}])",datePart, tableAlias, fieldName);
-
-            return token;
-        }
-
-        public string GetDateAddFunction(string datePart, Type entityType, string fieldName, int number)
-        {
-            if (string.IsNullOrEmpty(datePart) || entityType == null || string.IsNullOrEmpty(fieldName))
+            if (string.IsNullOrEmpty(methodName) || entityType == null || string.IsNullOrEmpty(fieldName))
                 throw new ArgumentNullException("Arguements can not be null.");
 
-            var DateFunction = "DATEADD({0}, {1}, {2})";
-            var tableAlias = EntityMapper.Entities[entityType].TableAlias;
+            var datePartFunction = "DATEPART({0}, {1})";
             var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
 
             if (verifiedField == null)
                 throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
 
             var formattedField = FormatFieldforSql(entityType, fieldName);
+            var datePart = GetDatePart(methodName);
+
+            return string.Format(datePartFunction, datePart, formattedField);
+        }
+
+        public string GetDateAddFunction(string methodName, Type entityType, string fieldName, int number)
+        {
+            if (string.IsNullOrEmpty(methodName))
+                throw new ArgumentNullException("Method Name arguement can not be null.");
+
+            if (entityType == null)
+                throw new ArgumentNullException("Entity type (entityType) can not be null.");
+
+            if (string.IsNullOrEmpty(fieldName))
+                throw new ArgumentNullException("Field Name (fieldName) can not be null.");
+
+            var DateFunction = "DATEADD({0}, {1}, {2})";
+            var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
+
+            if (verifiedField == null)
+                throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
+
+            var formattedField = FormatFieldforSql(entityType, fieldName);
+            var datePart = GetDatePart(methodName);
 
             return string.Format(DateFunction, datePart, number, formattedField);
         }
@@ -266,5 +238,46 @@ namespace FluentSql.SqlGenerators.SqlServer
             return token;
         }
 
+        #region Private Methods
+        private string GetDatePart(string methodName)
+        {
+            var datePart = string.Empty;
+
+            if (methodName == Methods.ADDYEARS)
+                return "year";
+
+            if (methodName == Methods.ADDQUARTERS)
+                return "quarter";
+
+            if (methodName == Methods.ADDDAYOFYEAR)
+                return "dayofyear";
+
+            else if (methodName == Methods.ADDMONTHS)
+                return "month";
+
+            else if (methodName == Methods.ADDDAYS)
+                return "day";
+
+            if (methodName == Methods.ADDWEEKS)
+                return "week";
+
+            else if (methodName == Methods.ADDHOURS)
+                return "hour";
+
+            else if (methodName == Methods.ADDMINUTES)
+                return "minute";
+
+            else if (methodName == Methods.ADDSECONDS)
+                return "second";
+
+            else if (methodName == Methods.ADDMILLISECONDS)
+                return "ms";
+
+            else if (methodName == Methods.ADDDAYOFWEEK)
+                return "weekday";
+            else
+                throw new NotSupportedException(string.Format("MethodName not supported: {0}", methodName));
+        }
+        #endregion
     }
 }

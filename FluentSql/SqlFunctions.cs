@@ -10,23 +10,62 @@ namespace FluentSql
     {
         public static DateTime AddYears(DateTime fieldName, int numberOfYears)
         {
-            if (fieldName == null )
-                throw new ArgumentNullException("Arguements can not be null.");
-
-            var dateFunction = "DATEPART({0}, {1})";
-            //var tableAlias = EntityMapper.Entities[entityType].TableAlias;
-            //var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
-
-            //if (verifiedField == null)
-            //    throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
-
-            //var formattedField = string.Format("[{0}].[{1}]", tableAlias, fieldName);
-            return DateTime.Now;
+            throw new NotSupportedException();
         }
 
         public static DateTime AddYears(DateTime? fieldName, int numberOfYears)
         {
-            return AddYears(fieldName.Value, numberOfYears);
+            throw new NotSupportedException();
+        }
+
+        public static DateTime AddQuarters(DateTime? fieldName, int numberOfQuarters)
+        {
+            throw new NotSupportedException();
+        }
+
+        public static DateTime AddMonths(DateTime? fieldName, int numberOfMonths)
+        {
+            throw new NotSupportedException();
+        }
+
+        public static DateTime AddDayOfYear(DateTime? fieldName, int numberOfYears)
+        {
+            throw new NotSupportedException();
+        }
+
+        public static DateTime AddDays(DateTime? fieldName, int numberOfDays)
+        {
+            throw new NotSupportedException();
+        }
+
+        public static DateTime AddWeeks(DateTime? fieldName, int numberOfWeeks)
+        {
+            throw new NotSupportedException();
+        }
+
+        public static DateTime AddDayOfWeek(DateTime? fieldName, int dayOfWeek)
+        {
+            throw new NotSupportedException();
+        }
+
+        public static DateTime AddHours(DateTime? fieldName, int numberOfHours)
+        {
+            throw new NotSupportedException();
+        }
+
+        public static DateTime AddMinutes(DateTime? fieldName, int numberOfMinutes)
+        {
+            throw new NotSupportedException();
+        }
+
+        public static DateTime AddSeconds(DateTime? fieldName, int numberOfSeconds)
+        {
+            throw new NotSupportedException();
+        }
+
+        public static DateTime AddMilliseconds(DateTime? fieldName, int numberOfMilliseconds)
+        {
+            throw new NotSupportedException();
         }
     }
 }

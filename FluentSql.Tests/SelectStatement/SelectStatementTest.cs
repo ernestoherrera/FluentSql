@@ -715,15 +715,6 @@ namespace FluentSql.Tests.SelectStatement
             Xunit.Assert.NotNull(singleEmployee);
         }
 
-        [Fact]
-        public void WhereClauseWithDatesAddMonths()
-        {
-            var store = new EntityStore(_dbConnection);
-            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddMonths(-90));
-
-            Xunit.Assert.NotNull(singleEmployee);
-        }
-
         public void Dispose()
         {
             _dbConnection.Close();

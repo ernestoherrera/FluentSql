@@ -14,20 +14,20 @@ namespace FluentSql.Support.Helpers
         public static string CONTAINS = "Contains";
         public static string EQUALS = "Equals";
         public static string DATETIMENOW = "DateTime.Now";
-        public static string DATE = "Date";
-        public static string DAY = "Day";
-        public static string DAYOFWEEK = "DayOfWeek"; // Not implemented
-        public static string DAYOFYEAR = "DayOfYear"; // Not implemented
-        public static string HOUR = "Hour";
-        public static string KIND = "Kind";
+
         public static string ADDYEARS = "AddYears";
-        public static string ADDDAYS = "AddDays";
-        public static string ADDHOURS = "AddHours";
-        public static string ADDMILLISECONDS = "AddMilliseconds";
-        public static string ADDMINUTES = "AddMinutes";
+        public static string ADDQUARTERS = "AddQuarters";
         public static string ADDMONTHS = "AddMonths";
+        public static string ADDDAYOFYEAR = "AddDayOfYear";
+        public static string ADDDAYS = "AddDays";
+        public static string ADDWEEKS = "AddWeeks";
+        public static string ADDDAYOFWEEK = "AddDayOfWeek";
+        public static string ADDHOURS = "AddHours";
+        public static string ADDMINUTES = "AddMinutes";
         public static string ADDSECONDS = "AddSeconds";
+        public static string ADDMILLISECONDS = "AddMilliseconds";
         public static string ADDTICKS = "AddTicks";
+
         public static string COMPARETO = "CompareTo";
         public static string MILLISECOND = "Millisecond";
         public static string MINUTE = "Minute";

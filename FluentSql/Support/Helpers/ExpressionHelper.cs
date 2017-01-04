@@ -463,7 +463,10 @@ namespace FluentSql.Support.Helpers
             var methodName = method.Name;
             var dateAddFunction = string.Empty;
 
-            if (methodName == Methods.ADDYEARS)
+            if (methodName == Methods.ADDYEARS || methodName == Methods.ADDMONTHS || methodName == Methods.ADDDAYS ||
+                methodName == Methods.ADDHOURS || methodName == Methods.ADDMINUTES || methodName == Methods.ADDMILLISECONDS ||
+                methodName == Methods.ADDSECONDS || methodName == Methods.ADDTICKS || methodName == Methods.ADDDAYOFYEAR ||
+                methodName == Methods.ADDDAYOFWEEK)
             {
                 var fieldTypeExpression = methodCall.Arguments[0];
                 var numberOfYears = methodCall.Arguments[1];
@@ -479,7 +482,7 @@ namespace FluentSql.Support.Helpers
                 var propertyName = GetPropertyName(fieldTypeExpression.ToString());
                 var value = int.Parse(numberOfYears.ToString());
 
-                dateAddFunction = EntityMapper.SqlGenerator.GetDateAddFunction("year", entityType, propertyName, value);
+                dateAddFunction = EntityMapper.SqlGenerator.GetDateAddFunction(methodName, entityType, propertyName, value);
 
                 _predicateString.Push(dateAddFunction);
             }
