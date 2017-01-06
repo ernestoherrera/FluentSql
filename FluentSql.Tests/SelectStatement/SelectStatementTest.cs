@@ -687,34 +687,175 @@ namespace FluentSql.Tests.SelectStatement
         }
 
         [Fact]
-        public void WhereClauseWithDatesAddYears()
+        public void WhereClauseWithAddYears()
         {
             var store = new EntityStore(_dbConnection);
             var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddYears(-90)); 
 
             Xunit.Assert.NotNull(singleEmployee);
+        }
 
-            singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddMonths(-90 * 12));
-
-            Xunit.Assert.NotNull(singleEmployee);
-
-            singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddDays(-90 * 12 * 30));
-
-            Xunit.Assert.NotNull(singleEmployee);
-
-            singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddDays(-90 * 12 * 30));
-
-            Xunit.Assert.NotNull(singleEmployee);
-
-            singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddHours(-90 * 12 * 30 * 24));
-
-            Xunit.Assert.NotNull(singleEmployee);
-
-            singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddYears(e.Birthdate, -3) >= DateTime.Now.AddMinutes(-90 * 12 * 30 * 24 * 60));
+        [Fact]
+        public void WhereClauseWithAddMonths()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddMonths(e.Birthdate, -3) >= DateTime.Now.AddMonths(-90 * 12));
 
             Xunit.Assert.NotNull(singleEmployee);
         }
 
+        [Fact]
+        public void WhereClauseWithAddDays()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddDays(e.Birthdate, -3) >= DateTime.Now.AddMonths(-90 * 12));
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithAddDayOfWeek()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddDayOfWeek(e.Birthdate, -3) >= DateTime.Now.AddMonths(-90 * 12));
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithAddHours()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Order>(o => SqlFunctions.AddHours(o.OrderDate, -3) >= DateTime.Now.AddHours(-90 * 12 * 30 * 24));
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithAddMinutes()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Order>(o => SqlFunctions.AddMinutes(o.OrderDate, -3) >= DateTime.Now.AddMinutes(-90 * 12 * 30 * 24 * 60));
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithAddWeeks()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.AddWeeks(e.Birthdate, -3) >= DateTime.Now.AddMonths(-90 * 12));
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithAddSeconds()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Order>(o => SqlFunctions.AddSeconds(o.OrderDate, -3) >= DateTime.Now.AddMonths(-90 * 12));
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithAddMilliseconds()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Order>(o => SqlFunctions.AddMilliseconds(o.OrderDate, 30000) >= DateTime.Now.AddMonths(-90 * 12));
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithGetDatePartYear()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.GetYear(e.Birthdate) <= DateTime.Now.Year);
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithGetDatePartMonth()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.GetMonth(e.Birthdate) <= 7);
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithGetDatePartDayOfYear()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.GetDayOfYear(e.Birthdate) >= 100);
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithGetDatePartDay()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.GetDay(e.Birthdate) >= 4);
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithGetDatePartWeek()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.GetWeek(e.Birthdate) >= 5);
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithGetDatePartWeekDay()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.GetWeekday(e.Birthdate) >= 2);
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithGetDatePartHour()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Order>(o => SqlFunctions.GetHour(o.OrderDate) >= 0);
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithGetDatePartMinute()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Order>(o => SqlFunctions.GetMinute(o.OrderDate) >= 0);
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithGetDatePartSecond()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Order>(o => SqlFunctions.GetSecond(o.OrderDate) >= 0);
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseWithGetDatePartMillisecond()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Order>(o => SqlFunctions.GetMillisecond(o.OrderDate) >= 0);
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
         public void Dispose()
         {
             _dbConnection.Close();

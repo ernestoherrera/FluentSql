@@ -15,6 +15,7 @@ namespace FluentSql.Support.Helpers
         public static string EQUALS = "Equals";
         public static string DATETIMENOW = "DateTime.Now";
 
+        #region DateAdd Function stubs
         public static string ADDYEARS = "AddYears";
         public static string ADDQUARTERS = "AddQuarters";
         public static string ADDMONTHS = "AddMonths";
@@ -27,15 +28,24 @@ namespace FluentSql.Support.Helpers
         public static string ADDSECONDS = "AddSeconds";
         public static string ADDMILLISECONDS = "AddMilliseconds";
         public static string ADDTICKS = "AddTicks";
+        #endregion
+
+        #region DatePart Function stubs
+        public static string GETYEAR = "GetYear";
+        public static string GETQUARTER = "GetQuarter";
+        public static string GETMONTH = "GetMonth";
+        public static string GETDAYOFYEAR = "GetDayOfYear";
+        public static string GETDAY = "GetDay";
+        public static string GETWEEK = "GetWeek";
+        public static string GETWEEKDAY = "GetWeekday";
+        public static string GETHOUR = "GetHour";
+        public static string GETMINUTE = "GetMinute";
+        public static string GETSECOND = "GetSecond";
+        public static string GETMILLISECOND = "GetMillisecond";
+        #endregion
 
         public static string COMPARETO = "CompareTo";
-        public static string MILLISECOND = "Millisecond";
-        public static string MINUTE = "Minute";
-        public static string MONTH = "Month";
-        public static string SECOND = "Second";
-        public static string TICKS = "Ticks";
-        public static string TIMEOFDAY = "TimeOfDay";
-        public static string TOSHORTDATESTRING = "ToShortDateString";
+
         public static string YEAR = "Year";
         public static string NOW = "Now";
         #endregion

@@ -178,7 +178,7 @@ namespace FluentSql.SqlGenerators.SqlServer
             return "LIKE";
         }
 
-        public string GetDatePartFunc(string methodName, Type entityType, string fieldName)
+        public string GetDatePartFunction(string methodName, Type entityType, string fieldName)
         {
             if (string.IsNullOrEmpty(methodName) || entityType == null || string.IsNullOrEmpty(fieldName))
                 throw new ArgumentNullException("Arguements can not be null.");
@@ -190,7 +190,7 @@ namespace FluentSql.SqlGenerators.SqlServer
                 throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
 
             var formattedField = FormatFieldforSql(entityType, fieldName);
-            var datePart = GetDatePart(methodName);
+            var datePart = GetDatePartArgument(methodName);
 
             return string.Format(datePartFunction, datePart, formattedField);
         }
@@ -213,7 +213,7 @@ namespace FluentSql.SqlGenerators.SqlServer
                 throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
 
             var formattedField = FormatFieldforSql(entityType, fieldName);
-            var datePart = GetDatePart(methodName);
+            var datePart = GetDatePartArgument(methodName);
 
             return string.Format(DateFunction, datePart, number, formattedField);
         }
@@ -239,44 +239,45 @@ namespace FluentSql.SqlGenerators.SqlServer
         }
 
         #region Private Methods
-        private string GetDatePart(string methodName)
+        private string GetDatePartArgument(string methodName)
         {
             var datePart = string.Empty;
 
-            if (methodName == Methods.ADDYEARS)
+            if (methodName == Methods.ADDYEARS || methodName == Methods.GETYEAR)
                 return "year";
 
-            if (methodName == Methods.ADDQUARTERS)
+            if (methodName == Methods.ADDQUARTERS || methodName == Methods.GETQUARTER)
                 return "quarter";
 
-            if (methodName == Methods.ADDDAYOFYEAR)
+            if (methodName == Methods.ADDDAYOFYEAR || methodName == Methods.GETDAYOFYEAR)
                 return "dayofyear";
 
-            else if (methodName == Methods.ADDMONTHS)
+            else if (methodName == Methods.ADDMONTHS || methodName == Methods.GETMONTH)
                 return "month";
 
-            else if (methodName == Methods.ADDDAYS)
+            else if (methodName == Methods.ADDDAYS || methodName == Methods.GETDAY)
                 return "day";
 
-            if (methodName == Methods.ADDWEEKS)
+            if (methodName == Methods.ADDWEEKS || methodName == Methods.GETWEEK)
                 return "week";
 
-            else if (methodName == Methods.ADDHOURS)
+            else if (methodName == Methods.ADDHOURS || methodName == Methods.GETHOUR)
                 return "hour";
 
-            else if (methodName == Methods.ADDMINUTES)
+            else if (methodName == Methods.ADDMINUTES || methodName == Methods.GETMINUTE)
                 return "minute";
 
-            else if (methodName == Methods.ADDSECONDS)
+            else if (methodName == Methods.ADDSECONDS || methodName == Methods.GETSECOND)
                 return "second";
 
-            else if (methodName == Methods.ADDMILLISECONDS)
+            else if (methodName == Methods.ADDMILLISECONDS || methodName == Methods.GETMILLISECOND)
                 return "ms";
 
-            else if (methodName == Methods.ADDDAYOFWEEK)
+            else if (methodName == Methods.ADDDAYOFWEEK || methodName == Methods.GETWEEKDAY)
                 return "weekday";
+
             else
-                throw new NotSupportedException(string.Format("MethodName not supported: {0}", methodName));
+                throw new NotSupportedException(string.Format("Method Name not supported: {0}", methodName));
         }
         #endregion
     }

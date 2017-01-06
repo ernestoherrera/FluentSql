@@ -147,7 +147,7 @@ namespace FluentSql.SqlGenerators.Contracts
         string GetStringComparisonOperator();
 
         /// <summary>
-        /// Return the Sql function that Adds to a database date field
+        /// Returns the Sql function that Adds to a database date field
         /// </summary>
         /// <param name="datePart"></param>
         /// <param name="entityType"></param>
@@ -155,6 +155,15 @@ namespace FluentSql.SqlGenerators.Contracts
         /// <param name="number"></param>
         /// <returns></returns>
         string GetDateAddFunction(string datePart, Type entityType, string fieldName, int number);
+
+        /// <summary>
+        /// Return the Sql function that resolves the DatePart of a date field
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="entityType"></param>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
+        string GetDatePartFunction(string methodName, Type entityType, string fieldName);
 
         /// <summary>
         /// Returns the required field formatting for the specific SQL dialect.

@@ -461,34 +461,59 @@ namespace FluentSql.Support.Helpers
 
             var method = methodCall.Method;
             var methodName = method.Name;
-            var dateAddFunction = string.Empty;
 
             if (methodName == Methods.ADDYEARS || methodName == Methods.ADDMONTHS || methodName == Methods.ADDDAYS ||
                 methodName == Methods.ADDHOURS || methodName == Methods.ADDMINUTES || methodName == Methods.ADDMILLISECONDS ||
                 methodName == Methods.ADDSECONDS || methodName == Methods.ADDTICKS || methodName == Methods.ADDDAYOFYEAR ||
-                methodName == Methods.ADDDAYOFWEEK)
+                methodName == Methods.ADDDAYOFWEEK || methodName == Methods.ADDWEEKS)
             {
+                if (methodCall.Arguments.Count < 2)
+                    throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
+
                 var fieldTypeExpression = methodCall.Arguments[0];
-                var numberOfYears = methodCall.Arguments[1];
+                var functionArgument = methodCall.Arguments[1];
                 var memberExpression = (MemberExpression)fieldTypeExpression;
 
-                if (numberOfYears.Type != typeof(int))
-                    throw new ArgumentException("numberOfYear parameter is expected to be interger.");
+                if (functionArgument.Type != typeof(int))
+                    throw new ArgumentException(string.Format("Parameter is expected to be interger for Method {0}", methodName));
 
                 if (fieldTypeExpression == null || memberExpression.Expression == null)
-                    throw new ArgumentException("AddYears function expects a field type as parameter.");
+                    throw new ArgumentException(string.Format("Method {0} expects a field type as parameter.", methodName));
 
                 var entityType = memberExpression.Expression.Type;
                 var propertyName = GetPropertyName(fieldTypeExpression.ToString());
-                var value = int.Parse(numberOfYears.ToString());
+                var value = int.Parse(functionArgument.ToString());
 
-                dateAddFunction = EntityMapper.SqlGenerator.GetDateAddFunction(methodName, entityType, propertyName, value);
+                var dateAddFunction = EntityMapper.SqlGenerator.GetDateAddFunction(methodName, entityType, propertyName, value);
 
                 _predicateString.Push(dateAddFunction);
             }
+            else if (methodName == Methods.GETYEAR || methodName == Methods.GETQUARTER || methodName == Methods.GETMONTH ||
+                     methodName == Methods.GETDAYOFYEAR || methodName == Methods.GETDAY || methodName == Methods.GETWEEK ||
+                     methodName == Methods.GETWEEKDAY || methodName == Methods.GETHOUR || methodName == Methods.GETMINUTE ||
+                     methodName == Methods.GETSECOND || methodName == Methods.GETMILLISECOND)
+            {
+                if (methodCall.Arguments.Count < 1)
+                    throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
+
+                var fieldTypeExpression = methodCall.Arguments[0];
+                var memberExpression = (MemberExpression)fieldTypeExpression;
+
+                if (fieldTypeExpression == null || memberExpression.Expression == null)
+                    throw new ArgumentException(string.Format("Method {0} expects a field type as parameter.", methodName));
+
+                var entityType = memberExpression.Expression.Type;
+                var propertyName = GetPropertyName(fieldTypeExpression.ToString());
+                var datePartFuntion = EntityMapper.SqlGenerator.GetDatePartFunction(methodName, entityType, propertyName);
+
+                _predicateString.Push(datePartFuntion);
+            }
+            else
+                throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
 
             return methodCall;
         }
+
         #endregion
 
     }
