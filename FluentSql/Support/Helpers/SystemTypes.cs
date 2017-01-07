@@ -18,6 +18,7 @@ namespace FluentSql.Support.Helpers
             typeof(float),
             typeof(object)
         };
+
         private static List<Type> _allTypes;
 
         public static List<Type> Numeric { get { return _numericTypes; } }
@@ -29,12 +30,10 @@ namespace FluentSql.Support.Helpers
                 if (_allTypes == null)
                 {
                     _allTypes = new List<Type> { typeof(DateTime), typeof(string), typeof(bool), typeof(char) };
-                    _allTypes.AddRange(_numericTypes);                    
+                    _allTypes.AddRange(_numericTypes);
                 }
                 return _allTypes;
             }
         }
-
-
     }
 }

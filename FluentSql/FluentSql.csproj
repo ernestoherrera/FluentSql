@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IEntityStore.cs" />
+    <Compile Include="SqlFunctions.cs" />
     <Compile Include="Support\Helpers\DapperHelpers.cs" />
     <Compile Include="DatabaseMappers\Common\Database.cs" />
     <Compile Include="DatabaseMappers\Contracts\IDatabaseMapper.cs" />
@@ -99,6 +100,7 @@
     <Compile Include="Support\Helpers\ExpressionHelper.cs" />
     <Compile Include="Support\Helpers\ExpressionPrecedence.cs" />
     <Compile Include="Support\Helpers\OperatorPrecedenceComparer.cs" />
+    <Compile Include="Support\Helpers\Methods.cs" />
     <Compile Include="Support\Helpers\SystemTypes.cs" />
   </ItemGroup>
   <ItemGroup>

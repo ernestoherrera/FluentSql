@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-using FluentSql.Mappers;
 using FluentSql.SqlGenerators;
 using System.Reflection;
 using FluentSql.Support.Extensions;
@@ -92,83 +91,43 @@ namespace FluentSql.Support.Helpers
 
         protected override Expression VisitMethodCall(MethodCallExpression methodCall)
         {
-            var allowedMethods = new string[] { "StartsWith", "Contains", "EndsWith" };
-            var methodObject = methodCall.Object;
-            var methodName = methodCall.Method.Name;
+            if (methodCall.Method == null) return methodCall;
 
-            if (methodCall.Method.DeclaringType == typeof(string) && allowedMethods.Contains(methodName))
+            if (methodCall.Method.DeclaringType != null && methodCall.Method.DeclaringType == typeof(SqlFunctions))
             {
-                var like = EntityMapper.SqlGenerator.GetStringComparisonOperator();
-                var wildcard = EntityMapper.SqlGenerator.StringPatternMatchAny;
-                var comparingArgument = string.Empty;
+                ParseSqlFunctions(methodCall);
 
-                like += _SEPARATOR;
-
-                this.VisitMember((MemberExpression)methodObject);
-                _predicateString.Push(like);
-
-                if (methodCall.Arguments.Count > 0)
-                {
-                    var compareTo = methodCall.Arguments[0];
-
-                    if (compareTo is ConstantExpression)
-                    {
-                        var lambdaExp = Expression.Lambda(compareTo).Compile();
-
-                        comparingArgument = (string)lambdaExp.DynamicInvoke();
-
-                    }
-                    else if (((MemberExpression)compareTo).Member.MemberType == MemberTypes.Field)
-                    {
-                        comparingArgument = (string)GetValue((MemberExpression)compareTo);
-                    }
-
-                    if (comparingArgument == null)
-                    {
-                        HandleNullParameterValue();
-                        return methodCall;
-                    }
-
-                    if (methodName == "StartsWith")
-                        comparingArgument += wildcard;
-                    else
-                        comparingArgument = wildcard + comparingArgument;
-
-                    var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
-
-                    QueryParameters.Add(paramName, comparingArgument);
-                    _predicateString.Push(paramName);
-
-                    return methodCall;
-                }
-                else
-                {
-                    throw new NotSupportedException(string.Format("{0} Method call supported", methodName));
-                }
+                return methodCall;
             }
-            else if (methodObject.NodeType == ExpressionType.MemberAccess && methodName == "Contains")
-            {
-                if (methodCall.Arguments.Count > 0 && ((MemberExpression)methodCall.Arguments[0]).NodeType == ExpressionType.MemberAccess)
-                {
-                    this.VisitMember((MemberExpression)methodCall.Arguments[0]);
-                    this.VisitMember((MemberExpression)methodObject);
-                }
-                else
-                {
-                    throw new Exception("Argument type not supported.");
-                }
 
-                return methodCall;
-            }            
-            else if (methodObject.ToString().StartsWith("DateTime.Now"))
+            var methodName = methodCall.Method.Name;
+            var methodObject = methodCall.Object;
+            var methodObjectExpression = (MemberExpression)methodObject;
+
+            if (methodName == Methods.EQUALS || methodName == Methods.ENDSWITH || methodName == Methods.STARTSWITH)
             {
-                this.VisitMember((MemberExpression)methodObject);
-                return methodCall;
+                ParseStringMethods(methodCall);
+            }
+            else if (methodName == Methods.CONTAINS)
+            {
+                ParseInClause(methodCall);
+            }
+            else if (methodObject.Type == typeof(DateTime) && (methodObjectExpression != null) &&
+                        methodObjectExpression.Member.Name == Methods.NOW)
+            {
+                var lambdaExp = Expression.Lambda(methodCall).Compile();
+                var parameterValue = (DateTime)lambdaExp.DynamicInvoke();
+                var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
+
+                QueryParameters.Add(paramName, parameterValue);
+                _predicateString.Push(paramName);
             }
             else
-            {
-                throw new NotSupportedException(string.Format("{0} Method call supported", methodName));
+            { 
+                throw new NotSupportedException(string.Format("Method call not supported {0}", methodName));
             }
+
+            return methodCall;
         }
 
         protected override Expression VisitParameter(ParameterExpression p)
@@ -224,7 +183,8 @@ namespace FluentSql.Support.Helpers
                         QueryParameters.Add(paramName, val);
                     }
 
-                    var inClause = string.Format("IN ( {0} )", String.Join(",", parameterNames));
+                    var inOperand = EntityMapper.SqlGenerator.In;
+                    var inClause = string.Format("{0} ( {1} )", inOperand, String.Join(",", parameterNames));
 
                     _predicateString.Push(inClause);
                 }
@@ -243,7 +203,7 @@ namespace FluentSql.Support.Helpers
             {
                 _predicateString.Push(memberExpression.ToString() + " = 1");
             }
-            else if (member.MemberType == MemberTypes.Property && 
+            else if (member.MemberType == MemberTypes.Property &&
                     propertyType == typeof(System.DateTime) &&
                     memberExpression.Expression == null)
             {
@@ -281,6 +241,11 @@ namespace FluentSql.Support.Helpers
             }
 
             return base.VisitMember(memberExpression);
+        }
+
+        private void ParseDateTimeMethods(MemberExpression memberExpression)
+        {
+            throw new NotImplementedException();
         }
 
         protected override Expression VisitUnary(UnaryExpression u)
@@ -401,6 +366,155 @@ namespace FluentSql.Support.Helpers
             _predicateString.Push(paramName);
 
         }
+
+        private MethodCallExpression ParseStringMethods(MethodCallExpression methodCall)
+        {
+            if (methodCall == null) return methodCall;
+
+            var methodObject = methodCall.Object;
+            var methodName = methodCall.Method?.Name;
+            var like = EntityMapper.SqlGenerator.GetStringComparisonOperator();
+            var wildcard = EntityMapper.SqlGenerator.StringPatternMatchAny;
+            var comparingArgument = string.Empty;
+
+            //Right side of the equality
+            this.VisitMember((MemberExpression)methodObject);
+
+            if (methodCall.Arguments.Count > 0)
+            {
+                var compareTo = methodCall.Arguments[0];
+                
+                if (compareTo is ConstantExpression)
+                {
+                    var lambdaExp = Expression.Lambda(compareTo).Compile();
+
+                    comparingArgument = (string)lambdaExp.DynamicInvoke();
+
+                }
+                else if ( ((MemberExpression)compareTo).Member != null &&
+                         (((MemberExpression)compareTo).Member.MemberType == MemberTypes.Field ||
+                        compareTo.NodeType == ExpressionType.MemberAccess) )
+                {
+                    comparingArgument = (string)GetValue((MemberExpression)compareTo);
+                }
+
+                if (comparingArgument == null)
+                {
+                    HandleNullParameterValue();
+                    return methodCall;
+                }
+
+                if (methodName == Methods.STARTSWITH)
+                {
+                    like += _SEPARATOR;
+                    _predicateString.Push(like);
+                    comparingArgument += wildcard;
+                }
+                else if (methodName == Methods.ENDSWITH)
+                {
+                    like += _SEPARATOR;
+                    _predicateString.Push(like);
+                    comparingArgument = wildcard + comparingArgument;
+                }
+                else if (methodName == Methods.EQUALS)
+                {
+                    _predicateString.Push("=");
+                    comparingArgument = comparingArgument.Trim();
+                }
+                else
+                    throw new NotImplementedException(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
+
+                var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
+
+                QueryParameters.Add(paramName, comparingArgument);
+                _predicateString.Push(paramName);
+
+                return methodCall;
+            }
+            else
+                throw new NotImplementedException(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
+        }
+
+        private MethodCallExpression ParseInClause(MethodCallExpression methodCall)
+        {
+            if (methodCall == null) return methodCall;
+            if (methodCall.Arguments == null) return methodCall;
+            var methodObject = methodCall.Object;
+
+            if (methodCall.Arguments.Count > 0 && ((MemberExpression)methodCall.Arguments[0]).NodeType == ExpressionType.MemberAccess)
+            {
+                this.VisitMember((MemberExpression)methodCall.Arguments[0]);
+                this.VisitMember((MemberExpression)methodObject);
+            }
+            else
+            {
+                var methodName = methodCall.Method?.Name;
+                throw new Exception(string.Format("Argument type not supported for Method: {0}", methodName ?? "undetermined method name."));
+            }
+
+            return methodCall;
+        }
+
+        private MethodCallExpression ParseSqlFunctions(MethodCallExpression methodCall)
+        {
+            if (methodCall == null || methodCall.Method == null ) return methodCall;
+
+            var method = methodCall.Method;
+            var methodName = method.Name;
+
+            if (methodName == Methods.ADDYEARS || methodName == Methods.ADDMONTHS || methodName == Methods.ADDDAYS ||
+                methodName == Methods.ADDHOURS || methodName == Methods.ADDMINUTES || methodName == Methods.ADDMILLISECONDS ||
+                methodName == Methods.ADDSECONDS || methodName == Methods.ADDTICKS || methodName == Methods.ADDDAYOFYEAR ||
+                methodName == Methods.ADDDAYOFWEEK || methodName == Methods.ADDWEEKS)
+            {
+                if (methodCall.Arguments.Count < 2)
+                    throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
+
+                var fieldTypeExpression = methodCall.Arguments[0];
+                var functionArgument = methodCall.Arguments[1];
+                var memberExpression = (MemberExpression)fieldTypeExpression;
+
+                if (functionArgument.Type != typeof(int))
+                    throw new ArgumentException(string.Format("Parameter is expected to be interger for Method {0}", methodName));
+
+                if (fieldTypeExpression == null || memberExpression.Expression == null)
+                    throw new ArgumentException(string.Format("Method {0} expects a field type as parameter.", methodName));
+
+                var entityType = memberExpression.Expression.Type;
+                var propertyName = GetPropertyName(fieldTypeExpression.ToString());
+                var value = int.Parse(functionArgument.ToString());
+
+                var dateAddFunction = EntityMapper.SqlGenerator.GetDateAddFunction(methodName, entityType, propertyName, value);
+
+                _predicateString.Push(dateAddFunction);
+            }
+            else if (methodName == Methods.GETYEAR || methodName == Methods.GETQUARTER || methodName == Methods.GETMONTH ||
+                     methodName == Methods.GETDAYOFYEAR || methodName == Methods.GETDAY || methodName == Methods.GETWEEK ||
+                     methodName == Methods.GETWEEKDAY || methodName == Methods.GETHOUR || methodName == Methods.GETMINUTE ||
+                     methodName == Methods.GETSECOND || methodName == Methods.GETMILLISECOND)
+            {
+                if (methodCall.Arguments.Count < 1)
+                    throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
+
+                var fieldTypeExpression = methodCall.Arguments[0];
+                var memberExpression = (MemberExpression)fieldTypeExpression;
+
+                if (fieldTypeExpression == null || memberExpression.Expression == null)
+                    throw new ArgumentException(string.Format("Method {0} expects a field type as parameter.", methodName));
+
+                var entityType = memberExpression.Expression.Type;
+                var propertyName = GetPropertyName(fieldTypeExpression.ToString());
+                var datePartFuntion = EntityMapper.SqlGenerator.GetDatePartFunction(methodName, entityType, propertyName);
+
+                _predicateString.Push(datePartFuntion);
+            }
+            else
+                throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
+
+            return methodCall;
+        }
+
         #endregion
+
     }
 }

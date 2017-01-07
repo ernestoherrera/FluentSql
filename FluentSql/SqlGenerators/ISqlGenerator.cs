@@ -38,9 +38,14 @@ namespace FluentSql.SqlGenerators.Contracts
         string Null { get; }
 
         /// <summary>
-        /// Return the keyword to refer to selecting a specific number of rows.
+        /// Returns the keyword to refer to selecting a specific number of rows.
         /// </summary>
         string Top { get; }
+
+        /// <summary>
+        /// Returns the keyword for comparing to a small set.
+        /// </summary>
+        string In { get;  }
 
         /// <summary>
         ///  Generates Select query object without where clause
@@ -140,6 +145,25 @@ namespace FluentSql.SqlGenerators.Contracts
         /// </summary>
         /// <returns></returns>
         string GetStringComparisonOperator();
+
+        /// <summary>
+        /// Returns the Sql function that Adds to a database date field
+        /// </summary>
+        /// <param name="datePart"></param>
+        /// <param name="entityType"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="number"></param>
+        /// <returns></returns>
+        string GetDateAddFunction(string datePart, Type entityType, string fieldName, int number);
+
+        /// <summary>
+        /// Return the Sql function that resolves the DatePart of a date field
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="entityType"></param>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
+        string GetDatePartFunction(string methodName, Type entityType, string fieldName);
 
         /// <summary>
         /// Returns the required field formatting for the specific SQL dialect.

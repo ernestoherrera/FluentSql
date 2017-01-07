@@ -1,27 +1,8 @@
-﻿using System;
- using System.Collections.Generic;
- using System.Linq;
- using System.Text;
- using System.Threading.Tasks;
- 
- namespace FluentSql.Tests.Support
- {
-     internal class SqlScripts
-     {
-         public static string CREATE_DATABASE
-        {
-            get
-            {
-                return string.Format(
-  @" IF NOT EXISTS (SELECT TOP 1 * FROM master.dbo.sysdatabases o where ( o.name  = '{0}'))
-     CREATE DATABASE {0};", TestConstants.TestDatabaseName);
-            }
-        }
+IF NOT EXISTS (SELECT TOP 1 * FROM master.dbo.sysdatabases o where ( o.name  = 'FluentSqlTestDb'))
+     CREATE DATABASE FluentSqlTestDb;
 
-        public static string CREATE_TABLES { get
-            {
-                return string.Format(
-    @"USE {0};
+USE FluentSqlTestDb;
+GO
 
 IF  EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'[dbo].[vwCustomerOrders]'))
 DROP VIEW [dbo].[vwCustomerOrders]
@@ -216,7 +197,7 @@ INSERT INTO [Orders] (CustomerId,EmployeeID,OrderDate,RequiredDate,
 	ShippedDate,ShipVia,Freight,ShipName,ShipAddress,
 	ShipCity,ShipRegion,ShipPostalCode,ShipCountry)
 VALUES (1,4,'1/18/2016','2/15/2016','2/25/2016',3,3.25,
-	N'Mexico Centre',N'345 Toledo Drive',N'New México',
+	N'Mexico Centre',N'345 Toledo Drive',N'New M�xico',
 	NULL,N'456878',N'USA');
 INSERT INTO [Orders] (CustomerId,EmployeeID,OrderDate,RequiredDate,
 	ShippedDate,ShipVia,Freight,ShipName,ShipAddress,
@@ -234,8 +215,3 @@ VALUES (2,1,'1/19/2016','2/16/2016','2/29/2016',1,55.09,
   INSERT OrderDetails VALUES (3, 1, 3.33, 100, 0.0);
   INSERT OrderDetails VALUES (3, 2, 17.99, 50, 0.0);
   INSERT OrderDetails VALUES (3, 3, 45.99, 2, 0.0);
-", TestConstants.TestDatabaseName);
-            }
-        }
-     }
- }
