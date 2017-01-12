@@ -37,7 +37,7 @@ Please take a look at the [Wiki] (https://github.com/ernestoherrera/FluentSql/wi
 
 ## Help out
 
-As an open source code project, contributing to enhance FluentSql is a key part to make great software:
+As an open source code project, contributing to enhance FluentSql is a key part to make great software. For a quick [Walk through the code follow this link.] (http://ernestoherrera.net/sql/statements/for/dapper/2016/11/28/fluentsql-for-net/) One can help with the following:
 
 - Documentation
 - Bug Reports
