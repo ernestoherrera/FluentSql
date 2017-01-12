@@ -157,13 +157,23 @@ namespace FluentSql.SqlGenerators.Contracts
         string GetDateAddFunction(string datePart, Type entityType, string fieldName, int number);
 
         /// <summary>
-        /// Return the Sql function that resolves the DatePart of a date field
+        /// Returns the Sql function that resolves the DatePart of a date field
         /// </summary>
         /// <param name="methodName"></param>
         /// <param name="entityType"></param>
         /// <param name="fieldName"></param>
         /// <returns></returns>
         string GetDatePartFunction(string methodName, Type entityType, string fieldName);
+
+        /// <summary>
+        /// Returns the Sql function that resolves the difference between two date fields
+        /// </summary>
+        /// <param name="minuendType"></param>
+        /// <param name="minuend"></param>
+        /// <param name="subtrahendType"></param>
+        /// <param name="subtrahend"></param>
+        /// <returns></returns>
+        string GetDateDiffFunction(Type minuendType, string minuend, Type subtrahendType, string subtrahend);
 
         /// <summary>
         /// Returns the required field formatting for the specific SQL dialect.

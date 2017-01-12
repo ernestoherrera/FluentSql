@@ -508,12 +508,86 @@ namespace FluentSql.Support.Helpers
 
                 _predicateString.Push(datePartFuntion);
             }
+            else if (methodName == Methods.GETDAYDIFF)
+            {
+                if (methodCall.Arguments.Count < 2)
+                    throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
+
+                Expression fieldTypeExpression = methodCall.Arguments[0];
+                string minuend = string.Empty;
+                string subtrahend = string.Empty;
+                Type minuendType = null;
+                Type subtrahendType = null;
+
+                if (fieldTypeExpression.NodeType == ExpressionType.Convert)
+                {
+                    var minuendValue = GetDateTimeValue(fieldTypeExpression);
+                    var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
+
+                    minuend = minuendValue.HasValue ? minuendValue.Value.ToString() : "";
+                    minuendType = typeof(DateTime?);
+                    QueryParameters.Add(paramName, minuend);
+
+                }
+                else if (fieldTypeExpression.NodeType == ExpressionType.MemberAccess && 
+                    ((MemberExpression)fieldTypeExpression).Expression != null &&
+                    ((MemberExpression)fieldTypeExpression).Expression.NodeType == ExpressionType.Parameter)
+                {
+                    var memberExp = (MemberExpression)fieldTypeExpression;
+                    minuendType = memberExp.Type;
+                    minuend = GetPropertyName(memberExp.ToString());
+                }
+                else 
+                {
+                    minuend = GetValue((MemberExpression)fieldTypeExpression).ToString();
+                    minuendType = typeof(DateTime?);
+                }
+
+                fieldTypeExpression = methodCall.Arguments[1];
+
+                if (fieldTypeExpression.NodeType == ExpressionType.Convert)
+                {
+                    var minuendValue = GetDateTimeValue(fieldTypeExpression);
+                    var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
+
+                    subtrahend = minuendValue.HasValue ? minuendValue.Value.ToString() : "";
+                    subtrahendType = typeof(DateTime?);
+                    QueryParameters.Add(paramName, subtrahend);
+                }
+                else if (fieldTypeExpression.NodeType == ExpressionType.MemberAccess &&
+                    ((MemberExpression)fieldTypeExpression).Expression != null &&
+                    ((MemberExpression)fieldTypeExpression).Expression.NodeType == ExpressionType.Parameter)
+                {
+                    var memberExp = (MemberExpression)fieldTypeExpression;
+                    subtrahendType = memberExp.Type;
+                    subtrahend = GetPropertyName(memberExp.ToString());
+                }
+                else
+                {
+                    subtrahend = GetValue((MemberExpression)fieldTypeExpression).ToString();
+                    subtrahendType = typeof(DateTime?);
+                }
+
+                var dateDiffFunction = EntityMapper.SqlGenerator.GetDateDiffFunction(minuendType, minuend, subtrahendType, subtrahend);
+
+                _predicateString.Push(dateDiffFunction);
+
+            }
             else
                 throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
 
             return methodCall;
         }
 
+        private DateTime? GetDateTimeValue(Expression dateMethod)
+        {
+            if (dateMethod == null) return null;
+
+            var lambdaExp = Expression.Lambda(dateMethod).Compile();
+            var parameterValue = (DateTime?)lambdaExp.DynamicInvoke();
+
+            return parameterValue;
+        }
         #endregion
 
     }

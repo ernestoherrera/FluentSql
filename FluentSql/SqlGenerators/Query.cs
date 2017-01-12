@@ -11,7 +11,7 @@ using System.Linq.Expressions;
 
 namespace FluentSql.SqlGenerators
 {
-    public class Query<TEntity> : IQuery<TEntity>
+    public class Query<TEntity> : IQuery<TEntity>, IDisposable
     {
         #region Protected Properties
         protected ExpressionHelper Predicate;

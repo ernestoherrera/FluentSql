@@ -856,6 +856,20 @@ namespace FluentSql.Tests.SelectStatement
 
             Xunit.Assert.NotNull(singleEmployee);
         }
+
+        [Fact]
+        public void WhereClauseWithGetDayDiff()
+        {
+            var store = new EntityStore(_dbConnection);
+            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.GetDayDiff(e.Birthdate, DateTime.Now) >= 365);
+            var order = new Order { OrderDate = DateTime.Now };
+
+            var singleOrder = store.GetSingle<Order>(o => SqlFunctions.GetDayDiff(o.OrderDate, order.OrderDate) >= 30);
+
+            var otherOrder = store.GetSingle<Order>(o => SqlFunctions.GetDayDiff(o.OrderDate, TestConstants.DUMMY_DATE) >= 30);
+
+            Xunit.Assert.NotNull(singleEmployee);
+        }
         public void Dispose()
         {
             _dbConnection.Close();

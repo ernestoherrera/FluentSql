@@ -11,19 +11,19 @@ var mapper = new EntityMapper(dbConnection);
 It supports more complex scenarios where one can supply: database(s) names, assemblies where the models are located, database mappers and others.
 
 ## Features
-
- 1. Select, Update, Delete, and Insert queries.
- 2. Use of Multiple Join method on Select, Update, and Delete queries.
- 3. Use of Transactions
- 4. Use of most common Functions for the where clause: Contains, StartsWith, EndsWith, DateTime.Now, Parenthesis Hierarchic.
- 5. Use of OrdeBy methods that allow for grid queries.
- 6. Models do not need any attributes.
- 7. Use C# code to create your Sql statements.
- 8. It saves coding time by using one API for all queries.
- 9. Support for Multi-Database queries for the same server.
- 10. Currently, it only supports Sql Server syntax.
- 11. Runtime readonly dictionary with all database tables and columns information keyed by type.
- 12. Clean and lean Sql statements.
+ 1. Clean and lean Sql statements.
+ 2. Select, Update, Delete, and Insert queries.
+ 3. Use of Multiple Join method on Select, Update, and Delete queries.
+ 4. Use of Transactions
+ 5. Use of most common Functions for the where clause: Contains, StartsWith, EndsWith, DateTime.Now, Parenthesis Hierarchic.
+ 6. Use of OrdeBy methods that allow for grid queries.
+ 7. Models do not need any attributes.
+ 8. Use C# code to create your Sql statements.
+ 9. It saves coding time by using one API for all queries.
+ 10. Support for Multi-Database queries for the same server.
+ 11. Currently, it only supports Sql Server syntax.
+ 12. Runtime readonly dictionary with all database tables and columns information keyed by type.
+ 13. Use of Sql Date Functions.
 
 ## Get Started
 
@@ -33,7 +33,6 @@ Please take a look at the [Wiki] (https://github.com/ernestoherrera/FluentSql/wi
 
 - Does not support self join queries.
 - Does not issue a 'IS NULL' sql when looking for NULL values
-- Does not support any of the SqlServer Date functions
 - Does not support Group By Clause.
 
 ## Help out

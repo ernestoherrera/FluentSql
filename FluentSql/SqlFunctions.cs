@@ -9,6 +9,7 @@ namespace FluentSql
     public class SqlFunctions
     {
         private static string FUNCTION_DIRECT_CALL = "This function can not be called directly.";
+
         #region DateAdd Function
         public static DateTime AddYears(DateTime fieldName, int numberOfYears)
         {
@@ -123,6 +124,13 @@ namespace FluentSql
         }
 
         public static int GetMillisecond(DateTime? fieldName)
+        {
+            throw new NotSupportedException(FUNCTION_DIRECT_CALL);
+        }
+        #endregion
+
+        #region DateDiff Function
+        public static int GetDayDiff(DateTime? minuendFieldName, DateTime? subtrahendFieldName)
         {
             throw new NotSupportedException(FUNCTION_DIRECT_CALL);
         }
