@@ -534,6 +534,7 @@ namespace FluentSql.Support.Helpers
                     ((MemberExpression)fieldTypeExpression).Expression.NodeType == ExpressionType.Parameter)
                 {
                     var memberExp = (MemberExpression)fieldTypeExpression;
+
                     minuendType = memberExp.Type;
                     minuend = GetPropertyName(memberExp.ToString());
                 }
@@ -547,24 +548,29 @@ namespace FluentSql.Support.Helpers
 
                 if (fieldTypeExpression.NodeType == ExpressionType.Convert)
                 {
-                    var minuendValue = GetDateTimeValue(fieldTypeExpression);
+                    var subtrahendValue = GetDateTimeValue(fieldTypeExpression);
                     var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
 
-                    subtrahend = minuendValue.HasValue ? minuendValue.Value.ToString() : "";
+                    subtrahend = paramName;
                     subtrahendType = typeof(DateTime?);
-                    QueryParameters.Add(paramName, subtrahend);
+                    QueryParameters.Add(paramName, subtrahendValue);
                 }
                 else if (fieldTypeExpression.NodeType == ExpressionType.MemberAccess &&
                     ((MemberExpression)fieldTypeExpression).Expression != null &&
                     ((MemberExpression)fieldTypeExpression).Expression.NodeType == ExpressionType.Parameter)
                 {
                     var memberExp = (MemberExpression)fieldTypeExpression;
+
                     subtrahendType = memberExp.Type;
                     subtrahend = GetPropertyName(memberExp.ToString());
                 }
                 else
                 {
-                    subtrahend = GetValue((MemberExpression)fieldTypeExpression).ToString();
+                    var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
+                    var subtrahendValue = GetValue((MemberExpression)fieldTypeExpression).ToString();
+
+                    QueryParameters.Add(paramName, subtrahendValue);
+                    subtrahend = paramName;
                     subtrahendType = typeof(DateTime?);
                 }
 
