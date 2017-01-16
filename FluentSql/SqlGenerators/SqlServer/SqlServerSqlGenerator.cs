@@ -181,10 +181,10 @@ namespace FluentSql.SqlGenerators.SqlServer
         public string GetDateDiffFunction(Type minuendType, string minuend, Type subtrahendType, string subtrahend)
         {
             if (minuendType == null || string.IsNullOrEmpty(minuend))
-                throw new ArgumentNullException("entityTypeMinuend cannot be null");
+                throw new ArgumentNullException("minuendType cannot be null");
 
             if (subtrahendType == null || string.IsNullOrEmpty(subtrahend))
-                throw new ArgumentNullException("entityTypeMinuend cannot be null");
+                throw new ArgumentNullException("subtrahendType cannot be null");
 
             var datediffFunction = "DATEDIFF({0}, {1}, {2})";
             var formattedMinuend = GetDateDiffField(minuendType, minuend);
@@ -301,7 +301,7 @@ namespace FluentSql.SqlGenerators.SqlServer
         {
             if (operandType == null) return null;
 
-            if (operandType == typeof(DateTime?)) return operandName;
+            if (operandType == typeof(DateTime?) || operandType == typeof(DateTime)) return operandName;
             
             var verifiedField = EntityMapper.Entities[operandType].Properties
                                         .FirstOrDefault(p => p.Name == operandName);

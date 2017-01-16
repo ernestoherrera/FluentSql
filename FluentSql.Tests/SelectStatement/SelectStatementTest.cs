@@ -795,6 +795,24 @@ namespace FluentSql.Tests.SelectStatement
         }
 
         [Fact]
+        public void WhereClauseWithGetDatePartDayOfYear1()
+        {
+            var store = new EntityStore(_dbConnection);
+            var order = store.GetSingle<Order>(o => SqlFunctions.GetDayOfYear(o.OrderDate) <= DateTime.Now.DayOfYear);
+
+            Xunit.Assert.NotNull(order);
+        }
+
+        [Fact]
+        public void WhereClauseWithGetDatePartDayOfYear2()
+        {
+            var store = new EntityStore(_dbConnection);
+            var order = store.GetSingle<Order>(o => SqlFunctions.GetDayOfYear(DateTime.Now) >= SqlFunctions.GetDayOfYear(o.OrderDate));
+
+            Xunit.Assert.NotNull(order);
+        }
+
+        [Fact]
         public void WhereClauseWithGetDatePartDay()
         {
             var store = new EntityStore(_dbConnection);
@@ -876,15 +894,6 @@ namespace FluentSql.Tests.SelectStatement
 
             Xunit.Assert.NotNull(otherOrder);
             Xunit.Assert.IsType<Order>(otherOrder);
-        }
-
-        [Fact]
-        public void WhereClauseWithGetDatePartDayOfYear1()
-        {
-            var store = new EntityStore(_dbConnection);
-            var order = store.GetSingle<Order>(o => SqlFunctions.GetDayOfYear(o.OrderDate) >= DateTime.Now.Day);
-
-            Xunit.Assert.NotNull(order);
         }
 
         public void Dispose()
