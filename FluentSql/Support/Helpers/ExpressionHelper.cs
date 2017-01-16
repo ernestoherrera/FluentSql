@@ -513,76 +513,71 @@ namespace FluentSql.Support.Helpers
                 if (methodCall.Arguments.Count < 2)
                     throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
 
-                Expression fieldTypeExpression = methodCall.Arguments[0];
-                string minuend = string.Empty;
-                string subtrahend = string.Empty;
-                Type minuendType = null;
-                Type subtrahendType = null;
-
-                if (fieldTypeExpression.NodeType == ExpressionType.Convert)
-                {
-                    var minuendValue = GetDateTimeValue(fieldTypeExpression);
-                    var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
-
-                    minuend = minuendValue.HasValue ? minuendValue.Value.ToString() : "";
-                    minuendType = typeof(DateTime?);
-                    QueryParameters.Add(paramName, minuend);
-
-                }
-                else if (fieldTypeExpression.NodeType == ExpressionType.MemberAccess && 
-                    ((MemberExpression)fieldTypeExpression).Expression != null &&
-                    ((MemberExpression)fieldTypeExpression).Expression.NodeType == ExpressionType.Parameter)
-                {
-                    var memberExp = (MemberExpression)fieldTypeExpression;
-
-                    minuendType = memberExp.Type;
-                    minuend = GetPropertyName(memberExp.ToString());
-                }
-                else 
-                {
-                    minuend = GetValue((MemberExpression)fieldTypeExpression).ToString();
-                    minuendType = typeof(DateTime?);
-                }
-
-                fieldTypeExpression = methodCall.Arguments[1];
-
-                if (fieldTypeExpression.NodeType == ExpressionType.Convert)
-                {
-                    var subtrahendValue = GetDateTimeValue(fieldTypeExpression);
-                    var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
-
-                    subtrahend = paramName;
-                    subtrahendType = typeof(DateTime?);
-                    QueryParameters.Add(paramName, subtrahendValue);
-                }
-                else if (fieldTypeExpression.NodeType == ExpressionType.MemberAccess &&
-                    ((MemberExpression)fieldTypeExpression).Expression != null &&
-                    ((MemberExpression)fieldTypeExpression).Expression.NodeType == ExpressionType.Parameter)
-                {
-                    var memberExp = (MemberExpression)fieldTypeExpression;
-
-                    subtrahendType = memberExp.Type;
-                    subtrahend = GetPropertyName(memberExp.ToString());
-                }
-                else
-                {
-                    var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
-                    var subtrahendValue = GetValue((MemberExpression)fieldTypeExpression).ToString();
-
-                    QueryParameters.Add(paramName, subtrahendValue);
-                    subtrahend = paramName;
-                    subtrahendType = typeof(DateTime?);
-                }
-
-                var dateDiffFunction = EntityMapper.SqlGenerator.GetDateDiffFunction(minuendType, minuend, subtrahendType, subtrahend);
-
-                _predicateString.Push(dateDiffFunction);
+                ResolveDateDiffFunction(methodCall);
 
             }
             else
                 throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
 
             return methodCall;
+        }
+
+        private void ResolveDateDiffFunction(MethodCallExpression methodCall)
+        {
+            var method = methodCall.Method;
+            var methodName = method.Name;
+
+            if (methodCall.Arguments.Count < 2)
+                throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
+
+            Expression fieldTypeExpression = methodCall.Arguments[0];
+            string minuend = string.Empty;
+            string subtrahend = string.Empty;
+            Type minuendType = null;
+            Type subtrahendType = null;
+
+            GetDateDiffOperands(methodCall, 0, ref minuendType, ref minuend);
+            GetDateDiffOperands(methodCall, 1, ref subtrahendType, ref subtrahend);
+
+            var dateDiffFunction = EntityMapper.SqlGenerator.GetDateDiffFunction(minuendType, minuend, subtrahendType, subtrahend);
+
+            _predicateString.Push(dateDiffFunction);
+
+        }
+
+        private void GetDateDiffOperands(MethodCallExpression methodCall, int argOrdinalPosition, ref Type operandType, ref string operand)
+        {
+            Expression fieldTypeExpression = methodCall.Arguments[argOrdinalPosition];
+
+            if (fieldTypeExpression.NodeType == ExpressionType.Convert)
+            {
+                var operandValue = GetDateTimeValue(fieldTypeExpression);
+                var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
+
+                operandType = typeof(DateTime?);
+                operand = paramName;
+
+                QueryParameters.Add(paramName, operandValue);
+
+            }
+            else if (fieldTypeExpression.NodeType == ExpressionType.MemberAccess &&
+                ((MemberExpression)fieldTypeExpression).Expression != null &&
+                ((MemberExpression)fieldTypeExpression).Expression.NodeType == ExpressionType.Parameter)
+            {
+                var memberExp = (MemberExpression)fieldTypeExpression;
+
+                operandType = memberExp.Type;
+                operand = GetPropertyName(memberExp.ToString());
+            }
+            else
+            {
+                var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
+                var operandValue = GetValue((MemberExpression)fieldTypeExpression).ToString();
+
+                QueryParameters.Add(paramName, operandValue);
+                operand = paramName;
+                operandType = typeof(DateTime?);
+            }
         }
 
         private DateTime? GetDateTimeValue(Expression dateMethod)
