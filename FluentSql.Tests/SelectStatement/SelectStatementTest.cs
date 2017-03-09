@@ -807,7 +807,8 @@ namespace FluentSql.Tests.SelectStatement
         public void WhereClauseWithGetDatePartDayOfYear2()
         {
             var store = new EntityStore(_dbConnection);
-            var order = store.GetSingle<Order>(o => SqlFunctions.GetDayOfYear(DateTime.Now) >= SqlFunctions.GetDayOfYear(o.OrderDate));
+            var dayOfYear = 17;
+            var order = store.GetSingle<Order>(o => dayOfYear >= SqlFunctions.GetDayOfYear(o.OrderDate));
 
             Xunit.Assert.NotNull(order);
         }
@@ -873,27 +874,6 @@ namespace FluentSql.Tests.SelectStatement
             var singleEmployee = store.GetSingle<Order>(o => SqlFunctions.GetMillisecond(o.OrderDate) >= 0);
 
             Xunit.Assert.NotNull(singleEmployee);
-        }
-
-        [Fact]
-        public void WhereClauseWithGetDayDiff()
-        {
-            var store = new EntityStore(_dbConnection);
-            var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.GetDayDiff(e.Birthdate, DateTime.Now) >= 365);
-
-            Xunit.Assert.NotNull(singleEmployee);
-            Xunit.Assert.IsType<Employee>(singleEmployee);
-
-            var order = new Order { OrderDate = DateTime.Now };
-            var singleOrder = store.GetSingle<Order>(o => SqlFunctions.GetDayDiff(o.OrderDate, order.OrderDate) >= 30);
-
-            Xunit.Assert.NotNull(singleOrder);
-            Xunit.Assert.IsType<Order>(singleOrder);
-
-            var otherOrder = store.GetSingle<Order>(o => SqlFunctions.GetDayDiff(o.OrderDate, TestConstants.DUMMY_DATE) >= 30);
-
-            Xunit.Assert.NotNull(otherOrder);
-            Xunit.Assert.IsType<Order>(otherOrder);
         }
 
         public void Dispose()

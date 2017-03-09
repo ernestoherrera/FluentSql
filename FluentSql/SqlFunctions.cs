@@ -128,12 +128,5 @@ namespace FluentSql
             throw new NotSupportedException(FUNCTION_DIRECT_CALL);
         }
         #endregion
-
-        #region DateDiff Function
-        public static int GetDayDiff(DateTime? minuendFieldName, DateTime? subtrahendFieldName)
-        {
-            throw new NotSupportedException(FUNCTION_DIRECT_CALL);
-        }
-        #endregion
     }
 }

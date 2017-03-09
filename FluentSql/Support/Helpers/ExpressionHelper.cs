@@ -511,60 +511,17 @@ namespace FluentSql.Support.Helpers
 
                 GetDateOperands(methodCall, 0, ref operandType, ref operand);
 
+                if (operandType == typeof(DateTime) || operandType == typeof(DateTime?))
+                    throw new Exception("Expression Helper does not support DateTime functions or variables. It supports DateTime Entity Types");
+
                 var datePartFuntion = EntityMapper.SqlGenerator.GetDatePartFunction(methodName, operandType, operand);
 
                 _predicateString.Push(datePartFuntion);
-            }
-            else if (methodName == Methods.GETDAYDIFF)
-            {
-                if (methodCall.Arguments.Count < 2)
-                    throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
-
-                ResolveDateDiffFunction(methodCall);
-
             }
             else
                 throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
 
             return methodCall;
-        }
-
-        private void ResolveDateDiffFunction(MethodCallExpression methodCall)
-        {
-            var method = methodCall.Method;
-            var methodName = method.Name;
-
-            if (methodCall.Arguments.Count < 2)
-                throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
-
-            Expression fieldTypeExpression = methodCall.Arguments[0];
-            string minuend = string.Empty;
-            string subtrahend = string.Empty;
-            Type minuendType = null;
-            Type subtrahendType = null;
-
-            GetDateOperands(methodCall, 0, ref minuendType, ref minuend);
-            GetDateOperands(methodCall, 1, ref subtrahendType, ref subtrahend);
-
-            if (minuendType == typeof(DateTime) || minuendType == typeof(DateTime?))
-            {
-                var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
-
-                QueryParameters.Add(paramName, minuend);
-                minuend = paramName;
-            }
-
-            if (subtrahendType == typeof(DateTime) || subtrahendType == typeof(DateTime?))
-            {
-                var paramName = _paramNameGenerator.GetNextParameterName(_parameterName);
-
-                QueryParameters.Add(paramName, subtrahend);
-                subtrahend = paramName;
-            }
-
-            var dateDiffFunction = EntityMapper.SqlGenerator.GetDateDiffFunction(minuendType, minuend, subtrahendType, subtrahend);
-
-            _predicateString.Push(dateDiffFunction);
         }
 
         private void GetDateOperands(MethodCallExpression methodCall, int argOrdinalPosition, ref Type operandType, ref string operand)

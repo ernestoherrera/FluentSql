@@ -44,10 +44,6 @@ namespace FluentSql.Support.Helpers
         public static string GETMILLISECOND = "GetMillisecond";
         #endregion
 
-        #region
-        public static string GETDAYDIFF = "GetDayDiff";
-        #endregion
-
         public static string COMPARETO = "CompareTo";
 
         public static string YEAR = "Year";

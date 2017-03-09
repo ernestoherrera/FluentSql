@@ -178,38 +178,32 @@ namespace FluentSql.SqlGenerators.SqlServer
             return "LIKE";
         }
 
-        public string GetDateDiffFunction(Type minuendType, string minuend, Type subtrahendType, string subtrahend)
-        {
-            if (minuendType == null || string.IsNullOrEmpty(minuend))
-                throw new ArgumentNullException("minuendType cannot be null");
-
-            if (subtrahendType == null || string.IsNullOrEmpty(subtrahend))
-                throw new ArgumentNullException("subtrahendType cannot be null");
-
-            var datediffFunction = "DATEDIFF({0}, {1}, {2})";
-            var formattedMinuend = GetDateDiffField(minuendType, minuend);
-            var formattedSubtrahend = GetDateDiffField(subtrahendType, subtrahend);
-            var datePart = GetDatePartArgument(Methods.GETDAYDIFF);
-
-            return string.Format(datediffFunction, datePart, formattedMinuend, formattedSubtrahend);
-
-        }
-
         public string GetDatePartFunction(string methodName, Type entityType, string fieldName)
         {
             if (string.IsNullOrEmpty(methodName) || entityType == null || string.IsNullOrEmpty(fieldName))
                 throw new ArgumentNullException("Arguements can not be null.");
 
-            var datePartFunction = "DATEPART({0}, {1})";
-            var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
+            if (entityType == typeof(DateTime) || entityType == typeof(DateTime?))
+                throw new Exception("SqlServerGenerator: DatePart function does not support DateTime functions for arguments.");
 
-            if (verifiedField == null)
+            var datePartFunction = "DATEPART({0}, {1})";
+            var dateField = string.Empty;
+
+            if (EntityMapper.Entities.Keys.Contains(entityType))
+            {
+                var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
+
+                if (verifiedField == null)
+                    throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
+
+                dateField = FormatFieldforSql(entityType, fieldName);
+            }
+            else
                 throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
 
-            var formattedField = FormatFieldforSql(entityType, fieldName);
             var datePart = GetDatePartArgument(methodName);
 
-            return string.Format(datePartFunction, datePart, formattedField);
+            return string.Format(datePartFunction, datePart, dateField);
         }
 
         public string GetDateAddFunction(string methodName, Type entityType, string fieldName, int number)
@@ -222,6 +216,9 @@ namespace FluentSql.SqlGenerators.SqlServer
 
             if (string.IsNullOrEmpty(fieldName))
                 throw new ArgumentNullException("Field Name (fieldName) can not be null.");
+
+            if (entityType == typeof(DateTime) || entityType == typeof(DateTime?))
+                throw new Exception("SqlServerGenerator: DateAdd function does not support DateTime function for arguments.");
 
             var DateFunction = "DATEADD({0}, {1}, {2})";
             var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
@@ -272,7 +269,7 @@ namespace FluentSql.SqlGenerators.SqlServer
             else if (methodName == Methods.ADDMONTHS || methodName == Methods.GETMONTH)
                 return "month";
 
-            else if (methodName == Methods.ADDDAYS || methodName == Methods.GETDAY || methodName == Methods.GETDAYDIFF)
+            else if (methodName == Methods.ADDDAYS || methodName == Methods.GETDAY)
                 return "day";
 
             if (methodName == Methods.ADDWEEKS || methodName == Methods.GETWEEK)
@@ -297,20 +294,6 @@ namespace FluentSql.SqlGenerators.SqlServer
                 throw new NotSupportedException(string.Format("Method Name not supported: {0}", methodName));
         }
 
-        private string GetDateDiffField(Type operandType, string operandName)
-        {
-            if (operandType == null) return null;
-
-            if (operandType == typeof(DateTime?) || operandType == typeof(DateTime)) return operandName;
-            
-            var verifiedField = EntityMapper.Entities[operandType].Properties
-                                        .FirstOrDefault(p => p.Name == operandName);
-
-            if (verifiedField == null)
-                throw new Exception(string.Format("Could not find field {0} in type {1}", operandType, operandType));
-
-            return FormatFieldforSql(operandType, operandName);
-        }
         #endregion
     }
 }
