@@ -24,6 +24,7 @@ namespace FluentSql.Tests.Support
 
         #region Where clause test constants
         public static string USERNAME = "MCarter";
+        public static DateTime? DUMMY_DATE = DateTime.Now;
         #endregion
 
         public TestConstants() { }

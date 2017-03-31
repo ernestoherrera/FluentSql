@@ -26,6 +26,10 @@ namespace FluentSql.Support.Helpers
         }
         #endregion
 
+        #region Constants
+        private readonly string NO_DATETIME_SUPPORT = "SqlFunction does not support DateTime functions or variables. It supports DateTime Entity Types";
+        #endregion
+
         #region Private Properties
         private static readonly char[] _period = new char[] { '.' };
         private IComparer<ExpressionType> _comparer = new OperatorPrecedenceComparer();
@@ -204,10 +208,20 @@ namespace FluentSql.Support.Helpers
                 _predicateString.Push(memberExpression.ToString() + " = 1");
             }
             else if (member.MemberType == MemberTypes.Property &&
-                    propertyType == typeof(System.DateTime) &&
+                    (propertyType == typeof(System.DateTime) || 
+                    (propertyType == typeof(DateTime?))) &&
                     memberExpression.Expression == null)
             {
                 AddToPredicate(memberExpression);
+                return memberExpression;
+            }
+            else if (member.MemberType == MemberTypes.Property &&
+                    propertyType == typeof(Int32) &&
+                    memberExpression.Expression != null && 
+                    memberExpression.ToString().StartsWith("DateTime.Now."))
+            {
+                AddToPredicate(memberExpression);
+                return memberExpression;
             }
             else if (memberExpression.Expression != null &&
                      memberExpression.Expression.NodeType == ExpressionType.MemberAccess &&
@@ -471,6 +485,10 @@ namespace FluentSql.Support.Helpers
                     throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
 
                 var fieldTypeExpression = methodCall.Arguments[0];
+
+                if (fieldTypeExpression.NodeType == ExpressionType.Convert)
+                    throw new Exception(NO_DATETIME_SUPPORT);
+
                 var functionArgument = methodCall.Arguments[1];
                 var memberExpression = (MemberExpression)fieldTypeExpression;
 
@@ -496,15 +514,15 @@ namespace FluentSql.Support.Helpers
                 if (methodCall.Arguments.Count < 1)
                     throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
 
-                var fieldTypeExpression = methodCall.Arguments[0];
-                var memberExpression = (MemberExpression)fieldTypeExpression;
+                Type operandType = null;
+                string operand = string.Empty;
 
-                if (fieldTypeExpression == null || memberExpression.Expression == null)
-                    throw new ArgumentException(string.Format("Method {0} expects a field type as parameter.", methodName));
+                GetDateOperands(methodCall, 0, ref operandType, ref operand);
 
-                var entityType = memberExpression.Expression.Type;
-                var propertyName = GetPropertyName(fieldTypeExpression.ToString());
-                var datePartFuntion = EntityMapper.SqlGenerator.GetDatePartFunction(methodName, entityType, propertyName);
+                if (operandType == typeof(DateTime) || operandType == typeof(DateTime?))
+                    throw new Exception(NO_DATETIME_SUPPORT);
+
+                var datePartFuntion = EntityMapper.SqlGenerator.GetDatePartFunction(methodName, operandType, operand);
 
                 _predicateString.Push(datePartFuntion);
             }
@@ -514,6 +532,45 @@ namespace FluentSql.Support.Helpers
             return methodCall;
         }
 
+        private void GetDateOperands(MethodCallExpression methodCall, int argOrdinalPosition, ref Type operandType, ref string operand)
+        {
+            Expression fieldTypeExpression = methodCall.Arguments[argOrdinalPosition];
+
+            if (fieldTypeExpression.NodeType == ExpressionType.Convert)
+            {
+                var operandValue = GetDateTimeValue(fieldTypeExpression);
+
+                operandType = typeof(DateTime?);
+                operand = operandValue.HasValue ? operandValue.Value.ToString() : "";
+
+            }
+            else if (fieldTypeExpression.NodeType == ExpressionType.MemberAccess &&
+                ((MemberExpression)fieldTypeExpression).Expression != null &&
+                ((MemberExpression)fieldTypeExpression).Expression.NodeType == ExpressionType.Parameter)
+            {
+                var memberExp = (MemberExpression)fieldTypeExpression;
+
+                operandType = memberExp.Expression == null ? null : memberExp.Expression.Type;
+                operand = GetPropertyName(memberExp.ToString());
+            }
+            else
+            {
+                var operandValue = GetValue((MemberExpression)fieldTypeExpression);
+
+                operand = operandValue.ToString();
+                operandType = typeof(DateTime?);
+            }
+        }
+
+        private DateTime? GetDateTimeValue(Expression dateMethod)
+        {
+            if (dateMethod == null) return null;
+
+            var lambdaExp = Expression.Lambda(dateMethod).Compile();
+            var parameterValue = (DateTime?)lambdaExp.DynamicInvoke();
+
+            return parameterValue;
+        }
         #endregion
 
     }

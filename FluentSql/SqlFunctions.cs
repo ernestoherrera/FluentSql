@@ -9,6 +9,7 @@ namespace FluentSql
     public class SqlFunctions
     {
         private static string FUNCTION_DIRECT_CALL = "This function can not be called directly.";
+
         #region DateAdd Function
         public static DateTime AddYears(DateTime fieldName, int numberOfYears)
         {

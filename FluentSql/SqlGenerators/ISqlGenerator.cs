@@ -157,7 +157,7 @@ namespace FluentSql.SqlGenerators.Contracts
         string GetDateAddFunction(string datePart, Type entityType, string fieldName, int number);
 
         /// <summary>
-        /// Return the Sql function that resolves the DatePart of a date field
+        /// Returns the Sql function that resolves the DatePart of a date field
         /// </summary>
         /// <param name="methodName"></param>
         /// <param name="entityType"></param>

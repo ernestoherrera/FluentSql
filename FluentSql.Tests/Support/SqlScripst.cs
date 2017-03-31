@@ -215,7 +215,7 @@ VALUES (1,1,'1/17/2016','2/14/2016','2/23/2016',1,140.51,
 INSERT INTO [Orders] (CustomerId,EmployeeID,OrderDate,RequiredDate,
 	ShippedDate,ShipVia,Freight,ShipName,ShipAddress,
 	ShipCity,ShipRegion,ShipPostalCode,ShipCountry)
-VALUES (1,4,'1/18/2016','2/15/2016','2/25/2016',3,3.25,
+VALUES (1,4,'1/1/2016','2/15/2016','2/25/2016',3,3.25,
 	N'Mexico Centre',N'345 Toledo Drive',N'New México',
 	NULL,N'456878',N'USA');
 INSERT INTO [Orders] (CustomerId,EmployeeID,OrderDate,RequiredDate,

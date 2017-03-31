@@ -183,16 +183,27 @@ namespace FluentSql.SqlGenerators.SqlServer
             if (string.IsNullOrEmpty(methodName) || entityType == null || string.IsNullOrEmpty(fieldName))
                 throw new ArgumentNullException("Arguements can not be null.");
 
-            var datePartFunction = "DATEPART({0}, {1})";
-            var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
+            if (entityType == typeof(DateTime) || entityType == typeof(DateTime?))
+                throw new Exception("SqlServerGenerator: DatePart function does not support DateTime functions for arguments.");
 
-            if (verifiedField == null)
+            var datePartFunction = "DATEPART({0}, {1})";
+            var dateField = string.Empty;
+
+            if (EntityMapper.Entities.Keys.Contains(entityType))
+            {
+                var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
+
+                if (verifiedField == null)
+                    throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
+
+                dateField = FormatFieldforSql(entityType, fieldName);
+            }
+            else
                 throw new Exception(string.Format("Could not find field {0} in type {1}", fieldName, entityType));
 
-            var formattedField = FormatFieldforSql(entityType, fieldName);
             var datePart = GetDatePartArgument(methodName);
 
-            return string.Format(datePartFunction, datePart, formattedField);
+            return string.Format(datePartFunction, datePart, dateField);
         }
 
         public string GetDateAddFunction(string methodName, Type entityType, string fieldName, int number)
@@ -205,6 +216,9 @@ namespace FluentSql.SqlGenerators.SqlServer
 
             if (string.IsNullOrEmpty(fieldName))
                 throw new ArgumentNullException("Field Name (fieldName) can not be null.");
+
+            if (entityType == typeof(DateTime) || entityType == typeof(DateTime?))
+                throw new Exception("SqlServerGenerator: DateAdd function does not support DateTime function for arguments.");
 
             var DateFunction = "DATEADD({0}, {1}, {2})";
             var verifiedField = EntityMapper.Entities[entityType].Properties.FirstOrDefault(p => p.Name == fieldName);
@@ -279,6 +293,7 @@ namespace FluentSql.SqlGenerators.SqlServer
             else
                 throw new NotSupportedException(string.Format("Method Name not supported: {0}", methodName));
         }
+
         #endregion
     }
 }
