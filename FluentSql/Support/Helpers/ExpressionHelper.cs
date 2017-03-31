@@ -26,6 +26,10 @@ namespace FluentSql.Support.Helpers
         }
         #endregion
 
+        #region Constants
+        private readonly string NO_DATETIME_SUPPORT = "SqlFunction does not support DateTime functions or variables. It supports DateTime Entity Types";
+        #endregion
+
         #region Private Properties
         private static readonly char[] _period = new char[] { '.' };
         private IComparer<ExpressionType> _comparer = new OperatorPrecedenceComparer();
@@ -481,6 +485,10 @@ namespace FluentSql.Support.Helpers
                     throw new Exception(string.Format("Method not implemented: {0}", methodName ?? "Undetermined method name."));
 
                 var fieldTypeExpression = methodCall.Arguments[0];
+
+                if (fieldTypeExpression.NodeType == ExpressionType.Convert)
+                    throw new Exception(NO_DATETIME_SUPPORT);
+
                 var functionArgument = methodCall.Arguments[1];
                 var memberExpression = (MemberExpression)fieldTypeExpression;
 
@@ -512,7 +520,7 @@ namespace FluentSql.Support.Helpers
                 GetDateOperands(methodCall, 0, ref operandType, ref operand);
 
                 if (operandType == typeof(DateTime) || operandType == typeof(DateTime?))
-                    throw new Exception("Expression Helper does not support DateTime functions or variables. It supports DateTime Entity Types");
+                    throw new Exception(NO_DATETIME_SUPPORT);
 
                 var datePartFuntion = EntityMapper.SqlGenerator.GetDatePartFunction(methodName, operandType, operand);
 

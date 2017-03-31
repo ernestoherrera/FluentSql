@@ -382,6 +382,26 @@ namespace FluentSql.Tests.SelectStatement
         }
 
         [Fact]
+        public void GetSelectQueryWith4Joins()
+        {
+            var store = new EntityStore(_dbConnection);
+            var startingOrderDate = new DateTime(2015, 12, 1);
+            var selectQuery = store.GetSelectQuery<Employee>()
+                        .JoinOn<Order>((e, o) => e.Id == o.EmployeeId && o.Id >= 1)
+                        .JoinOn<Order, Customer>((o, c) => o.CustomerId == c.Id)
+                        .JoinOn<Order, OrderDetail>((o, od) => o.Id == od.OrderId)
+                        .Where<Order, Customer, OrderDetail, Employee>((o, c, od, e) => o.OrderDate > startingOrderDate
+                                                && c.City == "Gainesville" && e.Id >= 1 && od.Quantity > 1)
+                        .OrderBy(e => e.Username);
+
+            var employeeSet = store.ExecuteQuery(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+            Xunit.Assert.True(employeeSet.Count() >= 2);
+            Xunit.Assert.IsType<Employee>(employeeSet.FirstOrDefault());
+        }
+
+        [Fact]
         public void GetSelectQueryWithJoin3()
         {
             var store = new EntityStore(_dbConnection);
@@ -407,6 +427,24 @@ namespace FluentSql.Tests.SelectStatement
                         .JoinOn<Order, Customer>((o, c) => o.CustomerId == c.Id)
                         .Where<Order, Customer, Employee>((o, c, e) => o.OrderDate > startingOrderDate
                                                 && c.City == "Gainesville" && e.Id >= 1)
+                        .OrderBy(e => e.Username);
+
+            var employeeSet = await store.ExecuteQueryAsync(selectQuery);
+
+            Xunit.Assert.NotNull(employeeSet);
+            Xunit.Assert.True(employeeSet.Count() >= 2);
+            Xunit.Assert.IsType<Employee>(employeeSet.FirstOrDefault());
+        }
+
+        [Fact]
+        public async void GetSelectQueryWithOneWhereTypeReferenceAsync()
+        {
+            var store = new EntityStore(_dbConnection);
+            var startingOrderDate = new DateTime(2015, 12, 1);
+            var selectQuery = store.GetSelectQuery<Employee>()
+                        .JoinOn<Order>((e, o) => e.Id == o.EmployeeId && o.Id >= 1)
+                        .JoinOn<Order, Customer>((o, c) => o.CustomerId == c.Id)
+                        .Where<Order>(o => o.OrderDate > startingOrderDate)
                         .OrderBy(e => e.Username);
 
             var employeeSet = await store.ExecuteQueryAsync(selectQuery);
@@ -829,6 +867,7 @@ namespace FluentSql.Tests.SelectStatement
             var singleEmployee = store.GetSingle<Employee>(e => SqlFunctions.GetWeek(e.Birthdate) >= 5);
 
             Xunit.Assert.NotNull(singleEmployee);
+            
         }
 
         [Fact]
@@ -874,6 +913,20 @@ namespace FluentSql.Tests.SelectStatement
             var singleEmployee = store.GetSingle<Order>(o => SqlFunctions.GetMillisecond(o.OrderDate) >= 0);
 
             Xunit.Assert.NotNull(singleEmployee);
+        }
+
+        [Fact]
+        public void WhereClauseThrowsException()
+        {
+            var store = new EntityStore(_dbConnection);
+            string NO_DATETIME_SUPPORT = "SqlFunction does not support DateTime functions or variables. It supports DateTime Entity Types";
+
+            var singleEmployee = store.GetSingle<Order>(o => SqlFunctions.GetMillisecond(o.OrderDate) >= 0);
+
+            var ex = Xunit.Assert.Throws<Exception>(() 
+                => store.GetSingle<Order>(o => SqlFunctions.GetMillisecond(DateTime.Now) >= 0));
+
+            Xunit.Assert.Equal(NO_DATETIME_SUPPORT, ex.Message);
         }
 
         public void Dispose()

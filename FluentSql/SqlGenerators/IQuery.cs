@@ -33,12 +33,20 @@ namespace FluentSql.SqlGenerators.Contracts
 
         IQuery<L> Where(Expression<Func<L, bool>> expression);
 
+        IQuery<L> Where<T>(Expression<Func<T, bool>> expression) where T : new();
+
         IQuery<L> Where<T1, T2>(Expression<Func<T1, T2, bool>> expression) where T1 : new() where T2 : new();
 
         IQuery<L> Where<T1, T2, T3>(Expression<Func<T1, T2, T3, bool>> expression) 
             where T1 : new() 
             where T2 : new()
             where T3 : new();
+
+        IQuery<L> Where<T1, T2, T3, T4>(Expression<Func<T1, T2, T3, T4, bool>> expression)
+            where T1 : new()
+            where T2 : new()
+            where T3 : new()
+            where T4 : new();
 
         IQuery<L> GetTopRows(int topNumberOfRows);
 
