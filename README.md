@@ -27,7 +27,7 @@ It supports more complex scenarios where one can supply: database(s) names, asse
 
 ## Get Started
 
-Please take a look at the [Wiki] (https://github.com/ernestoherrera/FluentSql/wiki/Get-Started)
+Please take a look at the [Wiki](https://github.com/ernestoherrera/FluentSql/wiki/Get-Started "Get Started")
 
 ## Known Issues
 
@@ -37,7 +37,7 @@ Please take a look at the [Wiki] (https://github.com/ernestoherrera/FluentSql/wi
 
 ## Help out
 
-As an open source code project, contributing to enhance FluentSql is a key part to make great software. For a quick [Walk through the code follow this link.] (http://ernestoherrera.net/sql/statements/for/dapper/2016/11/28/fluentsql-for-net/) One can help with the following:
+As an open source code project, contributing to enhance FluentSql is a key part to make great software. For a quick [Walk through the code follow this link.](http://ernestoherrera.net/sql/statements/for/dapper/2016/11/28/fluentsql-for-net/ "Code walk through") One can help with the following:
 
 - Documentation
 - Bug Reports
@@ -55,4 +55,4 @@ Copyright © Ernesto Herrera and contributors
 
 ## License
 
-FluentSql is licensed under [Apache 2.0] (http://www.apache.org/licenses/LICENSE-2.0)
+FluentSql is licensed under [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
