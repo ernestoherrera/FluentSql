@@ -11,7 +11,7 @@ using System.Linq.Expressions;
 
 namespace FluentSql.SqlGenerators
 {
-    public class Query<TEntity> : IQuery<TEntity>
+    public class Query<TEntity> : IQuery<TEntity>, IDisposable
     {
         #region Protected Properties
         protected ExpressionHelper Predicate;
@@ -93,6 +93,20 @@ namespace FluentSql.SqlGenerators
             return this;
         }
 
+        public IQuery<TEntity> Where<T>(Expression<Func<T, bool>> expression) where T : new()
+        {
+            if (expression == null) return this;
+
+            Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
+
+            if (Parameters.ParameterNames.Any())
+                Parameters.AddDynamicParams(Predicate.QueryParameters);
+            else
+                Parameters = Predicate.QueryParameters;
+
+            return this;
+        }
+
         public IQuery<TEntity> Where<T1, T2>(Expression<Func<T1, T2, bool>> expression) where T1 : new() where T2 : new()
         {
             if (expression == null) return this;
@@ -111,6 +125,25 @@ namespace FluentSql.SqlGenerators
             where T1 : new()
             where T2 : new()
             where T3 : new()
+        {
+            if (expression == null) return this;
+
+            Predicate = new ExpressionHelper(expression, ParameterNameGenerator);
+
+            if (Parameters.ParameterNames.Any())
+                Parameters.AddDynamicParams(Predicate.QueryParameters);
+            else
+                Parameters = Predicate.QueryParameters;
+
+            return this;
+        }
+
+
+        public IQuery<TEntity> Where<T1, T2, T3, T4>(Expression<Func<T1, T2, T3, T4, bool>> expression)
+            where T1 : new()
+            where T2 : new()
+            where T3 : new()
+            where T4 : new()
         {
             if (expression == null) return this;
 
